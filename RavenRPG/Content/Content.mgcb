@@ -1,0 +1,293 @@
+
+#----------------------------- Global Properties ----------------------------#
+
+/outputDir:bin/$(Platform)
+/intermediateDir:obj/$(Platform)
+/platform:DesktopGL
+/config:
+/profile:Reach
+/compress:False
+
+#-------------------------------- References --------------------------------#
+
+
+#---------------------------------- Content ---------------------------------#
+
+#begin Fonts/pf.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:Fonts/pf.spritefont
+
+#begin Models/bigcube.FBX
+/importer:FbxImporter
+/processor:ModelProcessor
+/processorParam:ColorKeyColor=0,0,0,0
+/processorParam:ColorKeyEnabled=True
+/processorParam:DefaultEffect=BasicEffect
+/processorParam:GenerateMipmaps=True
+/processorParam:GenerateTangentFrames=False
+/processorParam:PremultiplyTextureAlpha=True
+/processorParam:PremultiplyVertexColors=True
+/processorParam:ResizeTexturesToPowerOfTwo=False
+/processorParam:RotationX=0
+/processorParam:RotationY=0
+/processorParam:RotationZ=0
+/processorParam:Scale=1
+/processorParam:SwapWindingOrder=False
+/processorParam:TextureFormat=Compressed
+/build:Models/bigcube.FBX
+
+#begin Models/cone.FBX
+/importer:FbxImporter
+/processor:ModelProcessor
+/processorParam:ColorKeyColor=0,0,0,0
+/processorParam:ColorKeyEnabled=True
+/processorParam:DefaultEffect=BasicEffect
+/processorParam:GenerateMipmaps=True
+/processorParam:GenerateTangentFrames=False
+/processorParam:PremultiplyTextureAlpha=True
+/processorParam:PremultiplyVertexColors=True
+/processorParam:ResizeTexturesToPowerOfTwo=False
+/processorParam:RotationX=0
+/processorParam:RotationY=0
+/processorParam:RotationZ=0
+/processorParam:Scale=1
+/processorParam:SwapWindingOrder=False
+/processorParam:TextureFormat=Compressed
+/build:Models/cone.FBX
+
+#begin Models/cube.FBX
+/importer:FbxImporter
+/processor:ModelProcessor
+/processorParam:ColorKeyColor=0,0,0,0
+/processorParam:ColorKeyEnabled=True
+/processorParam:DefaultEffect=BasicEffect
+/processorParam:GenerateMipmaps=True
+/processorParam:GenerateTangentFrames=False
+/processorParam:PremultiplyTextureAlpha=True
+/processorParam:PremultiplyVertexColors=True
+/processorParam:ResizeTexturesToPowerOfTwo=False
+/processorParam:RotationX=0
+/processorParam:RotationY=0
+/processorParam:RotationZ=0
+/processorParam:Scale=1
+/processorParam:SwapWindingOrder=False
+/processorParam:TextureFormat=Compressed
+/build:Models/cube.FBX
+
+#begin Models/desk.fbx
+/importer:FbxImporter
+/processor:ModelProcessor
+/processorParam:ColorKeyColor=0,0,0,0
+/processorParam:ColorKeyEnabled=True
+/processorParam:DefaultEffect=BasicEffect
+/processorParam:GenerateMipmaps=True
+/processorParam:GenerateTangentFrames=False
+/processorParam:PremultiplyTextureAlpha=True
+/processorParam:PremultiplyVertexColors=True
+/processorParam:ResizeTexturesToPowerOfTwo=False
+/processorParam:RotationX=0
+/processorParam:RotationY=0
+/processorParam:RotationZ=0
+/processorParam:Scale=1
+/processorParam:SwapWindingOrder=False
+/processorParam:TextureFormat=Compressed
+/build:Models/desk.fbx
+
+#begin Models/skull.fbx
+/importer:FbxImporter
+/processor:ModelProcessor
+/processorParam:ColorKeyColor=0,0,0,0
+/processorParam:ColorKeyEnabled=True
+/processorParam:DefaultEffect=BasicEffect
+/processorParam:GenerateMipmaps=True
+/processorParam:GenerateTangentFrames=False
+/processorParam:PremultiplyTextureAlpha=True
+/processorParam:PremultiplyVertexColors=True
+/processorParam:ResizeTexturesToPowerOfTwo=False
+/processorParam:RotationX=0
+/processorParam:RotationY=0
+/processorParam:RotationZ=0
+/processorParam:Scale=1
+/processorParam:SwapWindingOrder=False
+/processorParam:TextureFormat=Compressed
+/build:Models/skull.fbx
+
+#begin Models/smoothsphere.FBX
+/importer:FbxImporter
+/processor:ModelProcessor
+/processorParam:ColorKeyColor=0,0,0,0
+/processorParam:ColorKeyEnabled=True
+/processorParam:DefaultEffect=BasicEffect
+/processorParam:GenerateMipmaps=True
+/processorParam:GenerateTangentFrames=False
+/processorParam:PremultiplyTextureAlpha=True
+/processorParam:PremultiplyVertexColors=True
+/processorParam:ResizeTexturesToPowerOfTwo=False
+/processorParam:RotationX=0
+/processorParam:RotationY=0
+/processorParam:RotationZ=0
+/processorParam:Scale=1
+/processorParam:SwapWindingOrder=False
+/processorParam:TextureFormat=Compressed
+/build:Models/smoothsphere.FBX
+
+#begin Models/sphere.FBX
+/importer:FbxImporter
+/processor:ModelProcessor
+/processorParam:ColorKeyColor=0,0,0,0
+/processorParam:ColorKeyEnabled=True
+/processorParam:DefaultEffect=BasicEffect
+/processorParam:GenerateMipmaps=True
+/processorParam:GenerateTangentFrames=False
+/processorParam:PremultiplyTextureAlpha=True
+/processorParam:PremultiplyVertexColors=True
+/processorParam:ResizeTexturesToPowerOfTwo=False
+/processorParam:RotationX=0
+/processorParam:RotationY=0
+/processorParam:RotationZ=0
+/processorParam:Scale=1
+/processorParam:SwapWindingOrder=False
+/processorParam:TextureFormat=Compressed
+/build:Models/sphere.FBX
+
+#begin Shaders/clear.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/clear.fx
+
+#begin Shaders/compositor.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/compositor.fx
+
+#begin Shaders/directionallight.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/directionallight.fx
+
+#begin Shaders/exp_light_depth.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/exp_light_depth.fx
+
+#begin Shaders/fill_gbuffer.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/fill_gbuffer.fx
+
+#begin Shaders/light_depth.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/light_depth.fx
+
+#begin Shaders/particle.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/particle.fx
+
+#begin Shaders/pointlight.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/pointlight.fx
+
+#begin Shaders/sdf_pixel.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/sdf_pixel.fx
+
+#begin Shaders/skybox.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/skybox.fx
+
+#begin Shaders/spotlight.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/spotlight.fx
+
+#begin Shaders/terrain.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/terrain.fx
+
+#begin Shaders/texture_effects.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/texture_effects.fx
+
+#begin Textures/ge_orb.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Textures/ge_orb.png
+
+#begin Textures/smugdean.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Textures/smugdean.png
+
+#begin Textures/society.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Textures/society.png
+
+#begin Textures/trumpmap.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Textures/trumpmap.png
+
+#begin Textures/zorker.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Textures/zorker.png
+
