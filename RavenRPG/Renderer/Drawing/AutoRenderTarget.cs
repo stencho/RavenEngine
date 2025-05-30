@@ -45,12 +45,12 @@ namespace RavenRPG.Renderer.Drawing {
                 }
 
                 foreach (AutoRenderTarget target in targets) {
-                    Drawing.end();
-                    Drawing.graphics_device.SetRenderTarget(target.render_target);
-                    Drawing.graphics_device.Clear(Color.Transparent);
+                    Draw2D.end();
+                    State.graphics_device.SetRenderTarget(target.render_target);
+                    State.graphics_device.Clear(Color.Transparent);
 
                     if (target.draw != null && target.render_target != null) {
-                        target.draw.invoke_all();
+                        target.draw();
                     }
                 }
             }
@@ -61,24 +61,24 @@ namespace RavenRPG.Renderer.Drawing {
                 }
             }
             public static void draw_rts_to_target_background() {
-                Drawing.end();
+                Draw2D.end();
 
                 if (targets.Count == 0) return;
                 foreach (AutoRenderTarget target in targets) {
                     if (target != null && target.draw != null && target.render_target != null && target.draw_to_screen_early) {
                         //target.draw_screen_pos_map();
-                        Drawing.image(target.render_target, target.position, target.size);                        
+                        Draw2D.image(target.render_target, target.position, target.size);                        
                     }
                 }
             }
             public static void draw_rts_to_target_foreground() {
-                Drawing.end();
+                Draw2D.end();
 
                 if (targets.Count == 0) return;
                 foreach (AutoRenderTarget target in targets.Reverse<AutoRenderTarget>()) {
                     if (target.draw != null && target.draw_to_screen_late) {
                         //target.draw_screen_pos_map();
-                        Drawing.image(target.render_target, target.position, target.size);
+                        Draw2D.image(target.render_target, target.position, target.size);
                     }
                 }
             }
@@ -128,10 +128,10 @@ namespace RavenRPG.Renderer.Drawing {
         }
 
         void resize_render_targets() {
-            render_target = new RenderTarget2D(Drawing.graphics_device, size.X, size.Y, false, SurfaceFormat.Vector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+            render_target = new RenderTarget2D(State.graphics_device, size.X, size.Y, false, SurfaceFormat.Vector4, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
             
             if (screen_aware) {  
-                screen_pos_rt = new RenderTarget2D(Drawing.graphics_device, size.X, size.Y, false, SurfaceFormat.Vector2, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
+                screen_pos_rt = new RenderTarget2D(State.graphics_device, size.X, size.Y, false, SurfaceFormat.Vector2, DepthFormat.None, 0, RenderTargetUsage.DiscardContents);
                 draw_screen_pos_map();
             }
 
@@ -157,7 +157,7 @@ namespace RavenRPG.Renderer.Drawing {
         void init() {
             Manager.add(this);
 
-            if (screen_pos_effect == null) screen_pos_effect = Swoop.content.Load<Effect>("effects/render_target_screen_pos");
+            if (screen_pos_effect == null) screen_pos_effect = Resources.GetShader("render_target_screen_pos");
 
             draw_screen_pos_map();
         }
@@ -169,19 +169,19 @@ namespace RavenRPG.Renderer.Drawing {
         public void update() { }
 
         public void draw_screen_pos_map() {
-            Drawing.end();
+            Draw2D.end();
 
-            Drawing.graphics_device.SetRenderTarget(screen_pos_rt);
+            State.graphics_device.SetRenderTarget(screen_pos_rt);
 
-            Drawing.begin(screen_pos_effect);
+            Draw2D.begin(screen_pos_effect);
 
             screen_pos_effect.Parameters["resolution"].SetValue(State.resolution.ToVector2());
             screen_pos_effect.Parameters["position"].SetValue(position.ToVector2());
             screen_pos_effect.Parameters["size"].SetValue(size.ToVector2());
             
-            Drawing.fill_rect(Vector2i.Zero, size, Color.White);
+            Draw2D.fill_rect(Vector2i.Zero, size, Color.White);
 
-            Drawing.end();
+            Draw2D.end();
             needs_new_pos_map = false;
         }
 

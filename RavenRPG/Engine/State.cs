@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design.Serialization;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Microsoft.Xna.Framework;
@@ -67,21 +68,22 @@ public static class State {
 
         public SunMoonSystem() {
             lerps = new Draw2D.GradientLineGenerator(night_ambient);
-
-            lerps.add_lerp(night_ambient, .10f);
+            lerps.add_lerp(night_ambient, 0f);
+            lerps.add_lerp(night_ambient, (1.0f/24f) * 5f);
 
             //back down to orange just before dawn
-            lerps.add_lerp(Color.FromNonPremultiplied(180, 130, 194, 255), .25f);
+            lerps.add_lerp(Color.FromNonPremultiplied(210, 110, 130, 255), (1.0f/24f) * 6.5f);
 
             //midday sky
-            lerps.add_lerp(Color.FromNonPremultiplied(180, 175, 245, 255), .35f);
-
-            lerps.add_lerp(Color.FromNonPremultiplied(200, 200, 255, 255), .55f);
+            lerps.add_lerp(Color.FromNonPremultiplied(220, 175, 245, 255), (1.0f/24f) * 7.5f);
+            lerps.add_lerp(Color.FromNonPremultiplied(240, 230, 255, 255), (1.0f/24f) * 13f);
+            lerps.add_lerp(Color.FromNonPremultiplied(220, 200, 255, 255), (1.0f/24f) * 17.5f);
 
             //back down to orange just before dusk
-            lerps.add_lerp(Color.FromNonPremultiplied(220, 150, 165, 255), .75f);
+            lerps.add_lerp(Color.FromNonPremultiplied(210, 110, 130, 255), (1.0f/24f) * 18.5f);
+            //lerps.add_lerp(Color.FromNonPremultiplied(8, 2, 10, 255), .87f);
 
-            lerps.add_lerp(night_ambient, .9f);
+            lerps.add_lerp(night_ambient, (1.0f/24f) * 20f);
             lerps.add_lerp(night_ambient, 1f);
 
             lerps.build_debug_band_texture();
@@ -162,6 +164,7 @@ public static class State {
     public static Action Draw_3D;
     
     public static bool is_active => game.IsActive;
+    public static bool show_all_debug_info = false;
     
     public static byte buffer_count = 3;
     public static int draw_debug_buffer = -1;
@@ -201,6 +204,7 @@ public static class State {
         State.sprite_batch = new SpriteBatch(State.graphics_device);
 
         game.IsFixedTimeStep = false;
+        game.InactiveSleepTime = TimeSpan.Zero;
         graphics.SynchronizeWithVerticalRetrace = false;
         window.AllowUserResizing = false;
         
@@ -267,7 +271,9 @@ public static class State {
             (bind_type.digital, controller_type.keyboard, Keys.Q, "t_L" ),
             (bind_type.digital, controller_type.keyboard, Keys.E,"t_R" ),
 
-            (bind_type.digital, controller_type.keyboard, Keys.OemTilde, "toggle_console" )
+            (bind_type.digital, controller_type.keyboard, Keys.OemTilde, "toggle_console" ),
+            (bind_type.digital, controller_type.keyboard, Keys.F3, "toggle_full_info" ),
+            (bind_type.digital, controller_type.keyboard, Keys.F4, "switch_buffer" )
             );
         
         force_enable("toggle_console");
@@ -286,8 +292,10 @@ public static class State {
         if (pressed("backward")) movement += Vector3.Backward;
         if (pressed("left")) movement += Vector3.Left;
         if (pressed("right")) movement += Vector3.Right;
-        
-        
+        if (pressed("up")) movement += Vector3.Up;
+        if (pressed("down")) movement += Vector3.Down;
+
+        camera.position += movement * (float)Clock.delta_time;
         
         camera.update();
         camera.update_projection(resolution);
@@ -329,6 +337,9 @@ public static class State {
         Skybox.skybox_cm = new RenderTarget2D(graphics_device, Skybox.skybox_face_res * 4, Skybox.skybox_face_res * 3, false, SurfaceFormat.Rgba64, DepthFormat.Depth16);
         Skybox.skybox_cm_e = new RenderTarget2D(graphics_device, Skybox.skybox_face_res * 4, Skybox.skybox_face_res * 3, false, SurfaceFormat.Rgba64, DepthFormat.Depth16);
 
+        Skybox.sun_moon.time_stopped = false;
+        Skybox.sun_moon.set_time_of_day(0.5);
+        
         graphics_device.SetRenderTarget(Skybox.skybox_cm);
         graphics_device.Clear(Skybox.sun_moon.atmosphere_color);
 
@@ -412,14 +423,35 @@ public static class State {
         //DRAW 2D
         
         if (Draw_2D != null) Draw_2D.Invoke();
-        StaticControlBinds.draw_state(600, 0, 100, 10, 10);
+        //StaticControlBinds.draw_state(600, 0, 100, 10, 10);
+        var dayper = Skybox.sun_moon.current_time_entire_day_percent;
+        bool afternoon = dayper > 0.5f;
+        var hour = afternoon ? ((dayper - 0.5f) * 2) * 12f : (dayper * 2f) * 12f;
+        if ((int)hour == 0) hour = 12;
+
+        string buffer_text = "";
+        switch (draw_debug_buffer) {
+            case 0: buffer_text = " <diffuse>";  break;
+            case 1: buffer_text = " <normals>";  break;
+            case 2: buffer_text = " <depth>";    break;  
+            case 3: buffer_text = " <lighting>"; break;
+            default: buffer_text = ""; break;
+        }
+
+        var debug_str =
+            $"[Render] {Clock.frame_rate} FPS{buffer_text}\n[Update] {Clock.tick_rate} Ticks/s\n[Environment] {(int)hour} O'clock\n\n";
         
-        Draw2D.text_shadow($"[Render] {Clock.frame_rate} FPS\n[Update] {Clock.tick_rate} Ticks/s\n[Environment] {Skybox.sun_moon.current_time_entire_day_percent}\n" +
-                           $"GVARS\n{gvars.list_all()}\n\n" +
-                           $"ASSETS\n{Resources.ListAllContent()}\n\n" +
-                           $"BINDS\n{StaticControlBinds.digital_binds.list()}\n\n", Vector2i.Zero, Color.White, Color.Black);
+        if (show_all_debug_info) {
+            debug_str += $"\n\nGVARS\n{gvars.list_all()}\n\nASSETS\n{Resources.ListAllContent()}\n\n";
+        }
         
-        Draw2D.image(Resources.GetTexture("Missing"), Vector2i.One * 200, Vector2i.One * 50);
+        Draw2D.text_shadow(debug_str, Vector2i.UnitX * 2, Color.White, Color.Black);
+        
+        //Draw2D.image(Resources.GetTexture("Missing"), Vector2i.One * 200, Vector2i.One * 50);
+        Draw2D.image(Skybox.sun_moon.lerps.debug_band, Vector2i.Down * 40, Skybox.sun_moon.lerps.debug_band.Bounds.Size.ToVector2i() + (Vector2i.UnitY * 10));
+        var tl = (Vector2i.Down * 40) + (Skybox.sun_moon.lerps.debug_band.Bounds.Size.ToVector2i() * (float)dayper);
+        Draw2D.line(tl, tl + (Vector2i.UnitY * 11), Color.Red, 1f);
+        
         
         //COMPOSE GBUFFER TO RT_FINAL
         graphics_device.SetRenderTarget(buffer.rt_final);
@@ -465,7 +497,6 @@ public static class State {
         graphics_device.Indices = quad_ib;
 
         graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
-
         graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
         graphics_device.BlendState = BlendState.AlphaBlend;
 
@@ -546,7 +577,7 @@ public static class State {
         /*
         foreach(light light in visible_lights) {
             if (light.type == LightType.SPOT) {
-        */
+        
                 e_spotlight.Parameters["World"].SetValue(light.world);
 
                 e_spotlight.Parameters["NORMAL"].SetValue(buffer.rt_normal);
@@ -578,7 +609,7 @@ public static class State {
 
                 e_spotlight.CurrentTechnique.Passes[0].Apply();
                 graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, Resources.GetModel("cone").Meshes[0].MeshParts[0].VertexBuffer.VertexCount);
-/*
+
 
             } else if (light.type == LightType.POINT) {
                 e_pointlight.Parameters["World"].SetValue(

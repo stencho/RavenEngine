@@ -74,10 +74,14 @@ public class UpdateThread {
             Input.Update();
             StaticControlBinds.update();
 
-            if (StaticControlBinds.just_pressed("test")) {
+            if (StaticControlBinds.just_pressed("switch_buffer")) {
                 State.draw_debug_buffer += 1;
                 if (State.draw_debug_buffer > 3) 
                     State.draw_debug_buffer = -1;
+            }
+            
+            if (StaticControlBinds.just_pressed("toggle_full_info")) {
+                State.show_all_debug_info = !State.show_all_debug_info;
             }
             
             while (!cancellation_token_source.IsCancellationRequested) {

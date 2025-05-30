@@ -233,9 +233,9 @@ public static class Resources {
     }
 
     public static string ListAllContent() {
-        string output = "";
-        foreach (IContentData content in all_content.Values.OrderBy(a => a.FullName)) {
-            output += $"{content.FullName} :: {(content.DataType == DataType.Procedural ? "[RAM]" : "[DSK]")} {(content.Loaded ? "[LOADED]" : "")}\n";
+        string output = "[LOADED]\n";
+        foreach (IContentData content in all_content.Values.Where(a => a.Loaded).OrderBy(a => a.FullName)) {
+            output += $"{content.FullName} :: {(content.DataType == DataType.Procedural ? "[RAM]" : "[DISK]")}\n";
         }
         return output;
     }

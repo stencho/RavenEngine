@@ -176,11 +176,11 @@ namespace RavenRPG.Engine {
         public static Vector2i One => _one;
         public static Vector2i Zero => _zero;
 
-        public static Vector2i Up => _unitY;
-        public static Vector2i Down => _zero - _unitY;
+        public static Vector2i Up => -_unitY;
+        public static Vector2i Down => _unitY;
 
         public static Vector2i Right => _unitX;
-        public static Vector2i Left => _zero - _unitX;
+        public static Vector2i Left => -_unitX;
     }
     
     public struct Vector2i64 {
@@ -280,6 +280,7 @@ namespace RavenRPG.Engine {
         #endregion
         #region Vector2i64
         public static Vector2i64 operator -(Vector2i64 a, Vector2i64 b) => new Vector2i64() { X = a.X - b.X, Y = a.Y - b.Y };
+        public static Vector2i64 operator -(Vector2i64 a) => new Vector2i64() { X = 0-a.X, Y =0-a.Y };
         public static Vector2i64 operator +(Vector2i64 a, Vector2i64 b) => new Vector2i64() { X = a.X + b.X, Y = a.Y + b.Y };
         public static Vector2i64 operator *(Vector2i64 a, Vector2i64 b) => new Vector2i64() { X = a.X * b.X, Y = a.Y * b.Y };
         public static Vector2i64 operator /(Vector2i64 a, Vector2i64 b) => new Vector2i64() { X = a.X / b.X, Y = a.Y / b.Y };
@@ -362,11 +363,10 @@ namespace RavenRPG.Engine {
         public static Vector2i64 One => _one;
         public static Vector2i64 Zero => _zero;
 
-        public static Vector2i64 Up => _unitY;
-        public static Vector2i64 Down => _zero - _unitY;
-
+        public static Vector2i64 Up => -_unitY;
+        public static Vector2i64 Down => _unitY;
         public static Vector2i64 Right => _unitX;
-        public static Vector2i64 Left => _zero - _unitX;
+        public static Vector2i64 Left => -_unitX;
     }
     
     
@@ -458,6 +458,7 @@ namespace RavenRPG.Engine {
         #endregion
         #region Vector2ui64
         public static Vector2ui64 operator -(Vector2ui64 a, Vector2ui64 b) => new Vector2ui64() { X = a.X - b.X, Y = a.Y - b.Y };
+        public static Vector2ui64 operator -(Vector2ui64 a) => new Vector2ui64() { X = 0 - a.X, Y = 0 - a.Y };
         public static Vector2ui64 operator +(Vector2ui64 a, Vector2ui64 b) => new Vector2ui64() { X = a.X + b.X, Y = a.Y + b.Y };
         public static Vector2ui64 operator *(Vector2ui64 a, Vector2ui64 b) => new Vector2ui64() { X = a.X * b.X, Y = a.Y * b.Y };
         public static Vector2ui64 operator /(Vector2ui64 a, Vector2ui64 b) => new Vector2ui64() { X = a.X / b.X, Y = a.Y / b.Y };
@@ -495,6 +496,7 @@ namespace RavenRPG.Engine {
         
         public static bool operator ==(Vector2ui64 a, Vector2ui64 b) => (a.X == b.X && a.Y == b.Y);
         public static bool operator !=(Vector2ui64 a, Vector2ui64 b) => (a.X != b.X || a.Y != b.Y);
+        
 
         public override string ToString() => string.Format("{{ {0} : {1} }}", X, Y);
         public string ToXString() => string.Format("{0}x{1}", X, Y);

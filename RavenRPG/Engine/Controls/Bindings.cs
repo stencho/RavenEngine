@@ -1156,7 +1156,7 @@ namespace RavenRPG.Engine.Controls {
             var s = "# binds #";
             foreach (IDigitalBind bind in _binds) {
                 s += string.Format(
-                        "\n - {0} :: {1} \n | pressed: {2} | pressed_time: {3} status: {4}",
+                        "\n - {1} :: {0} \n | pressed: {2} | pressed_time: {3} status: {4}",
                         bind.button_string,
                         bind.binds.Aggregate((a,b) =>  a + ", " + b),
                         bind.is_pressed,
