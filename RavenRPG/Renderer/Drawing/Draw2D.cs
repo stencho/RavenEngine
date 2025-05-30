@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -10,6 +12,139 @@ using RavenRPG.Renderer.Drawing.Effects;
 namespace RavenRPG.Renderer.Drawing;
 
 public static class Draw2D {
+    public class GradientLineGenerator {
+        public float min, max, value;
+        public Color start_color;
+
+        public Texture2D debug_band;
+
+        public void build_debug_band_texture(int width = 256) {
+            debug_band = new Texture2D(State.graphics_device, width, 1);
+            var data = new Color[width];
+            
+            for (var i = 0; i < data.Length; i++) {
+                float a = i; float b = data.Length;
+                float ab = a / b;
+
+                data[i] = get_color_at(ab);
+            }
+
+            debug_band.SetData(data);
+        }
+
+        public struct CLerpPck {
+            public Color color; public float position;
+            public CLerpPck(Color color, float position) {
+                this.color = color;
+                this.position = position;
+            }
+        }
+
+        List<CLerpPck> Lerps = new List<CLerpPck>();
+
+        public Color get_color_at(float position) {
+            float position_within_lerp = 0.0f;
+            float position_end = 1f;
+            float lerp_length = 1f;
+            float norm_pos_in_lerp = 0.0f;
+
+            var first_lerp = Lerps[0];
+            if (position <= first_lerp.position) {
+                lerp_length = first_lerp.position;
+
+                norm_pos_in_lerp = position / lerp_length;
+                return ColorInterpolate(start_color, first_lerp.color, norm_pos_in_lerp);
+            }
+            
+
+            for (int i = 0; i < Lerps.Count-1; i++) {
+                CLerpPck lerp = Lerps[i];
+                CLerpPck next_lerp = Lerps[i+1];
+
+                if (position >= lerp.position && position < next_lerp.position) {
+                    position_within_lerp = (position - lerp.position);
+                    
+                    position_end = next_lerp.position;
+                    lerp_length = next_lerp.position - lerp.position;
+
+                    norm_pos_in_lerp = position_within_lerp / lerp_length;
+
+                    return ColorInterpolate(lerp.color, next_lerp.color, norm_pos_in_lerp);
+                }
+            }
+
+            return start_color;
+        }
+
+        public Color current_color {
+            get {
+                foreach (CLerpPck lerp in Lerps) {
+
+                }
+
+                return Color.White;
+            }
+        }
+        
+        public GradientLineGenerator(Color start_color) {
+            min = 0.0f;
+            max = 0.0f;
+            value = 0.0f;
+
+            this.start_color = start_color;
+        }
+
+        public void add_lerp(Color color, float position) {
+            if (position > max) max = position;
+            
+            var tmp = new CLerpPck(color, position);
+
+            Lerps.Add(tmp);
+        }
+    }
+    
+    public static Color ColorRandomFromString(string s) {
+        int seed = 0;
+        foreach (byte b in Encoding.ASCII.GetBytes(s)) {
+            seed += b;
+        }
+        RNG.change_seed(seed);
+        var c = Color.FromNonPremultiplied(RNG.rng_byte(), RNG.rng_byte(), RNG.rng_byte(), 255);
+        RNG.change_seed();
+        return c;
+
+    }
+
+    /// <summary>
+    /// Interpolates between two colors
+    /// </summary>
+    /// <param name="colorA">The first color</param>
+    /// <param name="colorB">The second color</param>
+    /// <param name="bAmount">The amount to interpolate; 0.0 for 100% color A, 1.0 for color B</param>
+    /// <returns>The resulting Color</returns>
+    public static Color ColorInterpolate(Color colorA, Color colorB, float bAmount) {
+        var aAmount = 1.0f - bAmount;
+        var r = (int)(colorA.R * aAmount + colorB.R * bAmount);
+        var g = (int)(colorA.G * aAmount + colorB.G * bAmount);
+        var b = (int)(colorA.B * aAmount + colorB.B * bAmount);
+
+        return Color.FromNonPremultiplied(r, g, b, 255);
+    }
+
+    /// <summary>
+    /// Generates a muted version of the input color
+    /// </summary>
+    /// <param name="input">the color to mute</param>
+    /// <param name="amount">the amount to mute by</param>
+    /// <returns></returns>
+    public static Color MuteColor(Color input, float amount) {
+        return Color.FromNonPremultiplied(
+            int.Clamp((int)(input.R * (1.0f - amount)), 0, 255),
+            int.Clamp((int)(input.G * (1.0f - amount)), 0, 255),
+            int.Clamp((int)(input.B * (1.0f - amount)), 0, 255),
+            input.A);
+    }
+    
     public static SpriteBatch sb => State.sprite_batch;
 
     private static bool _sb_drawing = false;
@@ -18,43 +153,135 @@ public static class Draw2D {
         set { _sb_drawing = value; }
     }
 
-    public static GraphicsDevice graphics_device;
-    public static GraphicsDeviceManager graphics;
-
-    public static SpriteFont fnt_profont;
-
     public static Texture2D OnePXWhite;
-    public static Texture2D Logo;
-
-    public static Texture2D sdf_circle;
-    private static int sdf_circle_res = 256;
-
+    
+    public static SpriteFont fnt_profont;
+    
     static Effects.Dither dither_effect;
 
-    internal static VertexBuffer quad_vb;
-    internal static IndexBuffer quad_ib;
-
-    internal static VertexPositionTexture[] vb_data = {
-        new VertexPositionTexture(Vector3.Up + Vector3.Left,      Vector2.Zero),
-        new VertexPositionTexture(Vector3.Up + Vector3.Right,     Vector2.UnitX),
-        new VertexPositionTexture(Vector3.Down + Vector3.Left,    Vector2.UnitY),
-        new VertexPositionTexture(Vector3.Down + Vector3.Right,   Vector2.One)
-    };
-    internal static int[] ib_data = { 0, 1, 2, 1, 3, 2 };
-
-    public static void load(GraphicsDevice gd, GraphicsDeviceManager gdm, ContentManager content, Vector2i resolution) {
-        graphics_device = gd;
-        graphics = gdm;
-
+    public static void load() {
         //create a 1x1 white texture
-        OnePXWhite = new Texture2D(gd, 1, 1);
-        OnePXWhite.SetData<Color>(new Color[1] { Color.White });
+        OnePXWhite = new Texture2D(State.graphics_device, 1, 1); OnePXWhite.SetData([Color.White]);
+        
+        
+        Resources.AddTexture("OnePXWhite", new Texture2D(State.graphics_device, 1, 1));
+        Resources.GetTextureContent("OnePXWhite").Texture.SetData([Color.White]);
+        
+        
+        Resources.AddTexture("OnePXBlack", new Texture2D(State.graphics_device, 1, 1));
+        Resources.GetTextureContent("OnePXBlack").Texture.SetData([Color.Black]);
 
-        Logo = content.Load<Texture2D>("swoop_logo");
+        
+        Resources.AddTexture("OnePXGrey", new Texture2D(State.graphics_device, 1, 1));
+        Resources.GetTextureContent("OnePXGrey").Texture.SetData([Color.Gray]);
+        
+        
+        Resources.AddTexture("Missing", new Texture2D(State.graphics_device, 2, 2));
+        Resources.GetTextureContent("Missing").Texture.SetData([
+            Color.Magenta, Color.Black,
+            Color.Black, Color.Magenta
+        ]);
+        
+        
+        Resources.AddTexture("checker", new Texture2D(State.graphics_device, 2,2));
+        Resources.GetTextureContent("checker").Texture.SetData([
+            Color.White, Color.Black,
+            Color.Black, Color.White
+        ]);
+        
+        
+        Resources.AddTexture("center_glow", new Texture2D(State.graphics_device, 1, 256));
+        var glowData = new Color[256];
+        for (var i = 0; i < glowData.Length; i++) {
+            var p = i / (glowData.Length / 2f);
+            if (p > 1) p = 1f - (p - 1);
 
+            glowData[i] = Color.FromNonPremultiplied(255, 255, 255, (int)(p * 155));
+        }
+        Resources.GetTextureContent("center_glow").Texture.SetData(glowData);
+        
+        
+        Resources.AddTexture("radial_glow", new Texture2D(State.graphics_device, 256, 256));
+        glowData = new Color[256 * 256];
+
+        for (var i = 0; i < 255; i++) {
+
+            float px, py;
+
+            for (var x = 0; x < 255; x++) {
+
+                px = x / 255f;
+                py = i / 255f;
+
+                float t = 0.5f - Vector2.Distance(Vector2.One * 0.5f, new Vector2(px, py));
+                t *= 0.8f;
+
+                int o = (int)((t*6) * 255);
+                glowData[(i * 256) + x] = Color.FromNonPremultiplied(o,o,o, 255);
+            }
+        }
+
+        Resources.GetTextureContent("radial_glow").Texture.SetData(glowData);
+        
+        
+        Resources.AddTexture("sdf_square", new Texture2D(State.graphics_device, 256, 256));
+        glowData = new Color[256 * 256];
+
+        for (var i = 0; i < 256; i++) {
+
+            float px, py;
+
+            for (var x = 0; x < 256; x++) {
+
+                px = x / 255f;
+                py = i / 255f;
+
+                float t = Vector2.Distance(Vector2.One * 0.5f, new Vector2(px, py)) ;
+
+                int o = (int)((t) * 255);
+                glowData[(i * 256) + x] = Color.FromNonPremultiplied(o, o, o, 255);
+            }
+        }
+        Resources.GetTextureContent("sdf_square").Texture.SetData(glowData);
+        
+        
+        Resources.AddTexture("gradient_vertical", new Texture2D(State.graphics_device, 1, 256));
+        glowData = new Color[1 * 256];
+        for (var i = 0; i < 255; i++) {
+            glowData[i] = Color.FromNonPremultiplied(255, 255, 255, i);                
+        }
+        Resources.GetTextureContent("gradient_vertical").Texture.SetData(glowData);
+
+        
+        Resources.AddTexture("skybox_gradient", new Texture2D(State.graphics_device, 512, 512));
+        glowData = new Color[512 * 512];
+        for (var y = 0; y < 512; y++) {
+            for (var x = 0; x < 512; x++) {
+                float px = 1.0f - x / 512f; //x pos
+                float pxs = x / (512f / 2f); //x pos wave func, 0 to 1 to 0 at left/middle/right
+                if (pxs > 1) pxs = 1f - (pxs - 1);
+                float py = y / 512f; //y pos
+
+                int v = 128; //set entire image to 50%
+                v = (int)(v * (1 - (1 - (py / 2)))); //~50% black, 50% gradient fade from top to bottom
+                v += (y - (int)((512f / (MathHelper.Pi)) * (Math.Sin(px * MathHelper.Pi)))) / 4; //the actual curve
+                v = (int)(v - (((MathHelper.Clamp(1 - pxs, 0f, 1f)) * v) / 4f)); //reduce the brightness of the left and right edges slightly
+
+                if (v < 0) v = 0;
+
+                glowData[(y * 512) + x] = Color.FromNonPremultiplied(255, 255, 255,
+                    v);
+            }
+        }
+        Resources.GetTextureContent("skybox_gradient").Texture.SetData(glowData);
+
+        
         //create an SDF of a circle
+        int sdf_circle_res = 1024;
         Color[] sdf_data = new Color[sdf_circle_res * sdf_circle_res];
 
+        Resources.AddTexture("sdf_circle", new Texture2D(State.graphics_device, sdf_circle_res, sdf_circle_res));
+        
         for (var i = 0; i < sdf_circle_res; i++) {
 
             float px, py;
@@ -70,17 +297,12 @@ public static class Draw2D {
                 sdf_data[(i * sdf_circle_res) + x] = Color.FromNonPremultiplied(255 - o, 255 - o, 255 - o, 255);
             }
         }
-
-        sdf_circle = new Texture2D(gd, sdf_circle_res, sdf_circle_res);
-        sdf_circle.SetData<Color>(sdf_data);
         
-        fnt_profont = content.Load<SpriteFont>("profont");
-
-        quad_vb = new VertexBuffer(Draw2D.graphics_device, VertexPositionTexture.VertexDeclaration, 4, BufferUsage.None);
-        quad_vb.SetData(vb_data);
+        Resources.GetTextureContent("sdf_circle").Texture.SetData(sdf_data);
         
-        quad_ib = new IndexBuffer(Draw2D.graphics_device, IndexElementSize.ThirtyTwoBits, 6, BufferUsage.None);
-        quad_ib.SetData(ib_data);
+        fnt_profont = Resources.GetFont("profont");
+        
+        SDF.load();
     }
 
     public static void begin() {
@@ -122,6 +344,20 @@ public static class Draw2D {
         if (!sb_drawing) {
             //sb.Begin();
             sb.Begin(SpriteSortMode.Immediate, blend_state, sampler_state, null, null, effect, null);
+            sb_drawing = true;
+        }
+    }
+    public static void begin(SpriteSortMode sprite_sort_mode, Effect effect, BlendState blend_state, SamplerState sampler_state, DepthStencilState  depth_state) {
+        if (!sb_drawing) {
+            //sb.Begin();
+            sb.Begin(sprite_sort_mode, blend_state, sampler_state, depth_state, null, effect, null);
+            sb_drawing = true;
+        }
+    }
+    public static void begin(SpriteSortMode sprite_sort_mode, BlendState blend_state, SamplerState sampler_state, DepthStencilState  depth_state) {
+        if (!sb_drawing) {
+            //sb.Begin();
+            sb.Begin(sprite_sort_mode, blend_state, sampler_state, depth_state, null,null, null);
             sb_drawing = true;
         }
     }
@@ -276,6 +512,9 @@ public static class Draw2D {
 
     public static void fill_rect(Vector2 min, float size_x, float size_y, Color color) {
         fill_rect(min, min + new Vector2(size_x, size_y), color);
+    }
+    public static void fill_rect(int min_x, int min_y, int size_x, int size_y, Color color) {
+        fill_rect(new Vector2i(min_x, min_y), new Vector2i(min_x + size_x, min_y + size_y), color);
     }
     public static void fill_rect(Vector2i min, float size_x, float size_y, Color color) {
         fill_rect(min.ToVector2(), min.ToVector2() + new Vector2(size_x, size_y), color);
@@ -466,7 +705,7 @@ public static class Draw2D {
         using (StringReader sr = new StringReader(text)) {
             while (sr.Peek() > -1) {
                 line = sr.ReadLine();
-                size = measure_string_profont_xy(line);
+                size = measure_string_profont_int(line);
                 if (size.X > max_w) max_w = size.X;
             }
         }
@@ -480,7 +719,7 @@ public static class Draw2D {
         using (StringReader sr = new StringReader(text)) {      
             while (sr.Peek() > -1) {
                 line = sr.ReadLine();
-                size = measure_string_profont_xy(line);
+                size = measure_string_profont_int(line);
                 
                 pos.X = (position.X) - (size.X / 2f) + 1;
 
@@ -505,6 +744,14 @@ public static class Draw2D {
         sb.DrawString(fnt_profont, text, position, color, MathHelper.ToRadians(90f), Vector2.Zero, 1f, SpriteEffects.None, 1f);
     }
 
+    public static void text_shadow(string text, Vector2i position) {
+        Draw2D.text(text, position + Vector2i.One, Color.Black);
+        Draw2D.text(text, position, Color.White);
+    }
+    public static void text_shadow(string text, Vector2i position, Color color_fg) {
+        Draw2D.text(text, position + Vector2i.One, Color.Black);
+        Draw2D.text(text, position, color_fg);
+    }
     public static void text_shadow(string text, Vector2i position, Color color_fg, Color color_bg) {
         Draw2D.text(text, position + Vector2i.One, color_bg);
         Draw2D.text(text, position, color_fg);
@@ -530,7 +777,7 @@ public static class Draw2D {
         //return new Point(1, 1);
         //return font_manager_profont.measure_string(text).ToPoint();
     }
-    public static Vector2i measure_string_profont_xy(string text) {
+    public static Vector2i measure_string_profont_int(string text) {
         return fnt_profont.MeasureString(text).ToVector2i();
         //return Vector2i.One;
         //return font_manager_profont.measure_string(text);

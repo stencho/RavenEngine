@@ -1,9 +1,21 @@
+using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.JavaScript;
+using System.Threading;
+using System.Threading.Tasks;
+using RavenRPG.Engine.Controls;
 
 namespace RavenRPG.Engine.World;
 
-public class World {
+public class Scene {
+    public UpdateThread update_thread = new UpdateThread();
     
+    private Map current_map = new Map();
+    Dictionary<string, Map> maps = new();
+
+    void Update() {
+        current_map.Update();
+    }
 }
 
 public class Map {
@@ -11,6 +23,10 @@ public class Map {
 
     public Map() {
         quadtree = new QuadTree();
+    }
+
+    public void Update() {
+        
     }
 }
 
@@ -32,5 +48,46 @@ public class QuadTree {
 
     public QuadTree() {
         
+    }
+}
+
+public class UpdateThread {
+    private Task update_thread_task;
+    
+    private static CancellationTokenSource cancellation_token_source = new CancellationTokenSource();
+    private static CancellationToken cancellation_token => cancellation_token_source.Token;
+    
+    public void Start() {
+        update_thread_task = Task.Run(update, cancellation_token);        
+    }
+    
+    public static void Stop() {
+        cancellation_token_source.Cancel();
+    }
+    public static void Cancel() => Stop();
+    
+    private void update() {
+        while (!cancellation_token_source.IsCancellationRequested) {
+            var start_dt = DateTime.Now;
+            
+            //world update and such goes here
+            Input.Update();
+            StaticControlBinds.update();
+
+            if (StaticControlBinds.just_pressed("test")) {
+                State.draw_debug_buffer += 1;
+                if (State.draw_debug_buffer > 3) 
+                    State.draw_debug_buffer = -1;
+            }
+            
+            while (!cancellation_token_source.IsCancellationRequested) {
+                var ts = DateTime.Now - start_dt;
+                if (ts.TotalMilliseconds >= Clock.update_thread_goal_time.TotalMilliseconds) break;
+                Thread.Sleep(new TimeSpan(5000));
+            }
+            
+            Clock.TickRateUpdate((DateTime.Now.Ticks-start_dt.Ticks) / 10000.0);
+            
+        }
     }
 }

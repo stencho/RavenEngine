@@ -41,6 +41,12 @@
       <Compile Remove="Engine\Collision\Solver\Solver.cs" />
       <Compile Remove="Content\Effects\**" />
     </ItemGroup>
+    <ItemGroup>
+      <ClCompile Include="Content\Shaders\dither.fx" />
+      <ClCompile Include="Content\Shaders\render_target_screen_pos.fx" />
+      <ClCompile Include="Content\Shaders\sdf.fx" />
+      <ClCompile Include="Content\Shaders\sdf_circle.fx" />
+    </ItemGroup>
     <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
         <Message Text="Restoring dotnet tools" Importance="High"/>
         <Exec Command="dotnet tool restore"/>

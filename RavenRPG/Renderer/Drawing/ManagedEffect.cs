@@ -49,7 +49,7 @@ namespace RavenRPG.Renderer.Drawing {
 
         void build_basic_effect() {
             if (basic_effect == null) {
-                basic_effect = new BasicEffect(Draw2D.graphics_device);
+                basic_effect = new BasicEffect(State.graphics_device);
 
                 basic_effect.TextureEnabled = true;
                 basic_effect.Texture = Draw2D.OnePXWhite;
@@ -222,8 +222,8 @@ namespace RavenRPG.Renderer.Drawing {
             basic_effect.Projection = projection;
             basic_effect.Texture = Draw2D.OnePXWhite;
 
-            Draw2D.graphics_device.SetVertexBuffer(vb);
-            Draw2D.graphics_device.Indices = ib;
+            State.graphics_device.SetVertexBuffer(vb);
+            State.graphics_device.Indices = ib;
 
             basic_effect.CurrentTechnique.Passes[0].Apply();
 
@@ -231,7 +231,7 @@ namespace RavenRPG.Renderer.Drawing {
             else apply_pass(selected_pass);
 
             //shader.CurrentTechnique.Passes[0].Apply();
-            Draw2D.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
+            State.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
         }
 
         /// <summary>
@@ -259,7 +259,7 @@ namespace RavenRPG.Renderer.Drawing {
             else apply_pass(selected_pass);            
 
             //shader.CurrentTechnique.Passes[0].Apply();
-            Draw2D.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
+            State.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
         }
 
         /// <summary>
@@ -281,7 +281,7 @@ namespace RavenRPG.Renderer.Drawing {
             else apply_pass(selected_pass);            
 
             //shader.CurrentTechnique.Passes[0].Apply();
-            Draw2D.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
+            State.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
         }
     }
 }

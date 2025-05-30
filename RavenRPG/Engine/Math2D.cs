@@ -45,17 +45,17 @@ namespace RavenRPG.Engine {
 
 /*
         public static Vector2i measure_string(string font, string str) {
-            var v = ContentHandler.resources[font].value_ft.MeasureString(str);
+            var v = Resources.GetShader(font].value_ft.MeasureString(str);
             return new Vector2i(v.X, v.Y);
         }
 
         public static float measure_string_x(string font, string str) {
 
-            var v = ContentHandler.resources[font].value_ft.MeasureString(str.Replace('’', '\'').Replace('”', '\"').Replace('“', '\"'));
+            var v = Resources.GetShader(font].value_ft.MeasureString(str.Replace('’', '\'').Replace('”', '\"').Replace('“', '\"'));
             return v.X;
         }
         public static float measure_string_y(string font, string str) {
-            var v = ContentHandler.resources[font].value_ft.MeasureString(str);
+            var v = Resources.GetShader(font].value_ft.MeasureString(str);
             return v.Y;
         }
 

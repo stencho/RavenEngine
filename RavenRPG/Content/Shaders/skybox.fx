@@ -98,9 +98,10 @@ PSO clear_sky(VSO input)
 
     float4 rgba_final = sky_color;
     
-    //draw fade from atmospheric albedo (is this the right term lmaomo) up to full on sky colour
-    rgba_final.rgb = color_lerp(atmosphere_color.rgb, sky_color.rgb, clamp(input.Pos3d.y*0.3, 0.0, 1));
-    output.Lighting.rgb = 0;
+    //draw fade from atmosphere up to full on sky colour
+    rgba_final.rgb = color_lerp(atmosphere_color.rgb, sky_color.rgb, clamp((1-input.Pos3d.y)*0.4, 0.0, 1));
+    rgba_final.a = 1;
+    output.Lighting.rgb = rgba_final * 0.35;
     output.Lighting.a = 1;
     output.Normals = 0;
     output.Diffuse = rgba_final;

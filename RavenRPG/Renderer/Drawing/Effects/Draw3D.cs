@@ -79,8 +79,8 @@ namespace RavenRPG.Renderer.Drawing.Effects {
                 * Matrix.CreateTranslation(-1f, 1f, 0) 
                 * Matrix.CreateTranslation(pr.X, -pr.Y, 0);
 
-            State.graphics_device.SetVertexBuffer(Draw2D.quad_vb);
-            State.graphics_device.Indices = Draw2D.quad_ib;
+            State.graphics_device.SetVertexBuffer(State.quad_vb);
+            State.graphics_device.Indices = State.quad_ib;
             base.draw_buffers_basic_effect_first_pass(_world, Matrix.Identity, Matrix.Identity);
         }
     }
@@ -125,14 +125,14 @@ namespace RavenRPG.Renderer.Drawing.Effects {
         }
 
         public ShadedQuadWVP(ContentManager content, string effect_name) : base() {
-            if (Draw2D.quad_vb == null) {
-                Draw2D.quad_vb = new VertexBuffer(State.graphics_device, VertexPositionTexture.VertexDeclaration, 4, BufferUsage.None);
+            if (State.quad_vb == null) {
+                State.quad_vb = new VertexBuffer(State.graphics_device, VertexPositionTexture.VertexDeclaration, 4, BufferUsage.None);
 
-                Draw2D.quad_vb.SetData(Draw2D.vb_data);
+                State.quad_vb.SetData(State.vb_data);
             }
-            if (Draw2D.quad_ib == null) { 
-                Draw2D.quad_ib = new IndexBuffer(State.graphics_device, IndexElementSize.ThirtyTwoBits, 6, BufferUsage.None);
-                Draw2D.quad_ib.SetData(Draw2D.ib_data);
+            if (State.quad_ib == null) { 
+                State.quad_ib = new IndexBuffer(State.graphics_device, IndexElementSize.ThirtyTwoBits, 6, BufferUsage.None);
+                State.quad_ib.SetData(State.ib_data);
             }
 
             load_shader_file(content, $"effects/{effect_name}");
@@ -142,7 +142,7 @@ namespace RavenRPG.Renderer.Drawing.Effects {
         }
 
         public void draw_plane() {
-            base.draw_buffers_basic_effect_first_pass(Draw2D.quad_vb, Draw2D.quad_ib, _world, _view, _projection);
+            base.draw_buffers_basic_effect_first_pass(State.quad_vb, State.quad_ib, _world, _view, _projection);
         }
     }
 

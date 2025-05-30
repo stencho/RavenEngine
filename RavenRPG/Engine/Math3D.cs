@@ -33,6 +33,10 @@ namespace RavenRPG.Engine {
 
             return v;
         }
+
+        public static Vector3 CrossCross(this Vector3 a, Vector3 b) {
+            return Vector3.Cross(Vector3.Cross(a, b), a);
+        }
     }
 
     public static class CollisionHelper {

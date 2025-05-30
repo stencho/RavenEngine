@@ -2,6 +2,11 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using RavenRPG.Engine;
+using RavenRPG.Engine.Controls;
+using RavenRPG.Engine.World;
+using RavenRPG.Renderer.Drawing;
+
+
 
 namespace RavenRPG;
 
@@ -15,39 +20,36 @@ public class Raven : Game {
     }
 
     protected override void Initialize() {
-        State.Initialize(Content, _graphics, Window);
+        State.Initialize(this, Content, _graphics, Window);
+        State.Draw_2D = () => //Draw2D.image("trumpmap", Input.mouse_position - (Vector2i.One * 100) , Vector2i.One * 200);
+        {
+            Draw2D.fill_circle(Input.mouse_position, 5f, Color.White);
+            Draw2D.circle(Input.mouse_position, 5f, 2f, Color.Black);
+        };
         base.Initialize();
     }
 
     protected override void LoadContent() {
-        Resources.LoadContentList(Content);
-        // TODO: use this.Content to load your game content here
+        State.Load(Content);
     }
-
-    private ulong c = 0;
+    
     protected override void Update(GameTime gameTime) {
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
             Keyboard.GetState().IsKeyDown(Keys.Escape)) {
-            gvars.write_gvars_to_disk();
             Exit();
         }
-
-        Window.Title = c.ToString();
-        c++;
-        // TODO: Add your update logic here
-
+        
+        State.Update(gameTime);
+        
         base.Update(gameTime);
-    }
-
-    ~Raven() {
-        gvars.write_gvars_to_disk();
     }
     
     protected override void Draw(GameTime gameTime) {
         GraphicsDevice.Clear(Color.CornflowerBlue);
         
         State.Compose();
-
+        
+        Clock.FrameRateUpdate(gameTime.ElapsedGameTime.TotalMilliseconds);
         base.Draw(gameTime);
     }
 }

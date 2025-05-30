@@ -282,11 +282,7 @@ namespace RavenRPG.Renderer;
             cube((bb.Min + bb.Max) / 2, (bb.Max - bb.Min) / 2, color, world );
         }
 
-        public static Effect light_depth;
-        public static Effect e_buffers;
-
-        public static void init() {
-
+        public static void load() {
             if (onePXWhite == null) {
                 onePXWhite = new Texture2D(State.graphics_device, 1, 1);
                 onePXWhite.SetData<Color>(new Color[1] { Color.White });
@@ -300,11 +296,7 @@ namespace RavenRPG.Renderer;
                     }
                 }
                 testing_gradient.SetData(glowData);
-
-                light_depth = Resources.GetShader("light_depth");
-
                 text_effect = new BasicEffect(State.graphics_device);
-                e_buffers = Resources.GetShader("fill_gbuffer");
             }
         }
 
@@ -325,20 +317,20 @@ namespace RavenRPG.Renderer;
         public static void draw_buffers_diffuse_color(VertexBuffer vb, IndexBuffer ib, Color color, Matrix world) {
 
             //ContentLoader.resources["diffuse"].value_fx. = color.ToVector3();
-            e_buffers.Parameters["World"].SetValue(world);
-            e_buffers.Parameters["View"].SetValue(State.camera.view);
-            e_buffers.Parameters["Projection"].SetValue(State.camera.projection);
-            e_buffers.Parameters["DiffuseMap"].SetValue(onePXWhite);
-            e_buffers.Parameters["tint"].SetValue(color.ToVector3());
-            e_buffers.Parameters["FarClip"].SetValue(2000f);
-            e_buffers.Parameters["opacity"].SetValue(-1f);
+            State.e_gbuffer.Parameters["World"].SetValue(world);
+            State.e_gbuffer.Parameters["View"].SetValue(State.camera.view);
+            State.e_gbuffer.Parameters["Projection"].SetValue(State.camera.projection);
+            State.e_gbuffer.Parameters["DiffuseMap"].SetValue(onePXWhite);
+            State.e_gbuffer.Parameters["tint"].SetValue(color.ToVector3());
+            State.e_gbuffer.Parameters["FarClip"].SetValue(2000f);
+            State.e_gbuffer.Parameters["opacity"].SetValue(-1f);
 
             State.graphics_device.BlendState = BlendState.AlphaBlend;
             State.graphics_device.DepthStencilState = DepthStencilState.Default;
             State.graphics_device.SetVertexBuffer(vb);
             State.graphics_device.Indices = ib;
 
-            foreach (EffectTechnique t in e_buffers.Techniques) {
+            foreach (EffectTechnique t in State.e_gbuffer.Techniques) {
                 foreach (EffectPass p in t.Passes) {
                     p.Apply();
                 }
@@ -349,36 +341,87 @@ namespace RavenRPG.Renderer;
             State.graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
 
         }
+        public static void draw_model_diffuse_color(Model model, Color color, Matrix world) {
+
+            //ContentLoader.resources["diffuse"].value_fx. = color.ToVector3();
+            State.e_gbuffer.Parameters["World"].SetValue(world);
+            State.e_gbuffer.Parameters["View"].SetValue(State.camera.view);
+            State.e_gbuffer.Parameters["Projection"].SetValue(State.camera.projection);
+            State.e_gbuffer.Parameters["DiffuseMap"].SetValue(onePXWhite);
+            State.e_gbuffer.Parameters["tint"].SetValue(color.ToVector3());
+            State.e_gbuffer.Parameters["FarClip"].SetValue(2000f);
+            //e_buffers.Parameters["opacity"].SetValue(-1f);
+
+            State.graphics_device.BlendState = BlendState.AlphaBlend;
+            State.graphics_device.DepthStencilState = DepthStencilState.Default;
+            State.graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
+
+            foreach (ModelMesh mesh in model.Meshes) {
+                foreach (ModelMeshPart part in mesh.MeshParts) {
+                    var vb = part.VertexBuffer;
+                    var ib =  part.IndexBuffer;
+                    
+                    State.graphics_device.SetVertexBuffer(vb);
+                    State.graphics_device.Indices = ib;
+
+                    foreach (EffectTechnique t in State.e_gbuffer.Techniques) {
+                        foreach (EffectPass p in t.Passes) {
+                            p.Apply();
+                        }
+                    }
+
+                    State.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, (vb.VertexCount));
+                }
+            }
+            
+
+        }
 
         public static void draw_buffers_diffuse_texture(VertexBuffer vb, IndexBuffer ib, Texture2D texture, Color color, Matrix world) {
-            //ContentLoader.resources["diffuse"].value_fx. = color.ToVector3();
-            e_buffers.Parameters["World"].SetValue(world);
-            e_buffers.Parameters["View"].SetValue(State.camera.view);
-            e_buffers.Parameters["Projection"].SetValue(State.camera.projection);
-            e_buffers.Parameters["DiffuseMap"].SetValue(texture);
-            e_buffers.Parameters["tint"].SetValue(color.ToVector3());
+            State.graphics_device.SetRenderTargets(State.buffer.buffer_targets);
+            
+            State.e_gbuffer.Parameters["atmosphere_color"].SetValue(State.Skybox.sun_moon.atmosphere_color.ToVector3());
+            State.e_gbuffer.Parameters["sky_color"].SetValue(State.Skybox.sun_moon.sky_color.ToVector3());
 
-            e_buffers.Parameters["fullbright"].SetValue(true);
+            State.e_gbuffer.Parameters["FarClip"].SetValue(State.camera.far_clip);
+            State.e_gbuffer.Parameters["camera_pos"].SetValue(State.camera.position);
+
+            
+            //ContentLoader.resources["diffuse"].value_fx. = color.ToVector3();
+            State.e_gbuffer.Parameters["World"].SetValue(world);
+            State.e_gbuffer.Parameters["View"].SetValue(State.camera.view);
+            State.e_gbuffer.Parameters["Projection"].SetValue(State.camera.projection);
+            State.e_gbuffer.Parameters["WVIT"].SetValue(Matrix.Transpose(Matrix.Invert(world * State.camera.view)));
+
+            State.e_gbuffer.Parameters["DiffuseMap"].SetValue(texture);
+            State.e_gbuffer.Parameters["tint"].SetValue(color.ToVector3());
+
+            State.e_gbuffer.Parameters["fullbright"].SetValue(false);
             //e_diffuse.Parameters["FarClip"].SetValue(2000f);
-            //e_diffuse.Parameters["opacity"].SetValue(-1f);
+            //State.e_gbuffer.Parameters["opacity"].SetValue(1f);
 
             State.graphics_device.BlendState = BlendState.AlphaBlend;
             State.graphics_device.DepthStencilState = DepthStencilState.Default;
 
+            
             State.graphics_device.SetVertexBuffer(vb);
             State.graphics_device.Indices = ib;
 
-            e_buffers.Techniques["BasicColorDrawing"].Passes[0].Apply();
+            State.e_gbuffer.Techniques["BasicColorDrawing"].Passes[0].Apply();
 
             State.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, (vb.VertexCount));
-            e_buffers.Parameters["fullbright"].SetValue(false);
+            
+            
+            State.e_gbuffer.Parameters["tint"].SetValue(Color.White.ToVector3());
+            State.e_gbuffer.Parameters["fog"].SetValue(false);
+            State.e_gbuffer.Parameters["fullbright"].SetValue(false);
 
             State.graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
         }
 
 
         public static void draw_buffers(VertexBuffer vb, IndexBuffer ib, Matrix world, Color color) {
-            init();
+            load();
 
             if (basic_effect == null) {
                 basic_effect = new BasicEffect(State.graphics_device);

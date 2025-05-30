@@ -13,12 +13,12 @@
 
 #---------------------------------- Content ---------------------------------#
 
-#begin Fonts/pf.spritefont
+#begin Fonts/profont.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
 /processorParam:PremultiplyAlpha=True
 /processorParam:TextureFormat=Compressed
-/build:Fonts/pf.spritefont
+/build:Fonts/profont.spritefont
 
 #begin Models/bigcube.FBX
 /importer:FbxImporter
@@ -171,6 +171,12 @@
 /processorParam:DebugMode=Auto
 /build:Shaders/directionallight.fx
 
+#begin Shaders/dither.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/dither.fx
+
 #begin Shaders/exp_light_depth.fx
 /importer:EffectImporter
 /processor:EffectProcessor
@@ -201,11 +207,29 @@
 /processorParam:DebugMode=Auto
 /build:Shaders/pointlight.fx
 
+#begin Shaders/render_target_screen_pos.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/render_target_screen_pos.fx
+
+#begin Shaders/sdf_circle.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/sdf_circle.fx
+
 #begin Shaders/sdf_pixel.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
 /build:Shaders/sdf_pixel.fx
+
+#begin Shaders/sdf.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/sdf.fx
 
 #begin Shaders/skybox.fx
 /importer:EffectImporter
@@ -243,6 +267,18 @@
 /processorParam:TextureFormat=Color
 /build:Textures/ge_orb.png
 
+#begin Textures/monkeymelon.JPG
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Textures/monkeymelon.JPG
+
 #begin Textures/smugdean.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -266,6 +302,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Textures/society.png
+
+#begin Textures/texture_1001.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Textures/texture_1001.png
 
 #begin Textures/trumpmap.png
 /importer:TextureImporter

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using RavenRPG.Engine;
 using RavenRPG.Renderer.Drawing;
 
 namespace RavenRPG.Renderer {
@@ -9,9 +10,9 @@ namespace RavenRPG.Renderer {
         private static Effect sdf_circle_effect;
 
         internal static bool effect_unloaded => sdf_effect == null;
-        internal static void load(ContentManager Content) {
-            if (effect_unloaded) sdf_circle_effect = Content.Load<Effect>("effects/sdf_circle");
-            if (effect_unloaded) sdf_effect = Content.Load<Effect>("effects/sdf");
+        internal static void load() {
+            if (effect_unloaded) sdf_circle_effect = Resources.GetShader("sdf_circle");
+            if (effect_unloaded) sdf_effect = Resources.GetShader("sdf");
         }
 
 
@@ -81,8 +82,8 @@ namespace RavenRPG.Renderer {
             var tex_size = new Vector2(sdf.Bounds.Size.X, sdf.Bounds.Size.Y);
 
             Draw2D.end();
-            Draw2D.graphics_device.BlendState = BlendState.AlphaBlend;
-            Draw2D.graphics_device.DepthStencilState = DepthStencilState.Default;            
+            State.graphics_device.BlendState = BlendState.AlphaBlend;
+            State.graphics_device.DepthStencilState = DepthStencilState.Default;            
 
             Draw2D.sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, null, sdf_effect, null);
             Draw2D.sb.Draw(sdf, new Rectangle((int)position.X, (int)position.Y, (int)scale.X, (int)scale.Y), null, Color.White, 0f,
