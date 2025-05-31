@@ -7,55 +7,55 @@ using RavenRPG.Engine.Collision.Shapes3D;
 
 namespace RavenRPG.Engine.Controls;
 
-public static class Input {
+public class Input {
     // STATE
-    static KeyboardState ks; public static KeyboardState keyboard_state => ks;
-    static KeyboardState ksp; public static KeyboardState keyboard_state_prev => ksp;
+    KeyboardState ks; public KeyboardState keyboard_state => ks;
+    KeyboardState ksp; public KeyboardState keyboard_state_prev => ksp;
     
-    internal static MouseState mouse_state;
-    internal static MouseState mouse_state_prev;
+    internal MouseState mouse_state;
+    internal MouseState mouse_state_prev;
     
-    static GamePadState[] xs = new GamePadState[4];
-    public static GamePadState[] xinput_state => xs;
-    static GamePadState[] xsp = new GamePadState[4];
-    public static GamePadState[] xinput_state_prev => xsp;
+    GamePadState[] xs = new GamePadState[4];
+    public GamePadState[] xinput_state => xs;
+    GamePadState[] xsp = new GamePadState[4];
+    public GamePadState[] xinput_state_prev => xsp;
     
     // KEYBOARD
-    static Keys[] pressed_keys;
-    static Keys[] pressed_keys_previous;
+    Keys[] pressed_keys;
+    Keys[] pressed_keys_previous;
     
     // MOUSE
-    public static Vector2i mouse_position => new Vector2i(mouse_state.Position.X, mouse_state.Position.Y);
-    public static Vector2 mouse_position_float => new Vector2(mouse_state.Position.X, mouse_state.Position.Y);
+    public Vector2i mouse_position => new Vector2i(mouse_state.Position.X, mouse_state.Position.Y);
+    public Vector2 mouse_position_float => new Vector2(mouse_state.Position.X, mouse_state.Position.Y);
 
-    public static bool mouse_in_bounds => is_mouse_in_bounds();
+    public bool mouse_in_bounds => is_mouse_in_bounds();
 
-    static Vector2i window_center = Vector2i.Zero;
+    Vector2i window_center = Vector2i.Zero;
 
-    static volatile bool mouse_locked = false;
-    static volatile bool mouse_locked_p = false;
+    volatile static bool mouse_locked = false;
+    volatile static bool mouse_locked_p = false;
     public static bool mouse_lock { get; set; } = false;
     public static bool mouse_cursor { get; set; } = false;
     
-    public static Collision2D.Shape2D mouse_collision_object => _mouse_coll_obj;
-    static Collision2D.Shape2D _mouse_coll_obj;
+    public Collision2D.Shape2D mouse_collision_object => _mouse_coll_obj;
+    Collision2D.Shape2D _mouse_coll_obj;
 
-    public static int old_wheel_value = 0;
-    public static int wheel_delta = 0;
-    static int old_delta = 0;
+    public int old_wheel_value = 0;
+    public int wheel_delta = 0;
+    int old_delta = 0;
     
-    public static Vector2 mouse_delta => _mouse_delta;
-    static Vector2 _mouse_delta;
+    public Vector2 mouse_delta => _mouse_delta;
+    Vector2 _mouse_delta;
     
     
-    static bool is_mouse_in_bounds() {
+    bool is_mouse_in_bounds() {
         return (mouse_position.X > 0
                 && mouse_position.Y > 0
                 && mouse_position.X < State.resolution.X
                 && mouse_position.Y < State.resolution.Y);
     }
    
-    internal static void Update() {
+    internal void Update() {
         mouse_state = Mouse.GetState();
         ksp = ks;
         ks = Keyboard.GetState();
@@ -109,12 +109,12 @@ public static class Input {
     
     
     #region is/was pressed
-    public static bool was_pressed(Keys k) { return ksp.IsKeyDown(k); }
-    public static bool is_pressed(Keys k) { return ks.IsKeyDown(k); }
-    public static bool just_pressed(Keys k) { return is_pressed(k) && !was_pressed(k); }
-    public static bool just_released(Keys k) { return !is_pressed(k) && was_pressed(k); }
+    public bool was_pressed(Keys k) { return ksp.IsKeyDown(k); }
+    public bool is_pressed(Keys k) { return ks.IsKeyDown(k); }
+    public bool just_pressed(Keys k) { return is_pressed(k) && !was_pressed(k); }
+    public bool just_released(Keys k) { return !is_pressed(k) && was_pressed(k); }
 
-    public static bool is_pressed(MouseButtons mb) {
+    public bool is_pressed(MouseButtons mb) {
         if (!State.is_active) return false;
         switch (mb) {
             case MouseButtons.Left:
@@ -141,7 +141,7 @@ public static class Input {
             default: return false;
         }
     }
-    public static bool was_pressed(MouseButtons mb) {
+    public bool was_pressed(MouseButtons mb) {
         switch (mb) {
             case MouseButtons.Left:
                 return mouse_state_prev.LeftButton == ButtonState.Pressed;
@@ -167,14 +167,14 @@ public static class Input {
             default: return false;
         }
     }
-    public static bool just_pressed(MouseButtons mb) {
+    public bool just_pressed(MouseButtons mb) {
         return is_pressed(mb) && !was_pressed(mb);
     }
-    public static bool just_released(MouseButtons mb) {
+    public bool just_released(MouseButtons mb) {
         return !is_pressed(mb) && was_pressed(mb);
     }
     
-    public static bool is_pressed(XInputButtons test_button, PlayerIndex player) {
+    public bool is_pressed(XInputButtons test_button, PlayerIndex player) {
         switch (test_button) {
             case XInputButtons.A:
                 return xs[(int)player].Buttons.A == ButtonState.Pressed;
@@ -212,7 +212,7 @@ public static class Input {
         return false;
     }
 
-    public static bool was_pressed(XInputButtons test_button, PlayerIndex player) {
+    public bool was_pressed(XInputButtons test_button, PlayerIndex player) {
         switch (test_button) {
             case XInputButtons.A:
                 return xsp[(int)player].Buttons.A == ButtonState.Pressed;
@@ -250,10 +250,10 @@ public static class Input {
         return false;
     }
 
-    public static bool just_pressed(XInputButtons test_button, PlayerIndex player) {
+    public bool just_pressed(XInputButtons test_button, PlayerIndex player) {
         return is_pressed(test_button, player) && !was_pressed(test_button, player);
     }
-    public static bool just_released(XInputButtons test_button, PlayerIndex player) {
+    public bool just_released(XInputButtons test_button, PlayerIndex player) {
         return is_pressed(test_button, player) && !was_pressed(test_button, player);
     }
 
@@ -295,28 +295,28 @@ public static class Input {
     #endregion
     
     #region analog controls
-    public static float get_axis(MouseAxis axis) { return 0f; }
-    public static float get_axis(XInputAxis axis) { return 0f; }
+    public float get_axis(MouseAxis axis) { return 0f; }
+    public float get_axis(XInputAxis axis) { return 0f; }
     #endregion
     
 }
 
-public static class picker_raycasts {
-    public static Raycasting.raycast crosshair_ray;
-    public static Raycasting.raycast mouse_pick_ray;
+public class picker_raycasts {
+    public Raycasting.raycast crosshair_ray;
+    public Raycasting.raycast mouse_pick_ray;
 
-    public static Line3D gjk_crosshair_ray = new Line3D();
-    public static Line3D gjk_mouse_pick_ray = new Line3D();
+    public Line3D gjk_crosshair_ray = new Line3D();
+    public Line3D gjk_mouse_pick_ray = new Line3D();
 
-    public static void update() {
+    public void update() {
         crosshair_ray = new Raycasting.raycast(State.camera.position, State.camera.direction);
 
         gjk_crosshair_ray.A = State.camera.position;
         gjk_crosshair_ray.B = State.camera.direction;
 
         //mouse picker stuff
-        Vector3 n = new Vector3(Input.mouse_position.X, Input.mouse_position.Y, 0);
-        Vector3 f = new Vector3(Input.mouse_position.X, Input.mouse_position.Y, 1);
+        Vector3 n = new Vector3(State.main_thread_input.mouse_position.X, State.main_thread_input.mouse_position.Y, 0);
+        Vector3 f = new Vector3(State.main_thread_input.mouse_position.X, State.main_thread_input.mouse_position.Y, 1);
 
         Vector3 near = State.viewport.Unproject(n, State.camera.projection, State.camera.view, Matrix.Identity);
         Vector3 far = State.viewport.Unproject(f, State.camera.projection, State.camera.view, Matrix.Identity);

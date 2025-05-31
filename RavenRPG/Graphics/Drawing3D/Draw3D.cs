@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using RavenRPG.Engine;
 
-namespace RavenRPG.Renderer;
+namespace RavenRPG.Graphics.Drawing3D;
 
     public class Draw3D {
         static VertexPositionColor[] verts = new VertexPositionColor[2];

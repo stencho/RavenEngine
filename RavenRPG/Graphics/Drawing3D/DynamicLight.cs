@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using RavenRPG.Engine;
 
-namespace RavenRPG.Renderer {
+namespace RavenRPG.Graphics.Drawing3D {
     public enum LightType {
         SPOT,
         POINT

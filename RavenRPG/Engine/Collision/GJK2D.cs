@@ -1,5 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
-using RavenRPG.Renderer.Drawing;
+using RavenRPG.Graphics.Drawing2D;
 using static RavenRPG.Engine.Math2D;
 
 namespace RavenRPG.Engine.Collision {

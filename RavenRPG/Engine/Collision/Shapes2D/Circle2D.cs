@@ -1,5 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
-using RavenRPG.Renderer.Drawing;
+using RavenRPG.Graphics.Drawing2D;
 
 namespace RavenRPG.Engine.Collision.Shapes2D {
     public class Circle2D : Collision2D.Shape2D {

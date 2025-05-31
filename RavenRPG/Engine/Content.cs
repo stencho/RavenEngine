@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using RavenRPG.Graphics;
 
 namespace RavenRPG.Engine;
 
@@ -18,7 +19,7 @@ public static class Resources {
     public static string FolderNameFromType(ContentType type) => type + "s";
     
     public enum ContentType {
-        Texture, Font, Shader, Model//, Sound
+        Texture, Font, Shader, Model, RenderTarget, GBuffer//, Sound
     }
 
     public enum DataType {
@@ -172,6 +173,56 @@ public static class Resources {
         }
     }
 
+    public class ContentDataRenderTarget : IContentData {
+        public string Name { get; }
+        public string FullName { get; }
+        public double LastAccessTime { get; }
+        public bool Loaded { get; set; } = true;
+        double _last_access_time = -1;
+
+        public ContentType Type { get; } = ContentType.RenderTarget;
+        public DataType DataType { get; } = DataType.Procedural;
+
+        RenderTarget2D _target;
+        public RenderTarget2D RenderTarget => _target;
+
+        public Action DrawAction { get; set; }
+        
+        public ContentDataRenderTarget(string full_name, RenderTarget2D target) {
+            FullName = full_name;
+            Name = full_name.Remove(0, full_name.IndexOf('/')+1);
+            _target = target;
+            Debug.WriteLine($"Content added: {Name} :: {FullName} :: {Type.ToString()}");
+        }
+        
+        public void Load() {}
+    }
+
+    public class ContentDataGBuffer : IContentData {
+        public string Name { get; }
+        public string FullName { get; }
+        public double LastAccessTime { get; }
+        public bool Loaded { get; set; } = true;
+        double _last_access_time = -1;
+
+        public ContentType Type { get; } = ContentType.GBuffer;
+        public DataType DataType { get; } = DataType.Procedural;
+
+        GBuffer _target;
+        public GBuffer GBuffer => _target;
+
+        public Action DrawAction { get; set; }
+        
+        public ContentDataGBuffer(string full_name, GBuffer target) {
+            FullName = full_name;
+            Name = full_name.Remove(0, full_name.IndexOf('/')+1);
+            _target = target;
+            Debug.WriteLine($"Content added: {Name} :: {FullName} :: {Type.ToString()}");
+        }
+        
+        public void Load() {}
+    }
+    
     static Dictionary<string, IContentData> all_content = new ();
 
     public static Texture2D GetTexture(string name) {
@@ -180,9 +231,28 @@ public static class Resources {
     public static ContentDataTexture GetTextureContent(string name) {
         return ((ContentDataTexture)all_content[$"{FolderNameFromType(ContentType.Texture)}/{name}"]);
     }
+    
+    public static RenderTarget2D GetRenderTarget2D(string name) {
+        return ((ContentDataRenderTarget)all_content[$"{FolderNameFromType(ContentType.Texture)}/{name}"]).RenderTarget;
+    }
+    public static ContentDataRenderTarget GetRenderTarget2DContent(string name) {
+        return ((ContentDataRenderTarget)all_content[$"{FolderNameFromType(ContentType.Texture)}/{name}"]);
+    }
+    
+    public static GBuffer GetGBuffer(string name) {
+        return ((ContentDataGBuffer)all_content[$"{FolderNameFromType(ContentType.Texture)}/{name}"]).GBuffer;
+    }
+    public static ContentDataGBuffer GetGBufferContent(string name) {
+        return ((ContentDataGBuffer)all_content[$"{FolderNameFromType(ContentType.Texture)}/{name}"]);
+    }
+    
     public static Effect GetShader(string name) {
         return ((ContentDataShader)all_content[$"{FolderNameFromType(ContentType.Shader)}/{name}"]).Shader;
     }
+    public static ContentDataShader GetShaderContent(string name) {
+        return ((ContentDataShader)all_content[$"{FolderNameFromType(ContentType.Shader)}/{name}"]);
+    }
+    
     public static SpriteFont GetFont(string name) {
         return ((ContentDataFont)all_content[$"{FolderNameFromType(ContentType.Font)}/{name}"]).Font;
     }
@@ -191,7 +261,13 @@ public static class Resources {
     }
 
     public static void AddTexture(string name, Texture2D texture) {
-        all_content.Add($"Textures/{name}", new ContentDataTexture(name, texture));
+        all_content.Add($"{FolderNameFromType(ContentType.Texture)}/{name}", new ContentDataTexture(name, texture));
+    }
+    public static void AddRenderTarget(string name, RenderTarget2D target) {
+        all_content.Add($"{FolderNameFromType(ContentType.RenderTarget)}/{name}", new ContentDataRenderTarget(name, target));
+    }
+    public static void AddGBuffer(string name, GBuffer buffer) {
+        all_content.Add($"{FolderNameFromType(ContentType.GBuffer)}/{name}", new ContentDataGBuffer(name, buffer));
     }
     
     static void add_content_of_type(ContentType type, int path_crop_length) {
@@ -233,7 +309,7 @@ public static class Resources {
     }
 
     public static string ListAllContent() {
-        string output = "[LOADED]\n";
+        string output = "";
         foreach (IContentData content in all_content.Values.Where(a => a.Loaded).OrderBy(a => a.FullName)) {
             output += $"{content.FullName} :: {(content.DataType == DataType.Procedural ? "[RAM]" : "[DISK]")}\n";
         }

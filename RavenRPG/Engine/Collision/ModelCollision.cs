@@ -1,7 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using RavenRPG.Engine.Collision.Shapes3D;
-using RavenRPG.Renderer;
+using RavenRPG.Graphics;
+using RavenRPG.Graphics.Drawing3D;
 
 namespace RavenRPG.Engine.Collision
 {

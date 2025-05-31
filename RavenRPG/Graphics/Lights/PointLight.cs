@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
+using RavenRPG.Graphics.Drawing3D;
 
-namespace RavenRPG.Renderer.Lights {
+namespace RavenRPG.Graphics.Lights {
     public class PointLight : DynamicLight {
 
         public LightType type => LightType.POINT;

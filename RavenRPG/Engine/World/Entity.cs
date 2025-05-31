@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using RavenRPG.Renderer;
+using RavenRPG.Graphics;
+using RavenRPG.Graphics.Drawing3D;
 
 namespace RavenRPG.Engine.World;
 
@@ -14,7 +15,8 @@ public interface Entity {
     public void Update();
     public void AfterCollision();
     public void UpdateGraphics();
+
+    //public render_info RenderInfo { get; set; }
     
-    public Action<Entity> Draw3D { get; set;}
     public Action<Entity> Draw2D { get; set;}
 }

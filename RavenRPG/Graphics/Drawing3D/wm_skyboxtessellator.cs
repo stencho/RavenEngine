@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace RavenRPG.Renderer {
+namespace RavenRPG.Graphics.Drawing3D {
     public class SkyBoxTesselator {
         /// <summary>
         /// Creates a skybox with the scale and the facing order in the skybox image 

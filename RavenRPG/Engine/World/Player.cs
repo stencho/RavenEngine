@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using RavenRPG.Renderer;
+using RavenRPG.Graphics;
+using RavenRPG.Graphics.Drawing3D;
 
 namespace RavenRPG.Engine.World;
 
@@ -20,6 +21,7 @@ public class Player : Entity {
     public void UpdateGraphics() {
     }
 
-    public Action<Entity> Draw3D { get; set; }
+    //public render_info RenderInfo { get; set; } = null;
+
     public Action<Entity> Draw2D { get; set; }
 }

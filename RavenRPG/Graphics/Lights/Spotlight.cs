@@ -2,8 +2,9 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using RavenRPG.Engine;
+using RavenRPG.Graphics.Drawing3D;
 
-namespace RavenRPG.Renderer.Lights {
+namespace RavenRPG.Graphics.Lights {
     public class SpotLight : DynamicLight {
         public LightType type => LightType.SPOT;
         public int depth_map_resolution => gvars.get_int("light_spot_resolution");

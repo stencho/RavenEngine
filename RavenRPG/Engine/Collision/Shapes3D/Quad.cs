@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using RavenRPG.Renderer;
+using RavenRPG.Graphics;
+using RavenRPG.Graphics.Drawing3D;
 
 namespace RavenRPG.Engine.Collision.Shapes3D {
     public class Quad : Shape3D {

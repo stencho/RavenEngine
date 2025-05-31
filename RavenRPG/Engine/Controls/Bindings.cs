@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using RavenRPG.Renderer.Drawing;
+using RavenRPG.Graphics.Drawing2D;
 
 namespace RavenRPG.Engine.Controls {
     public enum controller_type {
@@ -38,244 +38,9 @@ namespace RavenRPG.Engine.Controls {
         released_hold = 1 << 7
     };
     
-    public static class StaticControlBinds {
-        public static AnalogBinds analog_binds = new AnalogBinds();
-        public static DigitalBinds digital_binds = new DigitalBinds();
-
-        public static bool global_enable = true;
-        public static bool global_enable_prev = true;
-        static bool just_enabled => global_enable && !global_enable_prev;
-        static bool just_disabled => !global_enable && global_enable_prev;
-
-        public static bool bind_exists(string bind) {
-            return digital_binds.bind_exists(bind);
-        }
-
-        public static string list_binds() {
-            string s = "";
-
-            for (int i = 0; i < digital_binds.binds.Count; i++) {
-                IDigitalBind b = digital_binds.binds[i];
-                if (i < digital_binds.bind_count() - 1)
-                    s += $"{b.button_string} :: {b.is_pressed} { b.force_enable }\n";
-                else
-                    s += $"{b.button_string} :: {b.is_pressed} {b.force_enable}";
-            }
-
-            return s;
-        }
-
-        public static bool force_enabled(string bind) {
-            foreach (IDigitalBind b in digital_binds.binds) {
-                if (b.binds.Contains(bind)) {
-                    if (b.force_enable) {
-                        return true;
-                    }
-                }
-                
-            }
-            return false;
-        }
-        public static void force_enable(string bind) {
-            foreach (IDigitalBind b in digital_binds.binds) {
-                if (b.bind_type == controller_type.keyboard) {
-                    if (b.binds.Contains(bind)) {
-                        b.force_enable = true;
-                    }
-                }
-            }
-        }
-        public static void force_disable(string bind) {
-            foreach (IDigitalBind b in digital_binds.binds) {
-                if (b.bind_type == controller_type.keyboard) {
-                    if (b.binds.Contains(bind)) {
-                        b.force_enable = false;
-                    }
-                }
-            }
-        }
-
-        public static PlayerIndex player_index => _player_index;
-        static PlayerIndex _player_index = PlayerIndex.One;
-
-        static bool bind_enabled(string bind) {
-            if (!global_enable) return force_enabled(bind);
-            else return true;
-        }
-
-        #region ANALOG
-        public static float get_axis(string bind) => analog_binds.get_axis(bind);
-        public static void add_bind_analog(Input.XInputAxis axis, string bind) => analog_binds.add_bind(axis, bind);
-        #endregion
-
-        #region DIGITAL
-        //state
-        public static bool pressed(string bind) => bind_enabled(bind) ? digital_binds.bind_pressed(bind) : false;
-        public static bool released(string bind) => bind_enabled(bind) ? digital_binds.bind_released(bind) : true;
-
-        public static bool just_pressed(string bind) => bind_enabled(bind) ? 
-            digital_binds.bind_just_pressed(bind) || (just_enabled && digital_binds.bind_pressed(bind)) : false;
-        public static bool just_released(string bind) => bind_enabled(bind) ? 
-            digital_binds.bind_just_released(bind) || (just_disabled && digital_binds.bind_pressed(bind)) : false;
-
-        public static bool held(string bind) => bind_enabled(bind) ? digital_binds.bind_held(bind) : false;
-        public static bool just_held(string bind) => bind_enabled(bind) ? digital_binds.bind_just_held(bind) : false;
-        public static double held_time(string bind) => bind_enabled(bind) ? digital_binds.bind_held_time(bind) : 0.0;
-        public static double pressed_time(string bind) => bind_enabled(bind) ? digital_binds.bind_pressed_time(bind) : 0.0;
-
-        public static bool tapped(string bind) => bind_enabled(bind) ? digital_binds.bind_tapped(bind) : false;
-
-        public static int times_bind_pressed(string bind) => bind_enabled(bind) ? digital_binds.bind_buttons_pressed(bind) : 0;
-
-
-        //add binds
-        public static void add_bind_digital(Keys button, params string[] binds) => digital_binds.add_bind(button, binds);
-        public static void add_bind_digital(Input.MouseButtons button, params string[] binds) => digital_binds.add_bind(button, binds);
-        public static void add_bind_digital(Input.XInputButtons button, params string[] binds) => digital_binds.add_bind(button, binds);
-        #endregion
-
-        public static void change_player_index(PlayerIndex index) { _player_index = index; }
-
-        public static void add_bindings(params (bind_type type, object bind_type_type, object bind_data, string bind)[] data) {
-            
-            foreach ((bind_type type, object bind_type_type, object bind_data, string bind) param in data) {
-                switch (param.type) {
-
-                    case bind_type.digital:
-
-                        switch ((controller_type)param.bind_type_type) {
-                            case controller_type.keyboard:
-                                add_bind_digital((Keys)param.bind_data, param.bind);
-                                break;
-                            case controller_type.xinput:
-                                add_bind_digital((Input.XInputButtons)param.bind_data, param.bind);
-                                break;
-                            case controller_type.mouse:
-                                add_bind_digital((Input.MouseButtons)param.bind_data, param.bind);
-                                break;
-                        }
-                        break;
-
-                    case bind_type.analog:
-
-                        switch ((analog_bind_type)param.bind_type_type) {
-                            case analog_bind_type.xinput_axis:
-                                add_bind_analog((Input.XInputAxis)param.bind_data, param.bind);
-                                break;
-                        }
-                        break;
-                }
-            }
-        }
-
-        public static void add_bindings(params (bind_type type, object bind_type_type, object bind_data, string[] binds)[] data) {
-            
-            foreach ((bind_type type, object bind_type_type, object bind_data, string[] binds) param in data) {
-                switch (param.type) {
-
-                    case bind_type.digital:
-
-                        switch ((controller_type)param.bind_type_type) {
-                            case controller_type.keyboard:
-                                add_bind_digital((Keys)param.bind_data, param.binds);
-                                break;
-                            case controller_type.xinput:
-                                add_bind_digital((Input.XInputButtons)param.bind_data, param.binds);
-                                break;
-                            case controller_type.mouse:
-                                add_bind_digital((Input.MouseButtons)param.bind_data, param.binds);
-                                break;
-                        }
-                        break;
-
-                    case bind_type.analog:
-
-                        switch ((analog_bind_type)param.bind_type_type) {
-                            case analog_bind_type.xinput_axis:
-                                add_bind_analog((Input.XInputAxis)param.bind_data, param.binds[0]);
-                                break;
-                        }
-                        break;
-                }
-            }
-        }
-
-        public static bool bind_enabled(IDigitalBind bind) {
-            return digital_binds.bind_enabled(bind);
-        }
-
-
-        public static void update() {
-            global_enable_prev = global_enable;
-
-            analog_binds.update(player_index);
-            digital_binds.update(player_index);
-        }
-        
-        public static void draw_state(int X, int Y, int max_Y, int graph_width, int graph_min_height) {
-            int current_X = 0;
-            int current_Y = 0;
-
-            int highest_X = 0;
-            int highest_Y = 0;
-
-            int max_column_width = 0;
-
-            bool height_doink = false;
-
-            Draw2D.text_shadow("static", new Vector2i(X, Y - 20f), Color.White, Color.Black);
-
-            foreach (IDigitalBind bind in digital_binds.binds) {
-                var s = bind.binds.Aggregate((a, b) => a + "\n" + b) + " ";
-
-                var ms = Draw2D.measure_string_profont_int(s);
-
-                var graph_height = graph_min_height;
-                if (ms.Y > graph_height)
-                    graph_height = ms.Y + 8;
-
-                if (ms.X > max_column_width) {
-                    max_column_width = ms.X;
-                }
-
-                //Draw2D.graph_pwm(X + current_X + 1, Y + current_Y + 1, graph_width, graph_height, "", Color.Black, Color.Black, bind.recent_state);
-                //Draw2D.graph_pwm(X + current_X, Y + current_Y, graph_width, graph_height, "", bind.is_pressed && bind_enabled(bind) ? Color.LimeGreen : Color.Red, Color.Pink, bind.recent_state);
-                
-                Draw2D.fill_rect(X + current_X - 2, Y + current_Y - 2, graph_width, graph_height,
-                    bind.is_pressed && bind_enabled(bind) ? 
-                        (digital_binds.bind_held(bind) ? Color.Green : Color.LimeGreen)
-                    : Color.IndianRed);
-
-                Draw2D.text_shadow(s, new Vector2i(X + current_X + graph_width, Y + current_Y));
-
-                current_Y += graph_height + 4;
-                
-                height_doink = false;
-                if (current_Y > max_Y) {
-                    current_X += graph_width + max_column_width + 8;
-
-                    if (current_Y > highest_Y)
-                        highest_Y = current_Y;
-
-                    current_Y = 0;
-                    max_column_width = 0;
-                    height_doink = true;
-                }                
-            }
-
-            if (height_doink)
-                highest_X = current_X;
-            else
-                highest_X = current_X + graph_width + max_column_width + 8;
-
-
-           // Draw2D.square(-5 + X + 1, -5 + Y + 1, highest_X + 5, highest_Y + 5, 1f, Color.Black);
-           // Draw2D.square(-5 + X, -5 + Y, highest_X + 5, highest_Y + 5, 1f, Color.White);
-        }
-    }
-
-
     public class ControlBinds {
+        public Input input = new Input();
+        
         AnalogBinds analog_binds;
         DigitalBinds digital_binds;
 
@@ -344,24 +109,24 @@ namespace RavenRPG.Engine.Controls {
             return digital_binds.bind_enabled(bind);
         }
 
-        public ControlBinds(params (bind_type type, object bind_type_type, object bind_data, string[] binds)[] data) {            
-            digital_binds = new DigitalBinds();
-            analog_binds = new AnalogBinds();
+        public ControlBinds(params (bind_type type, object bind_type_type, object bind_data, string bind)[] data) {            
+            digital_binds = new DigitalBinds(this);
+            analog_binds = new AnalogBinds(this);
 
-            foreach ((bind_type type, object bind_type_type, object bind_data, string[] binds) param in data) {
+            foreach ((bind_type type, object bind_type_type, object bind_data, string bind) param in data) {
                 switch (param.type) {
 
                     case bind_type.digital:
 
                         switch ((controller_type)param.bind_type_type) {
                             case controller_type.keyboard:
-                                add_bind_digital((Keys)param.bind_data, param.binds);
+                                add_bind_digital((Keys)param.bind_data, param.bind);
                                 break;
                             case controller_type.xinput:
-                                add_bind_digital((Input.XInputButtons)param.bind_data, param.binds);
+                                add_bind_digital((Input.XInputButtons)param.bind_data, param.bind);
                                 break;
                             case controller_type.mouse:
-                                add_bind_digital((Input.MouseButtons)param.bind_data, param.binds);
+                                add_bind_digital((Input.MouseButtons)param.bind_data, param.bind);
                                 break;
                         }
                         break;
@@ -370,15 +135,17 @@ namespace RavenRPG.Engine.Controls {
 
                         switch ((analog_bind_type)param.bind_type_type) {
                             case analog_bind_type.xinput_axis:
-                                add_bind_analog((Input.XInputAxis)param.bind_data, param.binds[0]);
+                                add_bind_analog((Input.XInputAxis)param.bind_data, param.bind);
                                 break;
                         }
                         break;
                 }
             }
         }
-
-        public void update() {
+        
+        public void Update() {
+            input.Update();
+            
             analog_binds.update(player_index);
             digital_binds.update(player_index);
 
@@ -529,10 +296,11 @@ namespace RavenRPG.Engine.Controls {
         public List<IAnalogBind> binds = new List<IAnalogBind>();
         List<IAnalogBind> _binds = new List<IAnalogBind>();
 
-        
+        private ControlBinds parent;
 
         public AnalogBinds() { }
-        public AnalogBinds(params (analog_bind_type type, object axis, string bind)[] binds) {
+        public AnalogBinds(ControlBinds parent, params (analog_bind_type type, object axis, string bind)[] binds) {
+            this.parent = parent;
             foreach((analog_bind_type type, object axis, string bind) param in binds) {
                 switch (param.type) {
                     //case analog_bind_type.mouse_delta_axis:
@@ -618,6 +386,8 @@ namespace RavenRPG.Engine.Controls {
     }
 
     public interface IDigitalBind {
+        DigitalBinds parent { get; set; }
+        
         controller_type bind_type { get; }
         digital_bind_state bind_state { get; }
         
@@ -650,13 +420,16 @@ namespace RavenRPG.Engine.Controls {
     }
 
     public class KeyboardBind : IDigitalBind {
+        public DigitalBinds parent { get; set; }
+        private Input input => parent.parent.input;
+        
         public controller_type bind_type => controller_type.keyboard;
         
         digital_bind_state _bind_state;
         digital_bind_state _bind_state_prev;
         public digital_bind_state bind_state => _bind_state;
 
-        public bool is_pressed => Input.is_pressed(button);// bind_state.HasFlag(digital_bind_state.pressed);
+        public bool is_pressed => parent.parent.input.is_pressed(button);// bind_state.HasFlag(digital_bind_state.pressed);
         public bool is_released => !is_pressed;
 
         public bool held => bind_state.HasFlag(digital_bind_state.held);
@@ -689,13 +462,14 @@ namespace RavenRPG.Engine.Controls {
 
         bool _was_pressed = false;
 
-        public KeyboardBind(Keys button, string[] binds) {
+        public KeyboardBind(DigitalBinds parent, Keys button, string[] binds) {
+            this.parent = parent;
             this.binds.AddRange(binds);
             _button = button;
         }
 
         public void update_state(PlayerIndex player_index) {
-            if (Input.is_pressed(button)) {
+            if (input.is_pressed(button)) {
                 _bind_state = digital_bind_state.pressed;
 
                 if (!_was_pressed) {
@@ -733,13 +507,15 @@ namespace RavenRPG.Engine.Controls {
             }
 
             _bind_state_prev = _bind_state;
-            _was_pressed = Input.is_pressed(button);
+            _was_pressed = input.is_pressed(button);
 
         }
 
     }
 
     public class XInputBind : IDigitalBind {
+        public DigitalBinds parent { get; set; }
+        private Input input => parent.parent.input;
         public controller_type bind_type => controller_type.xinput;
 
         digital_bind_state _bind_state;
@@ -777,17 +553,18 @@ namespace RavenRPG.Engine.Controls {
         
         public bool force_enable { get; set; } = false;
 
-        public XInputBind(Input.XInputButtons button, string[] binds) {
+        public XInputBind(DigitalBinds parent, Input.XInputButtons button, string[] binds) {
+            this.parent = parent;
             this.binds.AddRange(binds);
             _button = button;
             this._recent_state = new bool[60];
         }
 
         public void update_state(PlayerIndex player_index) {
-            if (Input.is_pressed(button, player_index)) {
+            if (input.is_pressed(button, player_index)) {
                 _bind_state = digital_bind_state.pressed;
 
-                if (!Input.was_pressed(button, player_index)) {
+                if (!input.was_pressed(button, player_index)) {
                     _bind_state |= digital_bind_state.just_pressed;
 
                     _pressed_at = DateTime.Now;
@@ -805,7 +582,7 @@ namespace RavenRPG.Engine.Controls {
             } else {
                 _bind_state = digital_bind_state.released;
 
-                if (Input.was_pressed(button, player_index)) {
+                if (input.was_pressed(button, player_index)) {
                     _bind_state |= digital_bind_state.just_released;
                 }
 
@@ -832,13 +609,15 @@ namespace RavenRPG.Engine.Controls {
     }
 
     public class MouseButtonBind : IDigitalBind {
+        public DigitalBinds parent { get; set; }
+        private Input input => parent.parent.input;
         public controller_type bind_type => controller_type.mouse;
 
         digital_bind_state _bind_state;
         digital_bind_state _bind_state_prev;
         public digital_bind_state bind_state => _bind_state;
 
-        public bool is_pressed => Input.is_pressed(button);
+        public bool is_pressed => parent.parent.input.is_pressed(button);
         public bool is_released => !is_pressed;
 
         public bool held => bind_state.HasFlag(digital_bind_state.held);
@@ -869,7 +648,8 @@ namespace RavenRPG.Engine.Controls {
 
         public bool force_enable { get; set; } = false;
 
-        public MouseButtonBind(Input.MouseButtons button, string[] binds) {
+        public MouseButtonBind(DigitalBinds parent, Input.MouseButtons button, string[] binds) {
+            this.parent = parent;
             this.binds.AddRange(binds);
             _button = button;
             this._recent_state = new bool[60];
@@ -880,7 +660,7 @@ namespace RavenRPG.Engine.Controls {
         }
         bool _was_pressed = false;
         public void update_state(PlayerIndex player_index) {
-            if (Input.is_pressed(button)) {
+            if (input.is_pressed(button)) {
                 _bind_state = digital_bind_state.pressed;
 
                 if (!_was_pressed) {
@@ -923,12 +703,14 @@ namespace RavenRPG.Engine.Controls {
                 _recent_state[i] = _recent_state[i + 1];
             }
             _recent_state[_recent_state.Length - 1] = is_pressed;
-            _was_pressed = Input.is_pressed(button);
+            _was_pressed = input.is_pressed(button);
         }
 
     }
 
     public class DigitalBinds {
+        public ControlBinds parent;
+        
         public List<IDigitalBind> binds => _binds;
         volatile List<IDigitalBind> _binds = new List<IDigitalBind>();
 
@@ -936,9 +718,7 @@ namespace RavenRPG.Engine.Controls {
 
         public void enable() { _enabled = true; }
         public void disable() { _enabled = false; }
-
-        public DigitalBinds() { }
-
+        
         public bool bind_exists(string bind) {            
             foreach (var s in _binds) {
                 if (s.binds.Contains(bind)) return true;
@@ -946,7 +726,9 @@ namespace RavenRPG.Engine.Controls {
             return false;
         }
 
-        public DigitalBinds(params (controller_type input_type, object button, string[] binds)[] bind_data) {
+        public DigitalBinds(ControlBinds parent, params (controller_type input_type, object button, string[] binds)[] bind_data) {
+            this.parent = parent;
+            
             foreach ((controller_type input_type, object button, string[] binds) bd in bind_data) {
                 switch (bd.input_type) {
                     case controller_type.keyboard:
@@ -974,7 +756,7 @@ namespace RavenRPG.Engine.Controls {
                 }
             }
 
-            _binds.Add(new KeyboardBind(button, binds));
+            _binds.Add(new KeyboardBind(this, button, binds));
         }
 
 
@@ -990,7 +772,7 @@ namespace RavenRPG.Engine.Controls {
                 }
             }
 
-            _binds.Add(new XInputBind(button, binds));
+            _binds.Add(new XInputBind(this, button, binds));
 
         }
 
@@ -1006,7 +788,7 @@ namespace RavenRPG.Engine.Controls {
                 }
             }
 
-            _binds.Add(new MouseButtonBind(button, binds));
+            _binds.Add(new MouseButtonBind(this, button, binds));
 
         }
 

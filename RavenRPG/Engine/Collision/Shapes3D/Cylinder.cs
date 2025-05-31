@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
-using RavenRPG.Renderer;
+using RavenRPG.Graphics;
+using RavenRPG.Graphics.Drawing3D;
 
 namespace RavenRPG.Engine.Collision.Shapes3D {
     class Cylinder : Shape3D {

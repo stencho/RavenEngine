@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Xna.Framework;
-using RavenRPG.Renderer;
-using RavenRPG.Renderer.Drawing;
+using RavenRPG.Graphics;
+using RavenRPG.Graphics.Drawing2D;
+using RavenRPG.Graphics.Drawing3D;
 
 namespace RavenRPG.Engine.Collision {
 
