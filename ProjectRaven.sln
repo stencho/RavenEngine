@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectRaven", "ProjectRaven\ProjectRaven.csproj", "{41E3A18C-B0B2-459D-BD1C-CB04B3510813}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raven", "Raven\Raven.csproj", "{41E3A18C-B0B2-459D-BD1C-CB04B3510813}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
