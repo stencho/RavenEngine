@@ -1,7 +1,7 @@
 using Raven.Engine;
 using Raven.Engine.Universes;
 
-namespace RavenRPG.Engine.Universe.Forces;
+namespace RavenRPG.Engine;
 
 public unsafe class MultiSceneEntityChunkRef {
     public Chunk* chunk;

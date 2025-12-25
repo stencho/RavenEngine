@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using Raven.Engine.Collision;
 using Raven.Engine.Collision.Shapes2D;
 using Raven.Engine.Collision.Shapes3D;
+using Raven.Graphics;
 
 namespace Raven.Engine.Controls;
 
@@ -309,18 +310,18 @@ public class picker_raycasts {
     public Line3D gjk_crosshair_ray = new Line3D();
     public Line3D gjk_mouse_pick_ray = new Line3D();
 
-    public void update() {
-        crosshair_ray = new Raycasting.raycast(State.camera.position, State.camera.direction);
+    public void update(Camera camera) {
+        crosshair_ray = new Raycasting.raycast(camera.position, camera.direction);
 
-        gjk_crosshair_ray.A = State.camera.position;
-        gjk_crosshair_ray.B = State.camera.direction;
+        gjk_crosshair_ray.A = camera.position;
+        gjk_crosshair_ray.B = camera.direction;
 
         //mouse picker stuff
         Vector3 n = new Vector3(State.input_main_thread.mouse_position.X, State.input_main_thread.mouse_position.Y, 0);
         Vector3 f = new Vector3(State.input_main_thread.mouse_position.X, State.input_main_thread.mouse_position.Y, 1);
 
-        Vector3 near = State.viewport.Unproject(n, State.camera.projection, State.camera.view, Matrix.Identity);
-        Vector3 far = State.viewport.Unproject(f, State.camera.projection, State.camera.view, Matrix.Identity);
+        Vector3 near = State.viewport.Unproject(n, camera.projection, camera.view, Matrix.Identity);
+        Vector3 far = State.viewport.Unproject(f, camera.projection, camera.view, Matrix.Identity);
 
         Vector3 d = far - near;
         d.Normalize();

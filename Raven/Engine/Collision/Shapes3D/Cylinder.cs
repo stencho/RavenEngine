@@ -26,14 +26,14 @@ namespace Raven.Engine.Collision.Shapes3D {
             throw new NotImplementedException();
         }
 
-        public void draw(Matrix world) {
-            Draw3D.cylinder(Vector3.Transform(A, world), Vector3.Transform(B, world), radius, Color.MonoGameOrange);
+        public void draw(Camera camera, GBuffer gbuffer,Matrix world) {
+            Draw3D.cylinder(camera, Vector3.Transform(A, world), Vector3.Transform(B, world), radius, Color.MonoGameOrange);
             //Draw3D.cube(find_bounding_box(), Color.MonoGameOrange, State.camera.view, State.camera.projection);
 
-            Draw3D.cube(find_bounding_box(world), Color.Red);
+            Draw3D.cube(camera, find_bounding_box(world), Color.Red);
 
-            Draw3D.xyz_cross(Vector3.Transform(A, world), 1f, Color.LightPink);
-            Draw3D.xyz_cross(Vector3.Transform(B, world), 1f, Color.HotPink);
+            Draw3D.xyz_cross(camera, Vector3.Transform(A, world), 1f, Color.LightPink);
+            Draw3D.xyz_cross(camera, Vector3.Transform(B, world), 1f, Color.HotPink);
         }
         public Vector3 support(Vector3 direction, Vector3 sweep) {
             throw new NotImplementedException();

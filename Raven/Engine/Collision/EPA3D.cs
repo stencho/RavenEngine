@@ -140,25 +140,25 @@ namespace Raven.Engine.Collision {
             edge_indices.Clear();
         }
 
-        public void draw() {
+        public void draw(Camera camera, GBuffer gbuffer) {
             if (triangle_indices == null) return;
             foreach (var tri in triangle_indices) {
                 //Draw3D.fill_tri(Matrix.Identity, points[tri.A], points[tri.B], points[tri.C], Color.Red);
             }
             foreach (var tri in triangle_indices) {                
-                Draw3D.sprite_line(points[tri.A].P, points[tri.B].P, 0.02f, Color.Orange);
-                Draw3D.sprite_line(points[tri.A].P, points[tri.C].P, 0.02f, Color.Orange);
-                Draw3D.sprite_line(points[tri.C].P, points[tri.B].P, 0.02f, Color.Orange);
+                Draw3D.sprite_line(camera, gbuffer, points[tri.A].P, points[tri.B].P, 0.02f, Color.Orange);
+                Draw3D.sprite_line(camera, gbuffer, points[tri.A].P, points[tri.C].P, 0.02f, Color.Orange);
+                Draw3D.sprite_line(camera, gbuffer, points[tri.C].P, points[tri.B].P, 0.02f, Color.Orange);
 
             }
             foreach (var edge in edge_indices) {
-                Draw3D.sprite_line(points[edge.A].P, points[edge.B].P, 0.02f, Color.Red);
+                Draw3D.sprite_line(camera, gbuffer,points[edge.A].P, points[edge.B].P, 0.02f, Color.Red);
             }
 
             foreach (var tri in triangle_indices) {
-                Draw3D.sprite_line(points[tri.A].P, points[tri.B].P, 0.02f, Color.Orange);
-                Draw3D.sprite_line(points[tri.A].P, points[tri.C].P, 0.02f, Color.Orange);
-                Draw3D.sprite_line(points[tri.C].P, points[tri.B].P, 0.02f, Color.Orange);
+                Draw3D.sprite_line(camera, gbuffer,points[tri.A].P, points[tri.B].P, 0.02f, Color.Orange);
+                Draw3D.sprite_line(camera, gbuffer,points[tri.A].P, points[tri.C].P, 0.02f, Color.Orange);
+                Draw3D.sprite_line(camera, gbuffer,points[tri.C].P, points[tri.B].P, 0.02f, Color.Orange);
             }
 
 

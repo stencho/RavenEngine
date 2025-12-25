@@ -128,7 +128,6 @@ namespace Raven.Graphics.Drawing3D {
         float far_clip { get;  }
         float near_clip { get; }
         
-
         void update();
     }
 }

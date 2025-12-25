@@ -75,8 +75,8 @@ public static class Extensions {
         return (bb.Min + bb.Max) / 2f;
     }
 
-    public static void draw_debug(this BoundingBox bb, Color color) {
-        Draw3D.cube(A(bb), B(bb), C(bb), D(bb), E(bb), F(bb), G(bb), H(bb), color);
+    public static void draw_debug(this BoundingBox bb, Camera camera, Color color) {
+        Draw3D.cube(camera, A(bb), B(bb), C(bb), D(bb), E(bb), F(bb), G(bb), H(bb), color);
     }
 
     public static Vector2i ToVector2i(this Point p) {

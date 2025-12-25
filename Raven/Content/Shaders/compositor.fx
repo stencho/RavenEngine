@@ -70,7 +70,7 @@ VSO MainVS(VSI input)
 
 bool fog = true;
 
-int buffer = 1;
+int buffer = -1;
 float sky_brightness;
 float3 atmosphere_color;
 

@@ -49,7 +49,7 @@ namespace Raven.Graphics.Lights {
             
             frustum = new BoundingFrustum(view * projection);
 
-            gvars.add_change_action("light_spot_resolution", change_depth_buffer_size);
+            //gvars.add_change_action("light_spot_resolution", change_depth_buffer_size);
         }
 
         public void change_depth_buffer_size() {

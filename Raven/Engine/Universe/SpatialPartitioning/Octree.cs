@@ -1,6 +1,6 @@
 using Raven.Engine;
 
-namespace RavenRPG.Engine.Universe;
+namespace RavenRPG.Engine.Universe.SpacialPartitioning;
 
 public class Octree<T> {
     

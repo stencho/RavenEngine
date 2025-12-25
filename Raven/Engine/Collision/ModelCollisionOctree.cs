@@ -49,12 +49,12 @@ namespace Raven.Engine.Collision
             }
         }
 
-        public void draw(Matrix world)
+        public void draw(Camera camera, Matrix world)
         {
-            Draw3D.cube(bounds, world, Color.Purple);
+            Draw3D.cube(camera, bounds, world, Color.Purple);
             foreach (Node node in nodes)
             {
-                node.draw(world);
+                node.draw(camera, world);
             }
         }
 
@@ -181,11 +181,11 @@ namespace Raven.Engine.Collision
 
         }
 
-        public void draw(Matrix world)
+        public void draw(Camera camera, Matrix world)
         {
             if (values.Count > 0)
             {
-                Draw3D.cube(bounds, world, color);
+                Draw3D.cube(camera, bounds, world, color);
             }
 
             if (subdivided)

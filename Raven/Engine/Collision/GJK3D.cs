@@ -336,14 +336,14 @@ namespace Raven.Engine.Collision {
 
         }
 
-        public void draw() {
+        public void draw(Camera camera) {
             if (supports == null)
                 return;
 
-            Draw3D.xyz_cross(A, 0.2f, Color.Red);
-            if ((int)stage > 0) Draw3D.xyz_cross(B, 0.2f, Color.Green);
-            if ((int)stage > 1) Draw3D.xyz_cross(C, 0.2f, Color.Blue);
-            if ((int)stage > 2) Draw3D.xyz_cross(D, 0.2f, Color.Yellow);
+            Draw3D.xyz_cross(camera, A, 0.2f, Color.Red);
+            if ((int)stage > 0) Draw3D.xyz_cross(camera, B, 0.2f, Color.Green);
+            if ((int)stage > 1) Draw3D.xyz_cross(camera, C, 0.2f, Color.Blue);
+            if ((int)stage > 2) Draw3D.xyz_cross(camera, D, 0.2f, Color.Yellow);
 
             var mid = A;
 
@@ -353,13 +353,13 @@ namespace Raven.Engine.Collision {
                 case simplex_stage.line:
                     mid = (A + B) / 2f;
 
-                    Draw3D.line(A, B, Color.HotPink);
+                    Draw3D.line(camera, A, B, Color.HotPink);
 
-                    Draw3D.line(
+                    Draw3D.line(camera, 
                         supports[(int)spoint.A].A_support,
                         supports[(int)spoint.B].A_support,
                         Color.HotPink);
-                    Draw3D.line(
+                    Draw3D.line(camera, 
                         supports[(int)spoint.A].B_support,
                         supports[(int)spoint.B].B_support,
                         Color.HotPink);
@@ -369,15 +369,15 @@ namespace Raven.Engine.Collision {
                 case simplex_stage.triangle:
                     mid = (A + B + C) / 3f;
 
-                    Draw3D.lines(Color.HotPink, A, B, C, A);
+                    Draw3D.lines(camera, Color.HotPink, A, B, C, A);
 
-                    Draw3D.lines(Color.HotPink,
+                    Draw3D.lines(camera, Color.HotPink,
                         supports[(int)spoint.A].A_support,
                         supports[(int)spoint.B].A_support,
                         supports[(int)spoint.C].A_support,
                         supports[(int)spoint.A].A_support);
 
-                    Draw3D.lines(Color.HotPink,
+                    Draw3D.lines(camera, Color.HotPink,
                         supports[(int)spoint.A].B_support,
                         supports[(int)spoint.B].B_support,
                         supports[(int)spoint.C].B_support,
@@ -386,49 +386,49 @@ namespace Raven.Engine.Collision {
                 case simplex_stage.tetrahedron:
                     mid = (B + C + D) / 3f;
 
-                    Draw3D.lines(Color.HotPink, C, B, D, C);
+                    Draw3D.lines(camera, Color.HotPink, C, B, D, C);
 
-                    Draw3D.line(B, A, Color.Purple);
-                    Draw3D.line(C, A, Color.Purple);
-                    Draw3D.line(D, A, Color.Purple);
+                    Draw3D.line(camera, B, A, Color.Purple);
+                    Draw3D.line(camera, C, A, Color.Purple);
+                    Draw3D.line(camera, D, A, Color.Purple);
 
 
-                    Draw3D.lines(Color.HotPink,
+                    Draw3D.lines(camera, Color.HotPink,
                         supports[(int)spoint.C].A_support,
                         supports[(int)spoint.B].A_support,
                         supports[(int)spoint.D].A_support,
                         supports[(int)spoint.C].A_support);
 
-                    Draw3D.lines(Color.HotPink,
+                    Draw3D.lines(camera, Color.HotPink,
                         supports[(int)spoint.C].B_support,
                         supports[(int)spoint.B].B_support,
                         supports[(int)spoint.D].B_support,
                         supports[(int)spoint.C].B_support);
 
 
-                    Draw3D.line(supports[(int)spoint.B].A_support, supports[(int)spoint.A].A_support, Color.Purple);
-                    Draw3D.line(supports[(int)spoint.C].A_support, supports[(int)spoint.A].A_support, Color.Purple);
-                    Draw3D.line(supports[(int)spoint.D].A_support, supports[(int)spoint.A].A_support, Color.Purple);
+                    Draw3D.line(camera, supports[(int)spoint.B].A_support, supports[(int)spoint.A].A_support, Color.Purple);
+                    Draw3D.line(camera, supports[(int)spoint.C].A_support, supports[(int)spoint.A].A_support, Color.Purple);
+                    Draw3D.line(camera, supports[(int)spoint.D].A_support, supports[(int)spoint.A].A_support, Color.Purple);
 
-                    Draw3D.line(supports[(int)spoint.B].B_support, supports[(int)spoint.A].B_support, Color.Purple);
-                    Draw3D.line(supports[(int)spoint.C].B_support, supports[(int)spoint.A].B_support, Color.Purple);
-                    Draw3D.line(supports[(int)spoint.D].B_support, supports[(int)spoint.A].B_support, Color.Purple);
+                    Draw3D.line(camera, supports[(int)spoint.B].B_support, supports[(int)spoint.A].B_support, Color.Purple);
+                    Draw3D.line(camera, supports[(int)spoint.C].B_support, supports[(int)spoint.A].B_support, Color.Purple);
+                    Draw3D.line(camera, supports[(int)spoint.D].B_support, supports[(int)spoint.A].B_support, Color.Purple);
 
 
                     var m = (A + B + C) / 3f;
-                    Draw3D.line(m, m + Vector3.Normalize(ABC), Color.Red);
+                    Draw3D.line(camera, m, m + Vector3.Normalize(ABC), Color.Red);
 
                     m = (A + D + B) / 3f;
-                    Draw3D.line(m, m + Vector3.Normalize(ADB), Color.Green);
+                    Draw3D.line(camera, m, m + Vector3.Normalize(ADB), Color.Green);
 
                     m = (A + C + D) / 3f;
-                    Draw3D.line(m, m + Vector3.Normalize(ACD), Color.Blue);
+                    Draw3D.line(camera, m, m + Vector3.Normalize(ACD), Color.Blue);
 
 
                     break;
             }
 
-            Draw3D.arrow(mid, mid + direction, 0.2f, Color.HotPink);
+            Draw3D.arrow(camera, mid, mid + direction, 0.2f, Color.HotPink);
 
         }
     }

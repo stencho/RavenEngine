@@ -58,10 +58,10 @@ namespace Raven.Engine.Collision.Shapes3D {
             this.C = C;
         }
 
-        public void draw(Matrix world) {
+        public void draw(Camera camera, GBuffer gbuffer,Matrix world) {
             //Draw3D.fill_tri(world, A, B, C, Color.White * 0.9f);
 
-            Draw3D.lines(Color.MonoGameOrange,
+            Draw3D.lines(camera, Color.MonoGameOrange,
                 Vector3.Transform(A, world),
                 Vector3.Transform(B, world),
                 Vector3.Transform(C, world),

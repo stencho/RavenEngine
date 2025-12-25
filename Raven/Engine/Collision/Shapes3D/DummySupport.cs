@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
+using Raven.Graphics;
 
 namespace Raven.Engine.Collision.Shapes3D {
     class DummySupport : Shape3D {
@@ -7,7 +8,7 @@ namespace Raven.Engine.Collision.Shapes3D {
         public Vector3 center => Vector3.Zero;
         public shape_type shape => shape_type.dummy;
 
-        public void draw(Matrix world) {}
+        public void draw(Camera camera, GBuffer gbuffer,Matrix world) {}
 
         public BoundingBox sweep_bounding_box(Matrix world, Vector3 sweep) {
             return new BoundingBox(Vector3.Zero, Vector3.Zero);

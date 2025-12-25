@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.Design.Serialization;
 using System.Diagnostics;
@@ -11,11 +12,12 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Raven.Engine.Universes;
 using Raven.Console;
+using Raven.Engine.Components;
 using Raven.Engine.Controls;
-using Raven.Engine.Universes.Forces;
 using Raven.Graphics;
 using Raven.Graphics.Drawing2D;
 using Raven.Graphics.Drawing3D;
+using Raven.RPG.Entities;
 using Raven.UI;
 
 namespace Raven.Engine;
@@ -117,7 +119,7 @@ public static class State {
         }
 
 
-        public void configure_dlight_shader(Effect e_directionallight) {
+        public void configure_dlight_shader(Camera camera, GBuffer gbuffer, Effect e_directionallight) {
 
             //e_directionallight.Parameters["fog"].SetValue(true);
             //e_directionallight.Parameters["fog_start"].SetValue(0.5f);
@@ -125,7 +127,7 @@ public static class State {
             //e_directionallight.Parameters["camera_pos"].SetValue(State.camera.position);
             //e_directionallight.Parameters["FarClip"].SetValue(State.camera.far_clip);
 
-            e_directionallight.Parameters["NORMAL"].SetValue(buffer.rt_normal);
+            e_directionallight.Parameters["NORMAL"].SetValue(gbuffer.rt_normal);
             //e_directionallight.Parameters["DEPTH"].SetValue(State.buffer.rt_depth);
 
             e_directionallight.Parameters["InverseView"].SetValue(Matrix.Invert(camera.view));
@@ -207,29 +209,10 @@ public static class State {
     
     public static Vector2i resolution => gvars.get_Vector2i("resolution");
 
-    public static GBuffer buffer;
-    public static Camera camera;
+    //public static GBuffer gbuffer;
+    //public static Camera camera;
 
-    public static class CameraTracker {
-        private static List<Camera> cameras = new();
-
-        public static void Add(Camera camera) {
-            cameras.Add(camera);
-        }
-        public static void Remove(Camera camera) {
-            cameras.Remove(camera);
-        }
-
-        public static void BuildAllViewLists() {
-            
-        }
-        
-        public static void DrawAllBuffers() {
-            
-        }
-    }
-
-    private static Model test_skull; 
+    public static Model test_skull; 
     
     public static Viewport viewport => graphics_device.Viewport;
     
@@ -298,8 +281,6 @@ public static class State {
         gvars.add_gvar("vsync", gvar_data_type.BOOL, true, true);
         gvars.add_gvar("light_spot_resolution", gvar_data_type.INT, 1024, false);
         
-        buffer = new GBuffer();
-        buffer.CreateInPlace(graphics_device, resolution.X, resolution.Y);
         change_backbuffer_resolution();
         
         ChangeResolution(true);
@@ -315,10 +296,11 @@ public static class State {
         engine_binds.force_enable("toggle_console");
         engine_binds.force_enable("screenshot");
         
-        universe.update_thread.Start();
+        universe.StartUpdating();
     }
-    
-    private static Camera test_camera;
+
+    public static TestEntity test_ent;
+    public static FreeCamEntity free_cam;
     
     public static void Load(ContentManager content) {
         Resources.LoadContentList(content);
@@ -333,9 +315,6 @@ public static class State {
         var dir = Vector3.Normalize(-ctestpos);
         var lookat = Matrix.CreateLookAt(ctestpos, Vector3.Forward, 
             Vector3.Up);
-        
-        test_camera = new Camera(ctestpos, Vector3.Forward);
-        camera = test_camera;
         
         e_gbuffer = Resources.GetShader("fill_gbuffer");
         e_light_depth = Resources.GetShader("light_depth");
@@ -373,6 +352,80 @@ public static class State {
             spot_info = new spot_info()
         };
         
+        test_ent = new TestEntity(universe);
+        free_cam = new FreeCamEntity(universe);
+        
+        //test_ent.Components.GetComponent<RenderModel>("RenderModel").Texture
+        universe.SpawnEntity(test_ent, Vector3ui128.Zero, Vector3.Zero);
+        universe.SpawnEntity(free_cam, Vector3ui128.Zero, Vector3.Zero);
+
+        var cam = free_cam.Components.GetComponent<GBufferCamera>("Camera").camera;
+        
+        cam.gbuffer.EnableScreenDraw(Vector2i.Zero, resolution, -1);
+        
+        cam.gbuffer.Draw3DLayer = () => {
+            //drawing the world should go here
+            Draw3D.draw_buffers_diffuse_texture(cam, cam.gbuffer,
+                State.test_skull.Meshes[0].MeshParts[0].VertexBuffer,
+                State.test_skull.Meshes[0].MeshParts[0].IndexBuffer,
+                Resources.GetTexture("XboxenDiffuse"), Color.White,
+                Matrix.CreateRotationY(0f) * Matrix.CreateScale(0.5f) * Matrix.CreateTranslation(Vector3.Down * 2));
+
+        };
+        
+        cam.gbuffer.Draw2DLayer =
+            () => {
+                graphics_device.SetRenderTarget(cam.gbuffer.rt_2D);
+                graphics_device.BlendState = BlendState.AlphaBlend;
+                graphics_device.Clear(Color.Transparent);
+                
+                //StaticControlBinds.draw_state(600, 0, 100, 10, 10);
+                var dayper = Skybox.sun_moon.current_time_entire_day_percent;
+                bool afternoon = dayper > 0.5f;
+                var hour = afternoon ? ((dayper - 0.5f) * 2) * 12f : (dayper * 2f) * 12f;
+                if ((int)hour == 0) hour = 12;
+
+                string buffer_text = "";
+                switch (draw_debug_buffer) {
+                    case 0:
+                        buffer_text = " <diffuse>";
+                        break;
+                    case 1:
+                        buffer_text = " <normals>";
+                        break;
+                    case 2:
+                        buffer_text = " <depth>";
+                        break;
+                    case 3:
+                        buffer_text = " <lighting>";
+                        break;
+                    default:
+                        buffer_text = "";
+                        break;
+                }
+
+                var debug_str =
+                    $"[Render] {Clock.frame_rate} FPS{buffer_text}\n[Update] {Clock.tick_rate} Ticks/s\n[Environment] {(int)hour} O'clock\n\n[Threads] {Threads.TaskCount}/{Threads.MaxTasks}\n{Threads.list_all_active_threads}\n{universe.universe_info}\n{Camera.Manager.ListAllCameras}\n{ManagedRT2D.Manager.ListAllBuffers}\n{GBuffer.Manager.ListAllBuffers}\n[Windows] {UI.list_windows()}\n\n";
+
+                if (show_all_debug_info) {
+                    debug_str += $"\n\nGVARS\n{gvars.list_all()}\n\nLOADED ASSETS\n{Resources.ListAllContent()}\n\n";
+                }
+
+                Draw2D.text_shadow(debug_str, Vector2i.One * 4, Color.White, Color.Black);
+
+                //Draw2D.image(Resources.GetTexture("Missing"), Vector2i.One * 200, Vector2i.One * 50);
+                Draw2D.image(Skybox.sun_moon.lerps.debug_band, Vector2i.Down * 5 + (Vector2i.Right * 150),
+                    Skybox.sun_moon.lerps.debug_band.Bounds.Size.ToVector2i() + (Vector2i.UnitY * 10));
+                var tl = (Vector2i.Down * 5) + (Vector2i.Right * 150) +
+                         (Skybox.sun_moon.lerps.debug_band.Bounds.Size.ToVector2i() * (float)dayper);
+                Draw2D.line(tl, tl + (Vector2i.UnitY * 11), Color.Red, 1f);
+                UI.draw();
+
+                if (Draw_2D != null) Draw_2D.Invoke();
+
+                universe.DrawChunkMapAroundEntity(free_cam, new Vector2i(resolution.X - 250, 0), Vector2i.One * 250);
+            };
+        //camera.enable_gbuffer(1280,720);
     }
     
     private static Vector2i FindDefaultResolution() {
@@ -394,6 +447,7 @@ public static class State {
         graphics.PreferredBackBufferHeight = resolution.Y;
         graphics.ApplyChanges();
     }
+    
     public static void ChangeResolution(bool update_backbuffer = true) {
         if (update_backbuffer) {
             graphics.PreferredBackBufferWidth = resolution.X;
@@ -402,12 +456,10 @@ public static class State {
             graphics.ApplyChanges();
         }
 
-        buffer.change_resolution(graphics_device, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
+        // TODO DO THIS BUT FOR NEW CAMERA THING gbuffer.change_resolution(graphics_device, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
     }
 
 
-    private static float camera_x_rot = 0f;
-    private static float camera_y_rot = 0f;
     
     public static void Update(GameTime gt) {
         Clock.game_time = gt;
@@ -417,7 +469,6 @@ public static class State {
         
         Skybox.sun_moon.update();
 
-        Vector3 movement = Vector3.Zero;
         
         if (engine_binds.tapped("test")) {
             Skybox.sun_moon.time_stopped = !Skybox.sun_moon.time_stopped;
@@ -438,33 +489,13 @@ public static class State {
             
         }
         
-        if (engine_binds.pressed("click_right")) {
-            Input.mouse_lock = true;
-            camera_x_rot += (input_main_thread.mouse_delta.Y / GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height) * 5;
-            camera_y_rot += (input_main_thread.mouse_delta.X / GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width) * 5;
-            camera.orientation = Matrix.CreateRotationY(camera_y_rot);
-            camera.orientation *= Matrix.CreateFromAxisAngle(camera.orientation.Right, camera_x_rot);
-        } else {
-            Input.mouse_lock = false;
-        }
-        
-        if (engine_binds.pressed("forward")) movement += Vector3.Transform(Vector3.Forward, Matrix.CreateRotationY(camera_y_rot));
-        if (engine_binds.pressed("backward")) movement -= Vector3.Transform(Vector3.Forward, Matrix.CreateRotationY(camera_y_rot));
-        if (engine_binds.pressed("left")) movement += camera.orientation.Left;
-        if (engine_binds.pressed("right")) movement += camera.orientation.Right;
-        if (engine_binds.pressed("up")) movement += Vector3.Up;
-        if (engine_binds.pressed("down")) movement += Vector3.Down;
-
         if (engine_binds.just_pressed("test_extra")) {
             Threads.Request(new Threads.ThreadRequestPacket(() => Log.log("fart")));
         }
         
-        camera.position += movement * (float)Clock.delta_time;
-        camera.update();
-        camera.update_projection(resolution);
-
-
-        skull_lamp.position = camera.position + (camera.orientation.Right * 0.25f);
+        GBufferCamera.Manager.UpdateLinkedChunkPositions();
+        Camera.Manager.UpdateAllCameras();
+        
         //skull_lamp.spot_info.orientation = camera.orientation * (Matrix.CreateRotationY(MathHelper.ToRadians(-8f)));
     }
 
@@ -472,39 +503,50 @@ public static class State {
     private static light skull_lamp;
     
     public static void Render() {
+        universe.UpdateGraphics();
         
         UI.render_window_internals();
         
-        Renderer.create_visibility_lists(camera);
+        Camera.Manager.BuildAllCameraGBuffers();
+        GBuffer.Manager.DrawAllScreenBuffers();
         
-        Renderer.build_lighting(camera, buffer);
-        
-        Renderer.clear_to_skybox(camera, buffer);
-        
+        /*
+        gbuffer.prepare(camera, gbuffer);
         //DRAW 3D
-        graphics_device.SetRenderTargets(buffer.buffer_targets);
+        gbuffer.draw_to_bindings();
+        Renderer.clear_to_skybox(camera, gbuffer);
         graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
         graphics_device.BlendState = BlendState.AlphaBlend;
         if (Draw_3D != null) Draw_3D.Invoke();
         
-        graphics_device.SetRenderTargets(buffer.buffer_targets);
-        Draw3D.draw_buffers_diffuse_texture(
+        gbuffer.draw_to_bindings();
+        Draw3D.draw_buffers_diffuse_texture( camera, gbuffer,
             test_skull.Meshes[0].MeshParts[0].VertexBuffer, 
             test_skull.Meshes[0].MeshParts[0].IndexBuffer, 
             Resources.GetTexture("XboxenDiffuse"), Color.White, 
             Matrix.CreateRotationY(float.DegreesToRadians(skull_rotate)) * Matrix.CreateScale(0.5f) * Matrix.CreateTranslation(Vector3.Down * 2));
+        
+        Draw3D.draw_buffers_diffuse_texture(camera, gbuffer,
+            test_ent.Components.GetComponent<RenderModel>("RenderModel").Model.Meshes[0].MeshParts[0].VertexBuffer,
+            test_ent.Components.GetComponent<RenderModel>("RenderModel").Model.Meshes[0].MeshParts[0].IndexBuffer,
+            Resources.GetTexture("XboxenDiffuse"), Color.White, 
+            Matrix.CreateScale(test_ent.Components.GetComponent<RenderModel>("RenderModel").Scale) * Matrix.CreateTranslation(Vector3.Zero));
+
         
         //skull_rotate += 60f * (float)Clock.delta_time;
         if (skull_rotate > 360f) {
             skull_rotate -= 360f;
         }
 
-        Renderer.draw_lighting(camera, buffer);
-        graphics_device.SetRenderTarget(buffer.rt_2D);
+        Renderer.draw_lighting(camera, gbuffer);
+        
+        graphics_device.SetRenderTarget(gbuffer.rt_2D);
         graphics_device.BlendState = BlendState.AlphaBlend;
         graphics_device.Clear(Color.Transparent);
         
         //DRAW 2D
+        
+        Draw2D.image(camera.gbuffer.rt_final, Vector2i.Zero, new Vector2i(1280,720));
         
         //StaticControlBinds.draw_state(600, 0, 100, 10, 10);
         var dayper = Skybox.sun_moon.current_time_entire_day_percent;
@@ -522,7 +564,7 @@ public static class State {
         }
 
         var debug_str =
-            $"[Render] {Clock.frame_rate} FPS{buffer_text}\n[Update] {Clock.tick_rate} Ticks/s\n[Environment] {(int)hour} O'clock\n\n[Threads] {Threads.TaskCount}/{Threads.MaxTasks}\n{Threads.list_all_active_threads}\n[Windows] {UI.list_windows()}\n\n";
+            $"[Render] {Clock.frame_rate} FPS{buffer_text}\n[Update] {Clock.tick_rate} Ticks/s\n[Environment] {(int)hour} O'clock\n\n[Threads] {Threads.TaskCount}/{Threads.MaxTasks}\n{Threads.list_all_active_threads}\n{universe.universe_info}\n{Camera.Manager.ListAllCameras}\n{ManagedRT2D.Manager.ListAllBuffers}\n{GBuffer.Manager.ListAllBuffers}\n[Windows] {UI.list_windows()}\n\n";
         
         if (show_all_debug_info) {
             debug_str += $"\n\nGVARS\n{gvars.list_all()}\n\nLOADED ASSETS\n{Resources.ListAllContent()}\n\n";
@@ -534,42 +576,14 @@ public static class State {
         Draw2D.image(Skybox.sun_moon.lerps.debug_band, Vector2i.Down * 5 + (Vector2i.Right * 150), Skybox.sun_moon.lerps.debug_band.Bounds.Size.ToVector2i() + (Vector2i.UnitY * 10));
         var tl = (Vector2i.Down * 5) + (Vector2i.Right * 150) + (Skybox.sun_moon.lerps.debug_band.Bounds.Size.ToVector2i() * (float)dayper);
         Draw2D.line(tl, tl + (Vector2i.UnitY * 11), Color.Red, 1f);
-        
         UI.draw();
         
         if (Draw_2D != null) Draw_2D.Invoke();
         
-        //COMPOSE GBUFFER TO RT_FINAL
-        graphics_device.SetRenderTarget(buffer.rt_final);
-        graphics_device.Clear(Color.Transparent);
-        
-        graphics_device.SetVertexBuffer(quad_vb);
-        graphics_device.Indices = quad_ib;
-        
-        graphics_device.BlendState = BlendState.AlphaBlend;
-        
-        e_compositor.Parameters["DiffuseLayer"].SetValue(buffer.rt_diffuse);
-        e_compositor.Parameters["DepthLayer"].SetValue(buffer.rt_depth);
-        e_compositor.Parameters["LightLayer"].SetValue(buffer.rt_lighting);
-        e_compositor.Parameters["NormalLayer"].SetValue(buffer.rt_normal);
-        //e_compositor.Parameters["sky_brightness"].SetValue(Skybox.sun_moon.sky_brightness);
-        //e_compositor.Parameters["atmosphere_color"].SetValue(Skybox.sun_moon.atmosphere_color.ToVector3());
-        e_compositor.Parameters["buffer"].SetValue(draw_debug_buffer);
-        
-        e_compositor.Techniques["draw"].Passes[0].Apply();
-        graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
-        
-        //DRAW RT_FINAL AND RT_2D TO SCREEN
-        graphics_device.SetRenderTarget(null);
-        Draw2D.end();
-        
-        Draw2D.begin(SpriteSortMode.Immediate, BlendState.Opaque, SamplerState.PointClamp, DepthStencilState.None);
-        Draw2D.image(buffer.rt_final, Vector2i.Zero, resolution);
-        Draw2D.end();
-        
-        Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None);
-        Draw2D.image(buffer.rt_2D, Vector2i.Zero, resolution);
-        Draw2D.end();
+        gbuffer.flip_diffuse();
+        gbuffer.compose(camera);
+        gbuffer.present_to_screen();
+        */
     }
     
 }
@@ -620,29 +634,36 @@ public static class Clock {
     
     
     public class UpdateThread {
-        public Action external_update { get; set; }
+        public Action update_action { get; set; }
         
-        public static ControlBinds binds = new ControlBinds(State.engine_bind_list);
-        public static Input input_update_thread => binds.input;
+        public ControlBinds binds = new ControlBinds(State.engine_bind_list);
+        public Input input_update_thread => binds.input;
 
         private string name = "";
 
         public UpdateThread(string name) {
             this.name = name;
         }
+        public UpdateThread(string name, Action update_action) {
+            this.name = name;
+            this.update_action = update_action;
+        }
         
         public void Start() {
             Threads.StartTask($"Update{(name.Length > 0 ? " (" + name + ")" : "")}", Update);
         }
     
+        private bool currently_updating = false;
+        public bool CurrentlyUpdating => currently_updating;
         private void Update() {
             while (!Threads.IsCancellationRequested) {
                 var start_dt = DateTime.Now;
+                currently_updating = true;
             
                 //UPDATE 
                 binds.Update();
             
-                if (external_update != null) external_update();
+                if (update_action != null) update_action();
                 
                 if (binds.just_pressed("switch_buffer")) {
                     State.draw_debug_buffer += 1;
@@ -653,7 +674,8 @@ public static class Clock {
                 if (binds.just_pressed("toggle_full_info")) {
                     State.show_all_debug_info = !State.show_all_debug_info;
                 }
-                
+
+                currently_updating = false;
                 //SLEEP
                 while (!Threads.IsCancellationRequested) {
                     //time since start of tick

@@ -32,8 +32,8 @@ namespace Raven.Engine.Collision.Shapes3D {
             B = (Vector3.Right * 0.5f);
         }
 
-        public void draw(Matrix world) {
-            Draw3D.line(
+        public void draw(Camera camera, GBuffer gbuffer,Matrix world) {
+            Draw3D.line(camera, 
                 Vector3.Transform(A, world),
                 Vector3.Transform(B, world),
                 Color.MonoGameOrange);

@@ -89,8 +89,8 @@ namespace Raven.Engine.Collision.Shapes3D {
             return pos;
         }
         
-        public void draw(Matrix world) {
-            Draw3D.cube(
+        public void draw(Camera camera, GBuffer gbuffer, Matrix world) {
+            Draw3D.cube(camera, 
                 Vector3.Transform(A, world),
                 Vector3.Transform(B, world),
                 Vector3.Transform(C, world),

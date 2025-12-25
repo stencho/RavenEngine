@@ -32,9 +32,9 @@ namespace Raven.Engine.Collision.Shapes3D {
             this.radius = radius;
         }
 
-        public void draw(Matrix world) {
-            Draw3D.sphere(Vector3.Transform(Vector3.Zero, world), radius, Color.MonoGameOrange);
-            Draw3D.cube(find_bounding_box(world), Color.MonoGameOrange);
+        public void draw(Camera camera, GBuffer gbuffer, Matrix world) {
+            Draw3D.sphere(camera, Vector3.Transform(Vector3.Zero, world), radius, Color.MonoGameOrange);
+            Draw3D.cube(camera, find_bounding_box(world), Color.MonoGameOrange);
         }
 
         public Vector3 support(Vector3 direction, Vector3 sweep) {

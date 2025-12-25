@@ -9,10 +9,10 @@ using Raven.Graphics.Drawing2D;
 
 namespace Raven;
 
-public class Raven : Game {
+public class RavenGame : Game {
     private GraphicsDeviceManager _graphics;
 
-    public Raven() {
+    public RavenGame() {
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
         
@@ -26,7 +26,7 @@ public class Raven : Game {
 
     protected override void Initialize() {
         State.Initialize(this, Content, _graphics, Window);
-        State.Draw_2D = () => //Draw2D.image("trumpmap", Input.mouse_position - (Vector2i.One * 100) , Vector2i.One * 200);
+        State.Draw_2D = () => 
         {
             Draw2D.fill_circle(State.input_main_thread.mouse_position, 5f, Color.White);
             Draw2D.circle(State.input_main_thread.mouse_position, 5f, 2f, Color.Black);

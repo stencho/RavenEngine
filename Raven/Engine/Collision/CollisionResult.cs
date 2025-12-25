@@ -67,7 +67,7 @@ namespace Raven.Engine.Collision {
         public Vector3 sweep_end = Vector3.Zero;
         public Vector3 sweep_slide = Vector3.Zero;
         public Vector3 sweep_slide_dir = Vector3.Zero;
-
+/*
         public void draw(Vector3 world_pos) {
             if (simplex_list == null) return;
             if (simplex_list != null && draw_simplex > -1 && draw_simplex < simplex_list.Count) {
@@ -138,5 +138,6 @@ namespace Raven.Engine.Collision {
                 }
             }
         }
+        */
     }
 }

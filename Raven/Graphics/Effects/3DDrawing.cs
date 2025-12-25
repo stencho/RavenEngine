@@ -32,7 +32,7 @@ namespace Raven.Graphics.Effects {
         }
 
         public Draw3DEffect(ContentManager content) {
-            load_shader_file(content, "effects/draw_3d");
+            load_shader_file(content, "Shaders/draw_3d");
             default_matrices();
 
             Manager.register_for_update(this);
@@ -65,7 +65,7 @@ namespace Raven.Graphics.Effects {
             _position = position;
             _size = size;
 
-            load_shader_file(content, $"effects/{effect_name}");
+            load_shader_file(content, $"Shaders/{effect_name}");
             Manager.register_for_update(this);
         }
 
@@ -136,7 +136,7 @@ namespace Raven.Graphics.Effects {
                 State.quad_ib.SetData(State.ib_data);
             }
 
-            load_shader_file(content, $"effects/{effect_name}");
+            load_shader_file(content, $"Shaders/{effect_name}");
             default_params();
 
             Manager.register_for_update(this);

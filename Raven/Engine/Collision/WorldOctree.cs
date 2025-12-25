@@ -253,30 +253,30 @@ namespace Raven.Engine.Collision {
 
         }
 
-        internal void draw_all_layers(int path) {
+        internal void draw_all_layers(Camera camera, int path) {
             int working_path = path;
             int depth = get_path_depth(path);
             int idepth = depth;
 
             while (depth > 0) {
-                Draw3D.cube(nodes[working_path].bounds, Color.ForestGreen);
+                Draw3D.cube(camera, nodes[working_path].bounds, Color.ForestGreen);
                 move_up_one_level(ref working_path);
                 depth--;
             }
         }
 
-        public void draw_nodes() {
+        public void draw_nodes(Camera camera, GBuffer gbuffer) {
             //Draw3D.cube(Vector3.Zero, Vector3.One, Color.Red, Matrix.Identity);
-            Draw3D.cube(_bounds, Color.MonoGameOrange);
+            Draw3D.cube(camera, _bounds, Color.MonoGameOrange);
             return;
 
-            var ray_nodes = leaf_nodes_in_ray(new Ray(State.camera.position, State.camera.direction * State.camera.far_clip));
+            var ray_nodes = leaf_nodes_in_ray(new Ray(camera.position, camera.direction * camera.far_clip));
 
 
             //Draw3D.cube(nodes[ray_nodes[0]].bounds, Color.Red);
             foreach (int n in ray_nodes) {
                 //draw_all_layers(n);
-                Draw3D.cube(nodes[n].bounds, Color.MonoGameOrange);
+                Draw3D.cube(camera, nodes[n].bounds, Color.MonoGameOrange);
             }
 
 
@@ -284,17 +284,17 @@ namespace Raven.Engine.Collision {
             var nn = get_all_nodes_at_path(walk_test_node);
 
             if (nn == null) {
-                Draw3D.cube(nodes[walk_test_node].bounds, Color.ForestGreen);
+                Draw3D.cube(camera, nodes[walk_test_node].bounds, Color.ForestGreen);
             } else {
 
                 foreach (Node nn_node in nn) {
-                    Draw3D.cube(nn_node.bounds, Color.HotPink);
+                    Draw3D.cube(camera, nn_node.bounds, Color.HotPink);
                 }
 
-                draw_all_layers(walk_test_node);
+                draw_all_layers(camera, walk_test_node);
 
 
-                Draw3D.cube(nodes[walk_test_node].bounds, Color.ForestGreen);
+                Draw3D.cube(camera, nodes[walk_test_node].bounds, Color.ForestGreen);
             }
 
 

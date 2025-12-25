@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Raven.Engine;
 using Raven.Console;
-using Raven.Engine.Universes.Forces;
+using Raven.Engine.Universes;
 
 namespace Raven.Caching {
     public static class CacheCancellation {
@@ -29,72 +29,73 @@ namespace Raven.Caching {
 
         public double age => DateTimeOffset.UtcNow.ToUnixTimeSeconds() - birth_time;
         public void refresh() => birth_time = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        
+
         public bool needs_prune() => age > life_time;
     }
 
-    public class ConcurrentCache<I,T> {
+    public class ConcurrentCache<K,I> {
         public readonly double MaxAge = 86400; // 1 day
 
         public string name = "";
         
-        public Func<T, bool> prune_rule;
+        public Func<I, bool> prune_rule;
         public int prune_frequency_ms = 5000;
 
         Type type;
-        ConcurrentDictionary<I, (cache_item_life life, T item)> cache = new ConcurrentDictionary<I, (cache_item_life life, T item)>();
-        public ConcurrentDictionary<I, (cache_item_life life, T item)> Cache => cache;
+        ConcurrentDictionary<K, (cache_item_life life, I item)> cache = new ConcurrentDictionary<K, (cache_item_life life, I item)>();
+        public ConcurrentDictionary<K, (cache_item_life life, I item)> Cache => cache;
         
         bool currently_pruning = false;
 
-        public bool Test(I key) => cache.ContainsKey(key);
-        public void Remove(I key) => cache.TryRemove(key, out _);
+        public bool Test(K key) => cache.ContainsKey(key);
+        public void Remove(K key) => cache.TryRemove(key, out _);
 
         public void Clear() => cache.Clear();        
         
+        public int Count => cache.Count;
 
         public ConcurrentCache() {
-            type = typeof(T);
+            type = typeof(I);
             StartPruning();
         }
-        public ConcurrentCache(Func<T, bool> prune_rule) {
-            type = typeof(T);
+        public ConcurrentCache(Func<I, bool> prune_rule) {
+            type = typeof(I);
             StartPruning();
         }
 
         public ConcurrentCache(double age_seconds) {
             MaxAge = age_seconds;
-            type = typeof(T);
+            type = typeof(I);
             StartPruning();
         }
         
         public ConcurrentCache(string name) {
             this.name = name;
-            type = typeof(T);
+            type = typeof(I);
             StartPruning();
         }
-        public ConcurrentCache(string name, Func<T, bool> prune_rule) {
+        public ConcurrentCache(string name, Func<I, bool> prune_rule) {
             this.name = name;
-            type = typeof(T);
+            type = typeof(I);
             StartPruning();
         }
 
         public ConcurrentCache(string name, double age_seconds) {
             this.name = name;
             MaxAge = age_seconds;
-            type = typeof(T);
+            type = typeof(I);
             StartPruning();
         }
 
         ~ConcurrentCache() {
             currently_pruning = false;            
         }
-
-        public void Store(I key, T item) {
+        
+        public void Store(K key, I item) {
             Store(key, item, MaxAge);
         }
         
-        public void Store(I key, T item, double life_time) {
+        public void Store(K key, I item, double life_time) {
             if (item == null) return;
             if (!item.GetType().IsAssignableFrom(type)) return;
             if (Test(key)) return;
@@ -105,16 +106,15 @@ namespace Raven.Caching {
             }
         }
 
-        public void Update(I key, T item) {
+        public void Update(K key, I item) {
             if (item == null) return;
             if (!item.GetType().IsAssignableFrom(type)) return;
             cache.AddOrUpdate(key, (new cache_item_life(MaxAge), item), (key, old) => (new cache_item_life(), item));
         }
-        public T Request(I key) {
+        public I Request(K key) {
+            cache[key].life.refresh();
             return cache[key].item;
         }
-
-        public int Count => cache.Count;
 
         public void StartPruning() {
             Threads.StartTask($"Prune Cache{(name.Length > 0 ? " (" + name + ")" : "") }", Prune, CacheCancellation.cancellation_token)
@@ -142,7 +142,7 @@ namespace Raven.Caching {
                         }
                     }
                 }
-                Debug.WriteLine($"Nothing pruned");
+                //Debug.WriteLine($"Nothing pruned");
                 Thread.Sleep(prune_frequency_ms);
             }
 

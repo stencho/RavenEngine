@@ -33,16 +33,16 @@ namespace Raven.Engine.Collision.Shapes3D {
             verts = points;
         }
 
-        public void draw(Matrix world) {
+        public void draw(Camera camera, GBuffer gbuffer, Matrix world) {
             foreach (Vector3 point in verts) {
                 foreach (Vector3 point2 in verts) {
                     var a = Vector3.Transform(point, world);
                     var b = Vector3.Transform(point2, world);
 
-                    Draw3D.line(a, b, Color.Red);
+                    Draw3D.line(camera, a, b, Color.Red);
                 }
                     
-                Draw3D.xyz_cross(Vector3.Transform(point, world), 0.1f, Color.Red);
+                Draw3D.xyz_cross(camera, Vector3.Transform(point, world), 0.1f, Color.Red);
             }
         }
         public Vector3 support(Vector3 direction, Vector3 sweep) {

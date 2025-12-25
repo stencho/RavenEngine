@@ -1,9 +1,54 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Raven.Graphics;
+using Raven.Graphics.Drawing3D;
 
 namespace Raven.Engine {
-    public class Camera {
+    [GuidManagedClass]
+    public partial class Camera {
+        public static partial class Manager {
+            
+            public static string ListAllCameras {
+                get {
+                    string output = "[Cameras]\n";
+                    foreach (var camera in cameras) {
+                        output += $"  [{camera.Value.ManagedGuid}]\n";
+                        output += $"   | position > {camera.Value.position.ToXString()}\n";
+                        output += $"   | forward > {camera.Value.orientation.Forward.ToXString()}\n";
+                        output += $"   | GBuffer > {(camera.Value.ManagedGBufferGuid != Guid.Empty ? camera.Value.ManagedGBufferGuid.ToString() : "")}\n";
+                        output += "\n";
+                    }
+                    return output;
+                }
+            }
+
+            public static void UpdateAllCameras() {
+                foreach (var camera in cameras.Values) {
+                    camera.update();
+                }
+            }
+            
+            public static void BuildAllViewLists() {
+            
+            }
+        
+            public static void BuildAllCameraGBuffers() {
+                foreach (var camera in cameras.Values) {
+                    if (camera.using_gbuffer) {
+                        camera.gbuffer.prepare(camera);
+                        camera.gbuffer.Draw3DLayer?.Invoke();
+                        //draw vis lists here
+                        Renderer.draw_lighting(camera, camera.gbuffer);
+                        camera.gbuffer.Draw2DLayer?.Invoke();
+                        camera.gbuffer.compose(camera);
+                    }
+                }
+            }
+        }
+        
         public Matrix view { get; set; }
 
         public Matrix inverse_view { get; set; }
@@ -14,8 +59,6 @@ namespace Raven.Engine {
 
         public Vector3 direction => orientation.Forward;
         public Vector3 up_direction => orientation.Up;
-
-        public ChunkPosition chunk_position { get; set; } = new(null, Vector3.Zero);
         
         public Vector3 position { get; set; } = Vector3.Zero;
         public Vector2 position_xz { get { return new Vector2(position.X, position.Z); } }
@@ -27,7 +70,7 @@ namespace Raven.Engine {
         public Matrix frustum_projection { get; set; }
 
         public float near_clip { get; set; } = 0.1f;
-        public float far_clip { get; set; } = 1000f;
+        public float far_clip { get; set; } = 10000f;
 
         public float FOV { get; set; } = 90f;
         public float FOV_default { get; set; } = 90f;
@@ -36,15 +79,23 @@ namespace Raven.Engine {
 
         public string name { get; set; } = "camera";
 
-        //RenderTarget2D picture_in_picture;
-
         Viewport viewport;
-        
+
+        public bool using_gbuffer = false;
         public GBuffer gbuffer;
         public RenderTarget2D render_target;
 
+        protected Guid managed_guid;
+        public Guid ManagedGuid => managed_guid;
+
+        public Guid ManagedGBufferGuid => gbuffer.ManagedGuid;
+
+        public LinkedChunkPosition linked_chunk_position;
+        public ChunkPosition current_camera_chunk => linked_chunk_position.child;
+        
         //public Mouse_Picker mouse_picker;
 
+        
         public Camera() {
             position = Vector3.Zero;
             viewport = new Viewport(0, 0, State.resolution.X, State.resolution.Y);
@@ -52,7 +103,7 @@ namespace Raven.Engine {
             frustum = new BoundingFrustum(view * projection);
 
             update_projection(State.resolution);
-            State.CameraTracker.Add(this);
+            managed_guid = Manager.Add(this);
         }
         public Camera(Vector3 position) {
             this.position = position;
@@ -61,7 +112,7 @@ namespace Raven.Engine {
             frustum = new BoundingFrustum(view * projection);
 
             update_projection(State.resolution);
-            State.CameraTracker.Add(this);
+            managed_guid = Manager.Add(this);
         }
 
         public Camera(Vector3 position, Vector3 facing) {
@@ -72,7 +123,7 @@ namespace Raven.Engine {
             frustum = new BoundingFrustum(view * projection);
 
             update_projection(State.resolution);
-            State.CameraTracker.Add(this);
+            managed_guid = Manager.Add(this);
         }
 
         public Camera(Vector3 position, Matrix orientation) {
@@ -83,11 +134,17 @@ namespace Raven.Engine {
             frustum = new BoundingFrustum(view * projection);
 
             update_projection(State.resolution);
-            State.CameraTracker.Add(this);
+            managed_guid = Manager.Add(this);
+        }
+
+        public void enable_gbuffer(int width, int height, float res_scale = 1f) {
+            gbuffer = new GBuffer(width, height, res_scale);
+            using_gbuffer = true;
+            gbuffer.AttachCamera(this);
         }
         
         ~Camera() {
-            State.CameraTracker.Remove(this);
+            Manager.Remove(managed_guid);
         }
 
         private void update_frustum_projection() {
@@ -117,7 +174,7 @@ namespace Raven.Engine {
 
         public void update() {
             //orientation = Matrix.CreateLookAt(Vector3.Zero, Vector3.Normalize(position + direction), Vector3.Up);
-
+            
             view = Matrix.CreateLookAt(position, position + direction + lookat_offset, Vector3.Up);
 
             frustum_view = Matrix.CreateLookAt(position, position + lookat_offset + (direction * (far_clip)), Vector3.Up);

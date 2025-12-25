@@ -1,2 +1,2 @@
-﻿using var game = new Raven.Raven();
+﻿using var game = new Raven.RavenGame();
 game.Run();

@@ -71,6 +71,9 @@
       <ClCompile Include="Content\Shaders\terrain.fx" />
       <ClCompile Include="Content\Shaders\texture_effects.fx" />
     </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Raven.CodeGenerators\Raven.CodeGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
     <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
         <Message Text="Restoring dotnet tools" Importance="High" />
         <Exec Command="dotnet tool restore" />

@@ -65,11 +65,11 @@ namespace Raven.Engine.Collision.Shapes3D {
             this.D = D;
         }
 
-        public void draw(Matrix world) {
-            Draw3D.cube(find_bounding_box(world), Color.Magenta);
+        public void draw(Camera camera, GBuffer buffer, Matrix world) {
+            Draw3D.cube(camera,find_bounding_box(world), Color.Magenta);
 
-            Draw3D.fill_quad(world, A, B, C, D, Color.White, "zerocool_sharper");
-            Draw3D.line(Vector3.Transform(A, world), Vector3.Transform(C, world), Color.Pink);
+            Draw3D.fill_quad(camera, buffer, world, A, B, C, D, Color.White, "zerocool_sharper");
+            Draw3D.line(camera,Vector3.Transform(A, world), Vector3.Transform(C, world), Color.Pink);
         }
         public Vector3 support(Vector3 direction, Vector3 sweep) {
             if (sweep != Vector3.Zero) {
@@ -81,5 +81,6 @@ namespace Raven.Engine.Collision.Shapes3D {
             return Supports.Polyhedron(direction, A, B, C, D,
                 A + (Vector3.Down * 0.1f), B + (Vector3.Down * 0.1f), C + (Vector3.Down * 0.1f), D + (Vector3.Down * 0.1f));
         }
+
     }
 }

@@ -25,14 +25,14 @@ namespace Raven.Graphics.Drawing3D;
             return Vector3.Normalize(cross);
         }
 
-        public static void line(Vector3 A, Vector3 B, Color color) {
+        public static void line(Camera camera, Vector3 A, Vector3 B, Color color) {
             
             line_effect = Resources.GetShader("fill_gbuffer");
             //ContentLoader.resources["diffuse"].value_fx. = color.ToVector3();
 
             line_effect.Parameters["World"].SetValue(Matrix.Identity);
-            line_effect.Parameters["View"].SetValue(State.camera.view);
-            line_effect.Parameters["Projection"].SetValue(State.camera.projection);
+            line_effect.Parameters["View"].SetValue(camera.view);
+            line_effect.Parameters["Projection"].SetValue(camera.projection);
             line_effect.Parameters["DiffuseMap"].SetValue(onePXWhite);
             line_effect.Parameters["tint"].SetValue(color.ToVector3());
             //line_effect.Parameters["FarClip"].SetValue(2000f);
@@ -58,13 +58,13 @@ namespace Raven.Graphics.Drawing3D;
             State.graphics_device.BlendState = bs;
         }
         
-        public static void lines(Color color, params Vector3[] points) {
+        public static void lines(Camera camera, Color color, params Vector3[] points) {
 
             line_effect = Resources.GetShader("fill_gbuffer");
             //ContentLoader.resources["diffuse"].value_fx. = color.ToVector3();
             line_effect.Parameters["World"].SetValue(Matrix.Identity);
-            line_effect.Parameters["View"].SetValue(State.camera.view);
-            line_effect.Parameters["Projection"].SetValue(State.camera.projection);
+            line_effect.Parameters["View"].SetValue(camera.view);
+            line_effect.Parameters["Projection"].SetValue(camera.projection);
             line_effect.Parameters["DiffuseMap"].SetValue(onePXWhite);
             line_effect.Parameters["tint"].SetValue(color.ToVector3());
             //line_effect.Parameters["FarClip"].SetValue(2000f);
@@ -87,20 +87,20 @@ namespace Raven.Graphics.Drawing3D;
             line_effect.Parameters["tint"].SetValue(Color.White.ToVector3());
         }
 
-        public static void swept_capsule(float radius, Vector3 AA, Vector3 AB, Vector3 BA, Vector3 BB, Color color) {
+        public static void swept_capsule(Camera camera, float radius, Vector3 AA, Vector3 AB, Vector3 BA, Vector3 BB, Color color) {
             Vector3 AAAB = Vector3.Normalize(AB - AA);
             Vector3 BABB = Vector3.Normalize(BB - BA);
 
-            capsule(AA, AB, radius, color);
-            capsule(BA, BB, radius, color);
+            capsule(camera, AA, AB, radius, color);
+            capsule(camera, BA, BB, radius, color);
 
-            lines(color,
+            lines(camera, color,
                 AA - (AAAB * radius), AB + (AAAB * radius),
                 BA - (BABB * radius), BB + (BABB * radius),
                 AA - (AAAB * radius)
             );
 
-            lines(color,
+            lines(camera, color,
                 AA - (AAAB * radius),
                 AB + (AAAB * radius),
                 BA - (BABB * radius),
@@ -113,10 +113,10 @@ namespace Raven.Graphics.Drawing3D;
             Vector3 ABH = ((AA + AB) / 2f);
             Vector3 BBH = ((BA + BB) / 2f);
 
-            line(ABH - (C * radius), BBH - (C * radius), color);
-            line(ABH + (C * radius), BBH + (C * radius), color);
+            line(camera, ABH - (C * radius), BBH - (C * radius), color);
+            line(camera, ABH + (C * radius), BBH + (C * radius), color);
 
-            lines(color,
+            lines(camera, color,
                 AA - (C * radius),
                 AB - (C * radius),
                 BA - (C * radius),
@@ -124,7 +124,7 @@ namespace Raven.Graphics.Drawing3D;
                 AA - (C * radius)
             );
 
-            lines(color,
+            lines(camera, color,
                 AA + (C * radius),
                 AB + (C * radius),
                 BA + (C * radius),
@@ -134,21 +134,21 @@ namespace Raven.Graphics.Drawing3D;
 
         }
 
-        public static void xyz_cross(Vector3 P, float line_distance, Color color) {
-            line(P - (Vector3.UnitX * (line_distance / 2)), P + (Vector3.UnitX * (line_distance / 2)), color);
-            line(P - (Vector3.UnitY * (line_distance / 2)), P + (Vector3.UnitY * (line_distance / 2)), color);
-            line(P - (Vector3.UnitZ * (line_distance / 2)), P + (Vector3.UnitZ * (line_distance / 2)), color);
+        public static void xyz_cross(Camera camera, Vector3 P, float line_distance, Color color) {
+            line(camera, P - (Vector3.UnitX * (line_distance / 2)), P + (Vector3.UnitX * (line_distance / 2)), color);
+            line(camera, P - (Vector3.UnitY * (line_distance / 2)), P + (Vector3.UnitY * (line_distance / 2)), color);
+            line(camera, P - (Vector3.UnitZ * (line_distance / 2)), P + (Vector3.UnitZ * (line_distance / 2)), color);
         }
-        public static void gizmo(Vector3 P, Matrix world, float line_distance) {
+        public static void gizmo(Camera camera, Vector3 P, Matrix world, float line_distance) {
             var dir = Vector3.Normalize(world.Right);
-            line(P - dir * line_distance, P + dir * line_distance, Color.Red);
+            line(camera, P - dir * line_distance, P + dir * line_distance, Color.Red);
             dir = Vector3.Normalize(world.Up);
-            line(P - dir * line_distance, P + dir * line_distance, Color.Green);
+            line(camera, P - dir * line_distance, P + dir * line_distance, Color.Green);
             dir = Vector3.Normalize(world.Backward);
-            line(P - dir * line_distance, P + dir * line_distance, Color.Blue);
+            line(camera, P - dir * line_distance, P + dir * line_distance, Color.Blue);
         }
 
-        public static void circle(Vector3 p, float radius, Vector3 normal, int subdivs, Color color) {
+        public static void circle(Camera camera, Vector3 p, float radius, Vector3 normal, int subdivs, Color color) {
             if (subdivs < 6) return;
             Vector3[] verts = new Vector3[subdivs];
 
@@ -166,29 +166,29 @@ namespace Raven.Graphics.Drawing3D;
                 verts[i] = p + (Vector3.Transform(cross, Matrix.CreateFromAxisAngle(normal, MathHelper.ToRadians(((float)i / (subdivs - 1)) * 360f))) * (radius));
             }
 
-            lines(color, verts);
+            lines(camera, color, verts);
         }
         
-        public static void sphere(Vector3 P, float radius, Color color) {
-            circle(P, radius, Vector3.Up, 32, color);
-            circle(P, radius, Vector3.Right, 32, color);
-            circle(P, radius, Vector3.Forward, 32, color);
+        public static void sphere(Camera camera, Vector3 P, float radius, Color color) {
+            circle(camera, P, radius, Vector3.Up, 32, color);
+            circle(camera, P, radius, Vector3.Right, 32, color);
+            circle(camera, P, radius, Vector3.Forward, 32, color);
         }
 
-        public static void sprite_line(Vector3 a, Vector3 b, float line_width, Color color) {
-            var pomn = CollisionHelper.line_closest_point(a, b, State.camera.position);
+        public static void sprite_line(Camera camera, GBuffer buffer, Vector3 a, Vector3 b, float line_width, Color color) {
+            var pomn = CollisionHelper.line_closest_point(a, b, camera.position);
 
             var t = b-a;
             var scale = new Vector3(line_width, t.Length(), 1);
 
             var p = Vector3.Normalize(t);
-            var p2 = Vector3.Normalize(pomn - State.camera.position);
+            var p2 = Vector3.Normalize(pomn - camera.position);
             var c = Vector3.Normalize(Vector3.Cross(p, Vector3.Cross(p, p2)));
 
             Matrix billboard = Matrix.CreateConstrainedBillboard(a + (t / 2),
                 (a + (t / 2)) - c, Vector3.Normalize(t), c, null);
             
-            fill_quad(Matrix.CreateScale(scale) * billboard,
+            fill_quad(camera, buffer, Matrix.CreateScale(scale) * billboard,
                 (Vector3.Up * 0.5f) + (Vector3.Left * 0.5f),
                 (Vector3.Up * 0.5f) + (Vector3.Right * 0.5f),
                 (Vector3.Down * 0.5f) + (Vector3.Right * 0.5f),
@@ -196,7 +196,7 @@ namespace Raven.Graphics.Drawing3D;
                 color);
         }
 
-        public static void capsule(Vector3 A, Vector3 B, float radius, Color color) {
+        public static void capsule(Camera camera, Vector3 A, Vector3 B, float radius, Color color) {
             //line_effect.Parameters["World"].SetValue(Matrix.Identity);
 
             Vector3 AB = B - A;
@@ -206,26 +206,26 @@ namespace Raven.Graphics.Drawing3D;
             var cross = find_any_line_perpendicular(A, B);
             var criss = Vector3.Normalize(Vector3.Cross(normal, cross));
 
-            line(A - (normal * radius), B + (normal * radius), color);
+            line(camera, A - (normal * radius), B + (normal * radius), color);
 
-            circle(origin, radius, AB, 19, color);
-            circle(A, radius, AB, 19, color);
-            circle(B, radius, AB, 19, color);
+            circle(camera, origin, radius, AB, 19, color);
+            circle(camera, A, radius, AB, 19, color);
+            circle(camera, B, radius, AB, 19, color);
 
-            circle(A, radius, cross, 19, color);
-            circle(B, radius, cross, 19, color);
+            circle(camera, A, radius, cross, 19, color);
+            circle(camera, B, radius, cross, 19, color);
 
-            line(A + (cross * radius), B + (cross * radius), color);
-            line(A - (cross * radius), B - (cross * radius), color);
+            line(camera, A + (cross * radius), B + (cross * radius), color);
+            line(camera, A - (cross * radius), B - (cross * radius), color);
 
-            circle(A, radius, criss, 19, color);
-            circle(B, radius, criss, 19, color);
+            circle(camera, A, radius, criss, 19, color);
+            circle(camera, B, radius, criss, 19, color);
 
-            line(A + (criss * radius), B + (criss * radius), color);
-            line(A - (criss * radius), B - (criss * radius), color);
+            line(camera, A + (criss * radius), B + (criss * radius), color);
+            line(camera, A - (criss * radius), B - (criss * radius), color);
         }
 
-        public static void cylinder(Vector3 A, Vector3 B, float radius, Color color) {
+        public static void cylinder(Camera camera, Vector3 A, Vector3 B, float radius, Color color) {
             Vector3 AB = B - A;
             Vector3 normal = Vector3.Normalize(B - A);
             Vector3 origin = (A + B) / 2f;
@@ -233,20 +233,20 @@ namespace Raven.Graphics.Drawing3D;
             var cross = find_any_line_perpendicular(A, B);
             var criss = Vector3.Normalize(Vector3.Cross(normal, cross));
 
-            line(A, B, color);
+            line(camera, A, B, color);
 
-            circle(origin, radius, AB, 19, color);
-            circle(A, radius, AB, 19, color);
-            circle(B, radius, AB, 19, color);
+            circle(camera, origin, radius, AB, 19, color);
+            circle(camera, A, radius, AB, 19, color);
+            circle(camera, B, radius, AB, 19, color);
 
-            line(A + (cross * radius), B + (cross * radius), color);
-            line(A - (cross * radius), B - (cross * radius), color);
-            line(A + (criss * radius), B + (criss * radius), color);
-            line(A - (criss * radius), B - (criss * radius), color);
+            line(camera, A + (cross * radius), B + (cross * radius), color);
+            line(camera, A - (cross * radius), B - (cross * radius), color);
+            line(camera, A + (criss * radius), B + (criss * radius), color);
+            line(camera, A - (criss * radius), B - (criss * radius), color);
         }
 
-        public static void cube(Vector3 center, Vector3 size, Color color, Matrix world) {
-            cube(
+        public static void cube(Camera camera, Vector3 center, Vector3 size, Color color, Matrix world) {
+            cube(camera, 
                 Vector3.Transform(center + ((size.X) * Vector3.Right) + ((size.Y) * Vector3.Up) + ((size.Z) * Vector3.Forward), world),     //A
                 Vector3.Transform(center + ((size.X) * Vector3.Left) + ((size.Y) * Vector3.Up) + ((size.Z) * Vector3.Forward), world),     //B
                 Vector3.Transform(center + ((size.X) * Vector3.Right) + ((size.Y) * Vector3.Down) + ((size.Z) * Vector3.Forward), world),     //D
@@ -260,26 +260,26 @@ namespace Raven.Graphics.Drawing3D;
             color);
         }
 
-        public static void square(Vector3 A, Vector3 B, Vector3 C, Vector3 D, Color color) {
-            lines(color, A, B, C, D, A);
+        public static void square(Camera camera, Vector3 A, Vector3 B, Vector3 C, Vector3 D, Color color) {
+            lines(camera, color, A, B, C, D, A);
         }
 
-        public static void cube(Vector3 A, Vector3 B, Vector3 C, Vector3 D, Vector3 E, Vector3 F, Vector3 G, Vector3 H, Color color) {
+        public static void cube(Camera camera, Vector3 A, Vector3 B, Vector3 C, Vector3 D, Vector3 E, Vector3 F, Vector3 G, Vector3 H, Color color) {
             //top
-            square(A, E, F, B, color);
+            square(camera, A, E, F, B, color);
             //right
-            square(A, C, G, E, color);
+            square(camera, A, C, G, E, color);
             //left
-            square(F, H, D, B, color);
+            square(camera, F, H, D, B, color);
             //bottom
-            square(D, H, G, C, color);
+            square(camera, D, H, G, C, color);
         }
 
-        public static void cube(BoundingBox bb, Color color) {
-            cube((bb.Min + bb.Max) / 2, (bb.Max - bb.Min) / 2, color, Matrix.Identity);
+        public static void cube(Camera camera, BoundingBox bb, Color color) {
+            cube(camera,(bb.Min + bb.Max) / 2, (bb.Max - bb.Min) / 2, color, Matrix.Identity);
         }
-        public static void cube(BoundingBox bb, Matrix world, Color color) {
-            cube((bb.Min + bb.Max) / 2, (bb.Max - bb.Min) / 2, color, world );
+        public static void cube(Camera camera, BoundingBox bb, Matrix world, Color color) {
+            cube(camera,(bb.Min + bb.Max) / 2, (bb.Max - bb.Min) / 2, color, world );
         }
 
         public static void load() {
@@ -301,12 +301,12 @@ namespace Raven.Graphics.Drawing3D;
         }
 
         public static BasicEffect text_effect;
-        public static void text_3D(SpriteBatch sb, string text, string fontname, Vector3 offset, Vector3? normal, float scale, Color color, bool always_visible = false) {
+        public static void text_3D(Camera camera, SpriteBatch sb, string text, string fontname, Vector3 offset, Vector3? normal, float scale, Color color, bool always_visible = false) {
             var t = Encoding.ASCII.GetString(Encoding.UTF8.GetBytes(text));
             Vector2 origin = Resources.GetFont(fontname).MeasureString(t) / 2f;
-            text_effect.World = Matrix.CreateScale(scale, -scale, 0) * Matrix.CreateLookAt(Vector3.Zero, State.camera.view.Forward, Vector3.Up) * Matrix.CreateTranslation(offset);
-            text_effect.View = State.camera.view;
-            text_effect.Projection = State.camera.projection;
+            text_effect.World = Matrix.CreateScale(scale, -scale, 0) * Matrix.CreateLookAt(Vector3.Zero, camera.view.Forward, Vector3.Up) * Matrix.CreateTranslation(offset);
+            text_effect.View = camera.view;
+            text_effect.Projection = camera.projection;
             text_effect.DiffuseColor = color.ToVector3();
             text_effect.TextureEnabled = true;
             sb.Begin(0, null, SamplerState.PointWrap, (always_visible ? DepthStencilState.None : DepthStencilState.DepthRead), RasterizerState.CullNone, text_effect);
@@ -314,12 +314,12 @@ namespace Raven.Graphics.Drawing3D;
             sb.End();
         }
 
-        public static void draw_buffers_diffuse_color(VertexBuffer vb, IndexBuffer ib, Color color, Matrix world) {
+        public static void draw_buffers_diffuse_color(Camera camera, VertexBuffer vb, IndexBuffer ib, Color color, Matrix world) {
 
             //ContentLoader.resources["diffuse"].value_fx. = color.ToVector3();
             State.e_gbuffer.Parameters["World"].SetValue(world);
-            State.e_gbuffer.Parameters["View"].SetValue(State.camera.view);
-            State.e_gbuffer.Parameters["Projection"].SetValue(State.camera.projection);
+            State.e_gbuffer.Parameters["View"].SetValue(camera.view);
+            State.e_gbuffer.Parameters["Projection"].SetValue(camera.projection);
             State.e_gbuffer.Parameters["DiffuseMap"].SetValue(onePXWhite);
             State.e_gbuffer.Parameters["tint"].SetValue(color.ToVector3());
             State.e_gbuffer.Parameters["FarClip"].SetValue(2000f);
@@ -341,12 +341,12 @@ namespace Raven.Graphics.Drawing3D;
             State.graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
 
         }
-        public static void draw_model_diffuse_color(Model model, Color color, Matrix world) {
+        public static void draw_model_diffuse_color(Camera camera, Model model, Color color, Matrix world) {
 
             //ContentLoader.resources["diffuse"].value_fx. = color.ToVector3();
             State.e_gbuffer.Parameters["World"].SetValue(world);
-            State.e_gbuffer.Parameters["View"].SetValue(State.camera.view);
-            State.e_gbuffer.Parameters["Projection"].SetValue(State.camera.projection);
+            State.e_gbuffer.Parameters["View"].SetValue(camera.view);
+            State.e_gbuffer.Parameters["Projection"].SetValue(camera.projection);
             State.e_gbuffer.Parameters["DiffuseMap"].SetValue(onePXWhite);
             State.e_gbuffer.Parameters["tint"].SetValue(color.ToVector3());
             State.e_gbuffer.Parameters["FarClip"].SetValue(2000f);
@@ -377,21 +377,21 @@ namespace Raven.Graphics.Drawing3D;
 
         }
 
-        public static void draw_buffers_diffuse_texture(VertexBuffer vb, IndexBuffer ib, Texture2D texture, Color color, Matrix world) {
-            State.graphics_device.SetRenderTargets(State.buffer.buffer_targets);
+        public static void draw_buffers_diffuse_texture(Camera camera, GBuffer buffer, VertexBuffer vb, IndexBuffer ib, Texture2D texture, Color color, Matrix world) {
+            State.graphics_device.SetRenderTargets(buffer.target_bindings);
             
             State.e_gbuffer.Parameters["atmosphere_color"].SetValue(State.Skybox.sun_moon.atmosphere_color.ToVector3());
             State.e_gbuffer.Parameters["sky_color"].SetValue(State.Skybox.sun_moon.sky_color.ToVector3());
 
-            State.e_gbuffer.Parameters["FarClip"].SetValue(State.camera.far_clip);
-            State.e_gbuffer.Parameters["camera_pos"].SetValue(State.camera.position);
+            State.e_gbuffer.Parameters["FarClip"].SetValue(camera.far_clip);
+            State.e_gbuffer.Parameters["camera_pos"].SetValue(camera.position);
 
             
             //ContentLoader.resources["diffuse"].value_fx. = color.ToVector3();
             State.e_gbuffer.Parameters["World"].SetValue(world);
-            State.e_gbuffer.Parameters["View"].SetValue(State.camera.view);
-            State.e_gbuffer.Parameters["Projection"].SetValue(State.camera.projection);
-            State.e_gbuffer.Parameters["WVIT"].SetValue(Matrix.Transpose(Matrix.Invert(world * State.camera.view)));
+            State.e_gbuffer.Parameters["View"].SetValue(camera.view);
+            State.e_gbuffer.Parameters["Projection"].SetValue(camera.projection);
+            State.e_gbuffer.Parameters["WVIT"].SetValue(Matrix.Transpose(Matrix.Invert(world * camera.view)));
 
             State.e_gbuffer.Parameters["DiffuseMap"].SetValue(texture);
             State.e_gbuffer.Parameters["tint"].SetValue(color.ToVector3());
@@ -402,7 +402,6 @@ namespace Raven.Graphics.Drawing3D;
 
             State.graphics_device.BlendState = BlendState.AlphaBlend;
             State.graphics_device.DepthStencilState = DepthStencilState.Default;
-
             
             State.graphics_device.SetVertexBuffer(vb);
             State.graphics_device.Indices = ib;
@@ -410,7 +409,6 @@ namespace Raven.Graphics.Drawing3D;
             State.e_gbuffer.Techniques["BasicColorDrawing"].Passes[0].Apply();
 
             State.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, (vb.VertexCount));
-            
             
             State.e_gbuffer.Parameters["tint"].SetValue(Color.White.ToVector3());
             State.e_gbuffer.Parameters["fog"].SetValue(false);
@@ -420,7 +418,7 @@ namespace Raven.Graphics.Drawing3D;
         }
 
 
-        public static void draw_buffers(VertexBuffer vb, IndexBuffer ib, Matrix world, Color color) {
+        public static void draw_buffers(Camera camera, VertexBuffer vb, IndexBuffer ib, Matrix world, Color color) {
             load();
 
             if (basic_effect == null) {
@@ -438,8 +436,8 @@ namespace Raven.Graphics.Drawing3D;
             basic_effect.Texture = onePXWhite;
 
             basic_effect.World = world;
-            basic_effect.View = State.camera.view;
-            basic_effect.Projection = State.camera.projection;
+            basic_effect.View = camera.view;
+            basic_effect.Projection = camera.projection;
             basic_effect.EnableDefaultLighting();
 
             State.graphics_device.SetVertexBuffer(vb, 0);
@@ -480,11 +478,11 @@ namespace Raven.Graphics.Drawing3D;
 
         static string[] q_textures = new string[] { "OnePXWhite" };
 
-        public static void triangle(Vector3 A, Vector3 B, Vector3 C, Color color) {
-            lines(color, A, B, C, A);
+        public static void triangle(Camera camera, Vector3 A, Vector3 B, Vector3 C, Color color) {
+            lines(camera, color, A, B, C, A);
         }
 
-        public static void fill_tri(Matrix world, Vector3 A, Vector3 B, Vector3 C, Color color) {
+        public static void fill_tri(Camera camera, Matrix world, Vector3 A, Vector3 B, Vector3 C, Color color) {
             State.graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
             if (t_index_buffer == null) {
                 t_index_buffer = new IndexBuffer(State.graphics_device, IndexElementSize.SixteenBits, t_indices.Length, BufferUsage.None);
@@ -499,10 +497,10 @@ namespace Raven.Graphics.Drawing3D;
             t_vertex_buffer = new VertexBuffer(State.graphics_device, VertexPositionNormalTexture.VertexDeclaration, tri.Length, BufferUsage.None);
             t_vertex_buffer.SetData<VertexPositionNormalTexture>(tri);
 
-            draw_buffers(t_vertex_buffer, t_index_buffer, world, color);
+            draw_buffers(camera, t_vertex_buffer, t_index_buffer, world, color);
         }
 
-        public static void fill_tris_big_buffer(Matrix world, (Vector3 A, Vector3 B, Vector3 C)[] tris, Color color) {
+        public static void fill_tris_big_buffer(Camera camera, Matrix world, (Vector3 A, Vector3 B, Vector3 C)[] tris, Color color) {
             if (t_index_buffer == null) {
                 t_index_buffer = new IndexBuffer(State.graphics_device, IndexElementSize.SixteenBits, t_indices.Length, BufferUsage.None);
                 t_index_buffer.SetData<ushort>(t_indices);
@@ -512,10 +510,10 @@ namespace Raven.Graphics.Drawing3D;
             t_vertex_buffer = new VertexBuffer(State.graphics_device, VertexPositionNormalTexture.VertexDeclaration, tri.Length, BufferUsage.None);
             t_vertex_buffer.SetData<VertexPositionNormalTexture>(tri);
 
-            draw_buffers(t_vertex_buffer, t_index_buffer, world, color);
+            draw_buffers(camera, t_vertex_buffer, t_index_buffer, world, color);
         }
 
-        public static void fill_quad(Matrix world, Vector3 A, Vector3 B, Vector3 C, Vector3 D, Color color, string texture = "OnePXWhite") {
+        public static void fill_quad(Camera camera, GBuffer buffer, Matrix world, Vector3 A, Vector3 B, Vector3 C, Vector3 D, Color color, string texture = "OnePXWhite") {
             State.graphics_device.RasterizerState = RasterizerState.CullNone;
             //Renderer.graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
             if (q_index_buffer == null) {
@@ -532,22 +530,22 @@ namespace Raven.Graphics.Drawing3D;
             q_vertex_buffer = new VertexBuffer(State.graphics_device, VertexPositionNormalTexture.VertexDeclaration, quad.Length, BufferUsage.None);
             q_vertex_buffer.SetData<VertexPositionNormalTexture>(quad);
 
-            draw_buffers_diffuse_texture(q_vertex_buffer, q_index_buffer, Resources.GetTexture(texture), color, world); 
+            draw_buffers_diffuse_texture(camera, buffer, q_vertex_buffer, q_index_buffer, Resources.GetTexture(texture), color, world); 
             State.graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
             //draw_buffers(gd, q_vertex_buffer, q_index_buffer, world, color, Renderer.camera.view, Renderer.camera.projection);
         }
 
 
-        public static void arrow(Vector3 A, Vector3 B, float chevron_distance_percent, Vector3 color) { arrow(A, B, chevron_distance_percent, Color.FromNonPremultiplied(new Vector4(color, 1.0f))); }
+        public static void arrow(Camera camera, Vector3 A, Vector3 B, float chevron_distance_percent, Vector3 color) { arrow(camera, A, B, chevron_distance_percent, Color.FromNonPremultiplied(new Vector4(color, 1.0f))); }
 
-        public static void arrow(Vector3 A, Vector3 B, float chevron_distance_percent, Vector4 color) { arrow(A, B, chevron_distance_percent, Color.FromNonPremultiplied(color)); }
+        public static void arrow(Camera camera, Vector3 A, Vector3 B, float chevron_distance_percent, Vector4 color) { arrow(camera, A, B, chevron_distance_percent, Color.FromNonPremultiplied(color)); }
 
-        public static void arrow(Vector3 A, Vector3 B, float chevron_distance_percent, Color color) {
-            line(A, B, color);
+        public static void arrow(Camera camera, Vector3 A, Vector3 B, float chevron_distance_percent, Color color) {
+            line(camera, A, B, color);
             Vector3 BA = (A - B) * chevron_distance_percent;
             
-            line_effect.Parameters["View"].SetValue(State.camera.view);
-            line_effect.Parameters["Projection"].SetValue(State.camera.projection);
+            line_effect.Parameters["View"].SetValue(camera.view);
+            line_effect.Parameters["Projection"].SetValue(camera.projection);
             
             VertexPositionColor[] verts = new VertexPositionColor[9];
 

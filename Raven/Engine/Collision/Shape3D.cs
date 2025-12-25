@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Raven.Graphics;
 
 namespace Raven.Engine.Collision {
     public enum shape_type {
@@ -24,6 +25,6 @@ namespace Raven.Engine.Collision {
 
         Vector3 support(Vector3 direction, Vector3 sweep);
 
-        void draw(Matrix world);
+        void draw(Camera camera, GBuffer gbuffer, Matrix world);
     }  
 }

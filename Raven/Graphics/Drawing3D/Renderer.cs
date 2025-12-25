@@ -23,15 +23,12 @@ namespace Raven.Graphics.Drawing3D {
         public static void create_visibility_lists(Camera camera) {
             visible_lights.Clear();
             visible.Clear();
-            
-            
         }
 
-
-        public static void clear_to_skybox(Camera camera, GBuffer buffer) {
+        public static void clear_to_skybox(Camera camera, GBuffer gbuffer) {
             graphics_device.DepthStencilState = DepthStencilState.None;
 
-            graphics_device.SetRenderTargets(buffer.buffer_targets);
+            gbuffer.draw_to_bindings();
             e_clear.Parameters["color"].SetValue(State.Skybox.sun_moon.atmosphere_color.ToVector4());
             e_clear.Techniques["Default"].Passes[0].Apply();
 
@@ -58,9 +55,8 @@ namespace Raven.Graphics.Drawing3D {
             graphics_device.DepthStencilState = DepthStencilState.Default;
         }
 
-        public static void draw_scene(Camera camera, GBuffer buffer) {
-
-            graphics_device.SetRenderTargets(buffer.buffer_targets);
+        public static void draw_scene(Camera camera, GBuffer gbuffer) {
+            gbuffer.draw_to_bindings();
 
             e_gbuffer.Parameters["atmosphere_color"].SetValue(State.Skybox.sun_moon.atmosphere_color.ToVector3());
             e_gbuffer.Parameters["sky_color"].SetValue(State.Skybox.sun_moon.sky_color.ToVector3());
@@ -148,8 +144,8 @@ namespace Raven.Graphics.Drawing3D {
             }
         }
 
-        public static void draw_lighting(Camera camera, GBuffer buffer) {
-            graphics_device.SetRenderTarget(buffer.rt_lighting);
+        public static void draw_lighting(Camera camera, GBuffer gbuffer) {
+            graphics_device.SetRenderTarget(gbuffer.rt_lighting);
 
             e_pointlight.Parameters["View"].SetValue(camera.view);
             e_pointlight.Parameters["Projection"].SetValue(camera.projection);
@@ -167,7 +163,7 @@ namespace Raven.Graphics.Drawing3D {
             graphics_device.SetVertexBuffer(quad_vb);
             graphics_device.Indices = quad_ib;
 
-            State.Skybox.sun_moon.configure_dlight_shader(e_directionallight);
+            State.Skybox.sun_moon.configure_dlight_shader(camera, gbuffer, e_directionallight);
 
             graphics_device.BlendState = DynamicLightRequirements.blend_state;
             graphics_device.DepthStencilState = DepthStencilState.DepthRead;
@@ -175,8 +171,8 @@ namespace Raven.Graphics.Drawing3D {
                 if (light.type == LightType.SPOT) {
                     e_spotlight.Parameters["World"].SetValue(light.world);
 
-                    e_spotlight.Parameters["NORMAL"].SetValue(buffer.rt_normal);
-                    e_spotlight.Parameters["DEPTH"].SetValue(buffer.rt_depth);
+                    e_spotlight.Parameters["NORMAL"].SetValue(gbuffer.rt_normal);
+                    e_spotlight.Parameters["DEPTH"].SetValue(gbuffer.rt_depth);
                     e_spotlight.Parameters["COOKIE"].SetValue(light.spot_info.cookie);
                     e_spotlight.Parameters["SHADOW"].SetValue(light.spot_info.depth_map);
 
@@ -210,8 +206,8 @@ namespace Raven.Graphics.Drawing3D {
                     e_pointlight.Parameters["World"].SetValue(
                     Matrix.CreateScale(light.point_info.radius) * Matrix.CreateTranslation(light.point_info.position));
 
-                    e_pointlight.Parameters["NORMAL"].SetValue(buffer.rt_normal);
-                    e_pointlight.Parameters["DEPTH"].SetValue(buffer.rt_depth);
+                    e_pointlight.Parameters["NORMAL"].SetValue(gbuffer.rt_normal);
+                    e_pointlight.Parameters["DEPTH"].SetValue(gbuffer.rt_depth);
 
                     e_pointlight.Parameters["LightColor"].SetValue(light.color.ToVector4());
                     e_pointlight.Parameters["LightPosition"].SetValue(light.position);

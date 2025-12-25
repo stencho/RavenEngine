@@ -20,9 +20,9 @@ namespace Raven.Engine.Collision
             return CollisionHelper.BoundingBox_around_transformed_points(world, points);
         }
 
-        public void draw(Matrix matrix) {
-            Draw3D.cube(bounds, matrix, Color.Purple);
-            octree.draw(matrix);
+        public void draw(Camera camera, Matrix matrix) {
+            Draw3D.cube(camera, bounds, matrix, Color.Purple);
+            octree.draw(camera, matrix);
 
             foreach (Node n in octree.nodes) {
                 foreach (int t in n.values) {
@@ -31,7 +31,7 @@ namespace Raven.Engine.Collision
                     //Draw3D.xyz_cross(Vector3.Transform(t.B, matrix), 1f, Color.Red);
                     //Draw3D.xyz_cross(Vector3.Transform(t.C, matrix), 1f, Color.Red);
 
-                    Draw3D.lines(n.color,
+                    Draw3D.lines(camera, n.color,
                         Vector3.Transform(tris[t].A, matrix),
                         Vector3.Transform(tris[t].B, matrix),
                         Vector3.Transform(tris[t].C, matrix),

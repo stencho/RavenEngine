@@ -61,13 +61,13 @@ namespace Raven.Engine.Collision.Shapes3D {
             this.radius = radius;
         }
 
-        public void draw(Matrix world) {
+        public void draw(Camera camera, GBuffer gbuffer, Matrix world) {
             var aw = Vector3.Transform(A, world);
             var bw = Vector3.Transform(B, world);
-            Draw3D.cylinder(aw, bw, radius, Color.MonoGameOrange);
+            Draw3D.cylinder(camera, aw, bw, radius, Color.MonoGameOrange);
 
-            Draw3D.sphere(aw, radius, Color.MonoGameOrange);
-            Draw3D.sphere(bw, radius, Color.MonoGameOrange);
+            Draw3D.sphere(camera, aw, radius, Color.MonoGameOrange);
+            Draw3D.sphere(camera, bw, radius, Color.MonoGameOrange);
 
             //Draw3D.cube(find_bounding_box(), Color.MonoGameOrange, State.camera.view, State.camera.projection);
             BoundingBox bb = find_bounding_box(world);

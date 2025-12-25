@@ -1,6 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
-using Raven.Graphics.Drawing2D;
 
 namespace Raven.Graphics.Effects {
     public class Dither : ManagedEffect {
@@ -17,6 +16,6 @@ namespace Raven.Graphics.Effects {
             set_param("bottom_right", bottom_right);
         }
 
-        public Dither(ContentManager content) : base(content, "effects/dither") {}
+        public Dither(ContentManager content) : base(content, "Shaders/dither") {}
     }
 }
