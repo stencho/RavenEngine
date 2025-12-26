@@ -106,10 +106,10 @@ public static class Threads {
         }
     }
 
-    private const bool use_pruner = true;
+    private const bool use_pruner = false;
     
     public static void Initialize() {
-        StartTask($"Dispatcher", DispatcherThread, cancellation_token_source.Token);
+        StartTask($"Thread Dispatcher", DispatcherThread, cancellation_token_source.Token);
         if (use_pruner)
             StartTask($"ThreadInfo Pruner", ThreadInfoPruner, cancellation_token_source.Token);
     }   
@@ -139,6 +139,8 @@ public static class Threads {
                 goto possibly_still_items_in_queue;
             }
 
+            if (!use_pruner) Prune();
+            
             await Task.Delay(dispatch_wait);
         }
     }

@@ -408,19 +408,19 @@ public static class State {
                 }
 
                 var debug_str = "";
-                debug_str += $"[Render] {Clock.frame_rate} FPS{buffer_text}\n[Update] {Clock.tick_rate} Ticks/s\n";
+                debug_str += $"[Render] {Clock.frame_rate} FPS{buffer_text}\n[Update] {Clock.tick_rate} Ticks/s ({Clock.total_ms_last_update:0.000}/{Clock.update_thread_goal_time.TotalMilliseconds:0.000})\n";
                 if (show_all_debug_info) {
                     debug_str += $"\n[GVars]\n{gvars.list_all()}\n\n[Loaded Assets]\n{Resources.ListAllContent()}\n";
                 }
-                debug_str += $"\n[Environment] {(int)hour} O'clock\n\n[Threads] {Threads.TaskCount}/{Threads.MaxTasks}\n{universe.universe_info}\n{Camera.Manager.ListAllCameras}\n{ManagedRT2D.Manager.ListAllBuffers}\n{GBuffer.Manager.ListAllBuffers}\n[Windows] {UI.list_windows()}\n";
+                debug_str += $"\n[Environment] {(int)hour} O'clock\n\n[Threads] {Threads.TaskCount}/{Threads.MaxTasks}\n{Threads.list_all_active_threads}\n{universe.universe_info}\n{Camera.Manager.ListAllCameras}\n{ManagedRT2D.Manager.ListAllBuffers}\n{GBuffer.Manager.ListAllBuffers}\n[Windows] {UI.list_windows()}\n";
 
 
                 Draw2D.text_shadow(debug_str, Vector2i.One * 4, Color.White, Color.Black);
 
                 //Draw2D.image(Resources.GetTexture("Missing"), Vector2i.One * 200, Vector2i.One * 50);
-                Draw2D.image(Skybox.sun_moon.lerps.debug_band, Vector2i.Down * 5 + (Vector2i.Right * 150),
+                Draw2D.image(Skybox.sun_moon.lerps.debug_band, Vector2i.Down * 5 + (Vector2i.Right * 250),
                     Skybox.sun_moon.lerps.debug_band.Bounds.Size.ToVector2i() + (Vector2i.UnitY * 10));
-                var tl = (Vector2i.Down * 5) + (Vector2i.Right * 150) +
+                var tl = (Vector2i.Down * 5) + (Vector2i.Right * 250) +
                          (Skybox.sun_moon.lerps.debug_band.Bounds.Size.ToVector2i() * (float)dayper);
                 Draw2D.line(tl, tl + (Vector2i.UnitY * 11), Color.Red, 1f);
                 UI.draw();
@@ -560,6 +560,8 @@ public static class Clock {
 
         frame_count++;
     }
+
+    public static double total_ms_last_update = 0;
     
     public static void TickRateUpdate(double milliseconds) {
         _tick_rate_timer += milliseconds;
@@ -581,7 +583,7 @@ public static class Clock {
         public ControlBinds binds = new ControlBinds(State.engine_bind_list);
         public Input input_update_thread => binds.input;
 
-        private bool currently_updating = false;
+        internal bool currently_updating = false;
         public bool CurrentlyUpdating => currently_updating;
         
         public UpdateThread(string name, Action update_action) {
@@ -593,44 +595,51 @@ public static class Clock {
             Threads.StartTask($"Update{(name.Length > 0 ? " (" + name + ")" : "")}", Update);
         }
     
+        Stopwatch loop_stopwatch = Stopwatch.StartNew();
+        
         private void Update() {
             while (!Threads.IsCancellationRequested) {
-                var start_dt = DateTime.Now;
-                currently_updating = true;
-            
+                //currently_updating = true;
+
+                long frame_start = loop_stopwatch.ElapsedTicks;
+
+                //var start_dt = DateTime.Now;
+
                 //UPDATE 
                 binds.Update();
-            
+
                 if (update_action != null) update_action();
-                
+
                 if (binds.just_pressed("switch_buffer")) {
                     State.draw_debug_buffer += 1;
-                    if (State.draw_debug_buffer > 3) 
-                        State.draw_debug_buffer = -1;
+                    if (State.draw_debug_buffer > 3) State.draw_debug_buffer = -1;
                 }
-            
+
                 if (binds.just_pressed("toggle_full_info")) {
                     State.show_all_debug_info = !State.show_all_debug_info;
                 }
-
-                currently_updating = false;
+                
+                //currently_updating = false;
                 State.universe.StabilizeChunkPositions();
-                //SLEEP
-                while (!Threads.IsCancellationRequested) {
-                    //time since start of tick
-                    var time_since_start = DateTime.Now - start_dt;
-                
-                    //if it's been longer than the goal time, break the while and start the next tick
-                    if (time_since_start.TotalMilliseconds >= Clock.update_thread_goal_time.TotalMilliseconds) break;
-                
-                    //sleep until much closer to end of frame
-                    var sleep_to_tick_end = Clock.update_thread_goal_time.Ticks -
-                                            (DateTime.Now - start_dt).Ticks;
-                    if (sleep_to_tick_end > 0)
-                        Thread.Sleep(new TimeSpan(sleep_to_tick_end));
+
+
+                double elapsed_ms() {
+                    return (loop_stopwatch.ElapsedTicks - frame_start) * 1000.0 / (double)Stopwatch.Frequency;
                 }
-            
-                Clock.TickRateUpdate((DateTime.Now.Ticks-start_dt.Ticks) / 10000.0);
+
+                double remaining_ms() {
+                    return (Clock.update_thread_goal_time.TotalMilliseconds - elapsed_ms()) * 1000.0 / (double)Stopwatch.Frequency;
+                }
+
+                if (remaining_ms() > 1.0) {
+                    Thread.Sleep((int)(remaining_ms() - 1));    
+                }
+                while (remaining_ms() > 0.0 && !Threads.IsCancellationRequested) {
+                    Thread.SpinWait(1);
+                }
+                
+                Clock.total_ms_last_update = elapsed_ms();
+                Clock.TickRateUpdate(total_ms_last_update);
             }
         }
     }

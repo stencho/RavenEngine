@@ -17,9 +17,12 @@ namespace Raven.Engine;
 
 public class Universe {
     ChunkCache chunks = new();
+    
     Clock.UpdateThread update_thread;
+    
     internal ControlBinds binds => update_thread.binds;
     internal Input input => binds.input;
+    
     public string universe_info {
         get {
             string output = "[Universe]\n  [Loaded Chunks]\n";
@@ -65,8 +68,6 @@ public class Universe {
                 }
             }
         }
-
-
     }
     
     public Universe() {
@@ -112,7 +113,6 @@ public class Universe {
     }
     
     void Update() {
-        
         foreach (var c in chunks.Cache.Values) {
             var chunk = c.item;
             Threads.Request(chunk.chunk_update_packet);
@@ -133,13 +133,12 @@ public class Universe {
     public void DebugDraw(Camera camera) {
         foreach (var chunk in chunks.Cache.Values) {
             var c = chunk.item;
-            
         }
     }
 
     public void StabilizeChunkPositions() {
         //need to wait for update to finish here
-        while (update_thread.CurrentlyUpdating) {}
+        //while (update_thread.CurrentlyUpdating) {}
 
         lock (chunks.Cache) {
             foreach (var chunk in chunks.Cache.Values) {
@@ -150,7 +149,6 @@ public class Universe {
                 }
             }
         }
-        
     }
     
     public List<EntityVisibilityInfo> BuildVisibilityList(Camera camera) {
@@ -173,8 +171,7 @@ public class Universe {
 }
 
 public class ChunkCache : ConcurrentCache<Vector3ui128, Chunk> {
-    public ChunkCache() {
-        this.name = "UniverseChunkCache";
+    public ChunkCache() : base("ChunkCache") {
         
         //empty chunks need to be pruned from the cache but also should not do this while
         //near a camera/player, as quickly moving between chunks could introduce stutters as they
@@ -182,46 +179,3 @@ public class ChunkCache : ConcurrentCache<Vector3ui128, Chunk> {
         this.prune_rule = chunk => !chunk.is_near_a_camera() && chunk.is_empty;
     }
 }
-
-/*
-public class Map {
-    private QuadTree quadtree;
-    public List<Entity> entities_in_range = new();
-    
-    public Map() {
-        quadtree = new QuadTree();
-    }
-
-    public void Update() {
-        
-    }
-}
-
-public class ChunkPosition {
-    //TODO actually implement this system and make it work within quadtree
-    public Vector2i64 index;
-    public Vector3 offset;
-}
-
-public class QuadTree {
-    public class Chunk(Vector2i64 index, Vector2i64 position, Vector2i64 size) {
-        private Vector2i64 _xy_index = index;
-        private Vector2i64 _position = position;
-        private Vector2i64 _size = size;
-        
-        public Vector2i64 Index =>  _xy_index;
-        public Vector2i64 Position => _position;
-        public Vector2i64 Size => _size;
-
-        public List<Entity> Entities { get; set; } = new List<Entity>();
-    }
-    
-    private Chunk[,] _chunks;
-    public Chunk[,] Chunks => _chunks;
-
-    public QuadTree() {
-        
-    }
-}
-
-*/

@@ -210,7 +210,7 @@ public class Chunk {
         }
 
         while (entities_updated < Entities.Count) {
-            Thread.Sleep(update_thread_spawner_wait_delay);
+            //Thread.Sleep(update_thread_spawner_wait_delay);
         }
         
         //movement/collision solver needs to happen at this point
