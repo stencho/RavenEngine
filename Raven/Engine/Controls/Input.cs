@@ -33,10 +33,10 @@ public class Input {
 
     Vector2i window_center = Vector2i.Zero;
 
-    volatile static bool mouse_locked = false;
-    volatile static bool mouse_locked_p = false;
-    public static bool mouse_lock { get; set; } = false;
-    public static bool mouse_cursor { get; set; } = false;
+    volatile bool mouse_locked = false;
+    volatile bool mouse_locked_p = false;
+    public bool mouse_lock { get; set; } = false;
+    public bool mouse_cursor { get; set; } = false;
     
     public Collision2D.Shape2D mouse_collision_object => _mouse_coll_obj;
     Collision2D.Shape2D _mouse_coll_obj;
@@ -88,8 +88,12 @@ public class Input {
         _mouse_coll_obj = new Circle2D(mouse_position_float, 1f);
         
         if (mouse_locked && !mouse_locked_p) {                    
-            Mouse.SetPosition(window_center.X, window_center.Y);
+            Mouse.SetPosition(window_center.X, window_center.Y);        
 
+            mouse_state = Mouse.GetState();
+            mouse_state_prev = mouse_state;
+            
+            
         } else if (mouse_locked) {    
             _mouse_delta = (window_center.ToVector2())
                               - (Vector2.UnitX * mouse_state.X)

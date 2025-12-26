@@ -15,18 +15,24 @@ namespace Raven.Engine;
 public interface Entity {
     public string name { get; set; }
     
-    public ChunkPosition position { get; set; }
-    public ChunkPosition position_stable { get; set; }
+    public ChunkPosition position { get;  }
     
     public ComponentManager Components { get; set; }
     
-    public Universe parent { get; set; }
+    public Universe parent_universe { get; set; }
+    public Chunk parent_chunk { get; set; }
+    
     public Threads.ThreadRequestPacket update_packet{ get; set; }
-
+    
+    public void Initialize();
     public void Initialized();
     public void Update();
+    public void StabilizeChunkPosition();
     public void AfterCollision();
     public void UpdateGraphics();
+    public void UpdateInterpolatedPosition();
+
+    public void SetPosition(ChunkPosition position);
 }
 #endregion
 #region COMPONENTS
@@ -34,12 +40,15 @@ public interface Entity {
 public class ComponentManager {
     private ConcurrentDictionary<string, Component> Components = new();
     Entity parent;
+    public void set_parent(Entity p) => parent = p;
+    
+    public ComponentManager() {}
     
     public ComponentManager(Entity parent) {
         this.parent = parent;
     }
     
-    public void AddComponent(Component component) {
+    public void AddComponent(Entity parent, Component component) {
         //component with the same name exists, so add a number to the end and
         //iterate it until no component with the exact same name exists
         int c = 0; 
@@ -67,7 +76,7 @@ public class ComponentManager {
         Components.TryAdd(new_name, comp);
     }
 
-    public T GetComponent<T>(string name) where T : Component {
+    public T Get<T>(string name) where T : Component {
         return (T)Components[name];
         
         if (HasComponent(name)) {
@@ -118,13 +127,13 @@ public abstract class Component {
         data.Add(name, new ComponentData<T>(name, cdata));
     }
 
-    public T get_value<T>(string name) {
+    public T GetData<T>(string name) {
         if (data.ContainsKey(name) && data[name] != null && data[name] is ComponentData<T> component_data)
             return component_data.data;
         return default;
     }
 
-    public void set_value<T>(string name, T value) {
+    public void SetData<T>(string name, T value) {
         if (data.ContainsKey(name) && data[name] != null && data[name] is ComponentData<T> component_data) {
             ((ComponentData<T>)data[name]).data = value;
         }

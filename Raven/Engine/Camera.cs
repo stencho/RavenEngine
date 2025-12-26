@@ -77,7 +77,7 @@ namespace Raven.Engine {
 
         public float aspect_ratio { get; set; }
 
-        public string name { get; set; } = "camera";
+        public string name { get; set; } = "Camera";
 
         Viewport viewport;
 

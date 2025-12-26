@@ -19,7 +19,7 @@ namespace Raven.Engine.Components;
 public partial class RenderModelStatic : Component {
     public override string name { get; set; } = "RenderModel";
 
-    public Matrix WorldMatrix => get_value<Matrix>("Orientation") * Matrix.CreateScale(get_value<Vector3>("Scale"));
+    public Matrix WorldMatrix => GetData<Matrix>("Orientation") * Matrix.CreateScale(GetData<Vector3>("Scale"));
     
     public Model Model => Resources.GetModel(ModelName);
     public Texture2D Texture => Resources.GetTexture(TextureName);
@@ -49,7 +49,7 @@ public partial class RenderModelStatic : Component {
 public partial class RenderModelStaticCollision : Component {
     public override string name { get; set; } = "RenderModel";
 
-    public Matrix WorldMatrix => get_value<Matrix>("Orientation") * Matrix.CreateScale(get_value<Vector3>("Scale"));
+    public Matrix WorldMatrix => GetData<Matrix>("Orientation") * Matrix.CreateScale(GetData<Vector3>("Scale"));
     
     public Model Model => Resources.GetModel(ModelName);
     public Texture2D Texture => Resources.GetTexture(TextureName);

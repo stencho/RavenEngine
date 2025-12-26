@@ -57,11 +57,7 @@ namespace Raven.Engine.Controls {
         public bool released(string bind) => digital_binds.bind_released(bind);
 
         public bool just_pressed(string bind) => digital_binds.bind_just_pressed(bind);
-
-        public bool just_released(string bind) =>
-            (global_enable
-                ? digital_binds.bind_just_released(bind)
-                : ((global_enable != global_enable_prev && digital_binds.bind_pressed_ignore_enable(bind)) ? true : false));
+        public bool just_released(string bind) => digital_binds.bind_just_released(bind);
 
         public double pressed_time(string bind) => digital_binds.bind_pressed_time(bind);
 
@@ -83,8 +79,8 @@ namespace Raven.Engine.Controls {
 
         public void change_player_index(PlayerIndex index) { _player_index = index; }
 
-        public bool global_enable = true;
-        public bool global_enable_prev = true;
+        public static volatile bool global_enable = true;
+        public static volatile bool global_enable_prev = true;
 
         public void force_enable(string bind) {
             foreach (IDigitalBind b in digital_binds.binds) {
@@ -794,18 +790,19 @@ namespace Raven.Engine.Controls {
 
         #region bind status functions
         public bool bind_enabled(IDigitalBind bind) {
-            return bind.force_enable || _enabled;
+            return (bind.force_enable || (ControlBinds.global_enable && _enabled));
         }
 
         public bool bind_pressed(string bind) {
             foreach (IDigitalBind b in _binds) {
-                if (//bind_enabled(bind) && 
+                if (bind_enabled(b) && 
                     b.is_pressed && b.binds.Contains(bind))
                     return true;
             }
 
             return false;
         }
+        
         public bool bind_pressed_ignore_enable(string bind) {
             foreach (IDigitalBind b in _binds) {
                 if (b.is_pressed && b.binds.Contains(bind))
@@ -814,19 +811,28 @@ namespace Raven.Engine.Controls {
 
             return false;
         }
+        public bool bind_just_pressed_ignore_enable(string bind) {
+            foreach (IDigitalBind b in _binds) {
+                if (b.just_pressed && b.binds.Contains(bind))
+                    return true;
+            }
+
+            return false;
+        }
+        
         public bool bind_released(string bind) {
             foreach (IDigitalBind b in _binds) {
-                if (//bind_enabled(bind) &&
+                if (bind_enabled(b) &&
                     b.is_pressed && b.binds.Contains(bind))
                     return false;
             }
 
             return true;
-        }
-                public double bind_pressed_time(string bind) {
+        } 
+        public double bind_pressed_time(string bind) {
             double hi = 0f;
             foreach (IDigitalBind b in _binds) {
-                if (//bind_enabled(bind) &&
+                if (bind_enabled(b) &&
                     b.held && b.binds.Contains(bind))
                     if (b.time_pressed.TotalMilliseconds > hi)
                         hi = b.time_pressed.TotalMilliseconds;
@@ -837,7 +843,7 @@ namespace Raven.Engine.Controls {
 
         public bool bind_just_pressed(string bind) {
             foreach (IDigitalBind b in _binds) {
-                if (//bind_enabled(bind) &&
+                if (bind_enabled(b) &&
                     b.just_pressed && b.binds.Contains(bind))
                     return true;
             }
@@ -845,7 +851,7 @@ namespace Raven.Engine.Controls {
         }
         public bool bind_just_released(string bind) {
             foreach (IDigitalBind b in _binds) {
-                if (//bind_enabled(bind) &&
+                if (bind_enabled(b) &&
                     b.just_released && b.binds.Contains(bind))
                     return true;
             }
@@ -855,7 +861,7 @@ namespace Raven.Engine.Controls {
 
         public bool bind_held(string bind) {
             foreach (IDigitalBind b in _binds) {
-                if (//bind_enabled(bind) &&
+                if (bind_enabled(b) &&
                     b.held && b.binds.Contains(bind))
                     return true;
             }
@@ -871,7 +877,7 @@ namespace Raven.Engine.Controls {
         public bool bind_just_held(string bind) {
 
             foreach (IDigitalBind b in _binds) {
-                if (//bind_enabled(bind) &&
+                if (bind_enabled(b) &&
                     b.just_held && b.binds.Contains(bind))
                     return true;
             }
@@ -881,7 +887,7 @@ namespace Raven.Engine.Controls {
         public double bind_held_time(string bind) {
             double hi = 0f;
             foreach (IDigitalBind b in _binds) {
-                if (//bind_enabled(bind) &&
+                if (bind_enabled(b) &&
                     b.held && b.binds.Contains(bind))
                     if (b.time_pressed.TotalMilliseconds - b.hold_time > hi)
                         hi = b.time_pressed.TotalMilliseconds - b.hold_time;
@@ -891,9 +897,8 @@ namespace Raven.Engine.Controls {
         }
 
         public bool bind_just_released_hold(string bind) { 
-
             foreach (IDigitalBind b in _binds) {
-                if (//bind_enabled(bind) &&
+                if (bind_enabled(b) &&
                     b.released_hold && b.binds.Contains(bind))
                     return true;
             }
@@ -903,7 +908,7 @@ namespace Raven.Engine.Controls {
 
         public bool bind_tapped(string bind) {
             foreach (IDigitalBind b in _binds) {
-                if (//bind_enabled(bind) &&
+                if (bind_enabled(b) &&
                     b.tapped && b.binds.Contains(bind))
                     return true;
             }

@@ -33,7 +33,6 @@ public static class Threads {
                     output += "\n";
                 }
             }
-            //prune();
             return output;
         }
         
@@ -144,7 +143,7 @@ public static class Threads {
         }
     }
 
-    static void prune() {
+    public static void Prune() {
         lock (threads) {
             foreach (var t in threads.Keys) {
                 if (threads[t].Finished) {
@@ -156,7 +155,7 @@ public static class Threads {
     
     private async static void ThreadInfoPruner() {
         while (State.running) {
-            prune();
+            Prune();
 
             //Debug.WriteLine("Attempted Prune");
             Thread.Sleep(prune_wait_ms);

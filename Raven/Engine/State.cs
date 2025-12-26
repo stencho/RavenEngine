@@ -176,7 +176,6 @@ public static class State {
             (bind_type.digital, controller_type.keyboard, Keys.E, "t_R"),
             (bind_type.digital, controller_type.keyboard, Keys.R, "t_S"),
 
-
             (bind_type.digital, controller_type.keyboard, Keys.LeftShift, "shift"),
             (bind_type.digital, controller_type.keyboard, Keys.LeftControl, "ctrl"),
 
@@ -185,7 +184,7 @@ public static class State {
             (bind_type.digital, controller_type.mouse, Input.MouseButtons.Middle, "click_middle"),
             (bind_type.digital, controller_type.mouse, Input.MouseButtons.ScrollUp, "scroll_up"),
             (bind_type.digital, controller_type.mouse, Input.MouseButtons.ScrollDown, "scroll_down"),
-
+            
             (bind_type.digital, controller_type.keyboard, Keys.F, "t_supp"),
             (bind_type.digital, controller_type.keyboard, Keys.D1, "speenL"),
             (bind_type.digital, controller_type.keyboard, Keys.D3, "speenR"),
@@ -208,6 +207,7 @@ public static class State {
     public static UIWindowManager UI;
     
     public static Vector2i resolution => gvars.get_Vector2i("resolution");
+    public static float super_res_scale => gvars.get_float("super_resolution_scale");
 
     //public static GBuffer gbuffer;
     //public static Camera camera;
@@ -271,6 +271,8 @@ public static class State {
         game.IsFixedTimeStep = true;
         game.InactiveSleepTime = TimeSpan.Zero;
         graphics.SynchronizeWithVerticalRetrace = false;
+        window.IsBorderless = false;
+        
         window.AllowUserResizing = false;
         
         ConsoleInputRunner.build_using_list();
@@ -286,6 +288,7 @@ public static class State {
         ChangeResolution(true);
         
         gvars.add_change_action("resolution", () => ChangeResolution());
+        gvars.add_change_action("super_resolution_scale", () => ChangeResolution());
         gvars.add_change_action("vsync", () => { graphics.SynchronizeWithVerticalRetrace = gvars.get_bool("vsync"); });
         gvars.add_change_action("frame_limit", () => ChangeFrameLimit());
         ChangeFrameLimit();
@@ -352,16 +355,16 @@ public static class State {
             spot_info = new spot_info()
         };
         
-        test_ent = new TestEntity(universe);
-        free_cam = new FreeCamEntity(universe);
+        test_ent = new TestEntity();
+        free_cam = new FreeCamEntity();
         
         //test_ent.Components.GetComponent<RenderModel>("RenderModel").Texture
         universe.SpawnEntity(test_ent, Vector3ui128.Zero, Vector3.Zero);
         universe.SpawnEntity(free_cam, Vector3ui128.Zero, Vector3.Zero);
 
-        var cam = free_cam.Components.GetComponent<GBufferCamera>("Camera").camera;
+        var cam = free_cam.Components.Get<GBufferCamera>("Camera").camera;
         
-        cam.gbuffer.EnableScreenDraw(Vector2i.Zero, resolution, -1);
+        cam.gbuffer.EnableScreenDrawFullscreen(-1);
         
         cam.gbuffer.Draw3DLayer = () => {
             //drawing the world should go here
@@ -404,12 +407,13 @@ public static class State {
                         break;
                 }
 
-                var debug_str =
-                    $"[Render] {Clock.frame_rate} FPS{buffer_text}\n[Update] {Clock.tick_rate} Ticks/s\n[Environment] {(int)hour} O'clock\n\n[Threads] {Threads.TaskCount}/{Threads.MaxTasks}\n{Threads.list_all_active_threads}\n{universe.universe_info}\n{Camera.Manager.ListAllCameras}\n{ManagedRT2D.Manager.ListAllBuffers}\n{GBuffer.Manager.ListAllBuffers}\n[Windows] {UI.list_windows()}\n\n";
-
+                var debug_str = "";
+                debug_str += $"[Render] {Clock.frame_rate} FPS{buffer_text}\n[Update] {Clock.tick_rate} Ticks/s\n";
                 if (show_all_debug_info) {
-                    debug_str += $"\n\nGVARS\n{gvars.list_all()}\n\nLOADED ASSETS\n{Resources.ListAllContent()}\n\n";
+                    debug_str += $"\n[GVars]\n{gvars.list_all()}\n\n[Loaded Assets]\n{Resources.ListAllContent()}\n";
                 }
+                debug_str += $"\n[Environment] {(int)hour} O'clock\n\n[Threads] {Threads.TaskCount}/{Threads.MaxTasks}\n{universe.universe_info}\n{Camera.Manager.ListAllCameras}\n{ManagedRT2D.Manager.ListAllBuffers}\n{GBuffer.Manager.ListAllBuffers}\n[Windows] {UI.list_windows()}\n";
+
 
                 Draw2D.text_shadow(debug_str, Vector2i.One * 4, Color.White, Color.Black);
 
@@ -456,12 +460,13 @@ public static class State {
             graphics.ApplyChanges();
         }
 
-        // TODO DO THIS BUT FOR NEW CAMERA THING gbuffer.change_resolution(graphics_device, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
+        GBuffer.Manager.UpdateFullscreenBufferResolutions();
     }
 
 
     
     public static void Update(GameTime gt) {
+        //Threads.Prune();
         Clock.game_time = gt;
         engine_binds.Update();
         
@@ -493,9 +498,8 @@ public static class State {
             Threads.Request(new Threads.ThreadRequestPacket(() => Log.log("fart")));
         }
         
-        GBufferCamera.Manager.UpdateLinkedChunkPositions();
-        Camera.Manager.UpdateAllCameras();
         
+        Camera.Manager.UpdateAllCameras();
         //skull_lamp.spot_info.orientation = camera.orientation * (Matrix.CreateRotationY(MathHelper.ToRadians(-8f)));
     }
 
@@ -509,81 +513,6 @@ public static class State {
         
         Camera.Manager.BuildAllCameraGBuffers();
         GBuffer.Manager.DrawAllScreenBuffers();
-        
-        /*
-        gbuffer.prepare(camera, gbuffer);
-        //DRAW 3D
-        gbuffer.draw_to_bindings();
-        Renderer.clear_to_skybox(camera, gbuffer);
-        graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
-        graphics_device.BlendState = BlendState.AlphaBlend;
-        if (Draw_3D != null) Draw_3D.Invoke();
-        
-        gbuffer.draw_to_bindings();
-        Draw3D.draw_buffers_diffuse_texture( camera, gbuffer,
-            test_skull.Meshes[0].MeshParts[0].VertexBuffer, 
-            test_skull.Meshes[0].MeshParts[0].IndexBuffer, 
-            Resources.GetTexture("XboxenDiffuse"), Color.White, 
-            Matrix.CreateRotationY(float.DegreesToRadians(skull_rotate)) * Matrix.CreateScale(0.5f) * Matrix.CreateTranslation(Vector3.Down * 2));
-        
-        Draw3D.draw_buffers_diffuse_texture(camera, gbuffer,
-            test_ent.Components.GetComponent<RenderModel>("RenderModel").Model.Meshes[0].MeshParts[0].VertexBuffer,
-            test_ent.Components.GetComponent<RenderModel>("RenderModel").Model.Meshes[0].MeshParts[0].IndexBuffer,
-            Resources.GetTexture("XboxenDiffuse"), Color.White, 
-            Matrix.CreateScale(test_ent.Components.GetComponent<RenderModel>("RenderModel").Scale) * Matrix.CreateTranslation(Vector3.Zero));
-
-        
-        //skull_rotate += 60f * (float)Clock.delta_time;
-        if (skull_rotate > 360f) {
-            skull_rotate -= 360f;
-        }
-
-        Renderer.draw_lighting(camera, gbuffer);
-        
-        graphics_device.SetRenderTarget(gbuffer.rt_2D);
-        graphics_device.BlendState = BlendState.AlphaBlend;
-        graphics_device.Clear(Color.Transparent);
-        
-        //DRAW 2D
-        
-        Draw2D.image(camera.gbuffer.rt_final, Vector2i.Zero, new Vector2i(1280,720));
-        
-        //StaticControlBinds.draw_state(600, 0, 100, 10, 10);
-        var dayper = Skybox.sun_moon.current_time_entire_day_percent;
-        bool afternoon = dayper > 0.5f;
-        var hour = afternoon ? ((dayper - 0.5f) * 2) * 12f : (dayper * 2f) * 12f;
-        if ((int)hour == 0) hour = 12;
-
-        string buffer_text = "";
-        switch (draw_debug_buffer) {
-            case 0: buffer_text = " <diffuse>";  break;
-            case 1: buffer_text = " <normals>";  break;
-            case 2: buffer_text = " <depth>";    break;  
-            case 3: buffer_text = " <lighting>"; break;
-            default: buffer_text = ""; break;
-        }
-
-        var debug_str =
-            $"[Render] {Clock.frame_rate} FPS{buffer_text}\n[Update] {Clock.tick_rate} Ticks/s\n[Environment] {(int)hour} O'clock\n\n[Threads] {Threads.TaskCount}/{Threads.MaxTasks}\n{Threads.list_all_active_threads}\n{universe.universe_info}\n{Camera.Manager.ListAllCameras}\n{ManagedRT2D.Manager.ListAllBuffers}\n{GBuffer.Manager.ListAllBuffers}\n[Windows] {UI.list_windows()}\n\n";
-        
-        if (show_all_debug_info) {
-            debug_str += $"\n\nGVARS\n{gvars.list_all()}\n\nLOADED ASSETS\n{Resources.ListAllContent()}\n\n";
-        }
-        
-        Draw2D.text_shadow(debug_str, Vector2i.One * 4, Color.White, Color.Black);
-        
-        //Draw2D.image(Resources.GetTexture("Missing"), Vector2i.One * 200, Vector2i.One * 50);
-        Draw2D.image(Skybox.sun_moon.lerps.debug_band, Vector2i.Down * 5 + (Vector2i.Right * 150), Skybox.sun_moon.lerps.debug_band.Bounds.Size.ToVector2i() + (Vector2i.UnitY * 10));
-        var tl = (Vector2i.Down * 5) + (Vector2i.Right * 150) + (Skybox.sun_moon.lerps.debug_band.Bounds.Size.ToVector2i() * (float)dayper);
-        Draw2D.line(tl, tl + (Vector2i.UnitY * 11), Color.Red, 1f);
-        UI.draw();
-        
-        if (Draw_2D != null) Draw_2D.Invoke();
-        
-        gbuffer.flip_diffuse();
-        gbuffer.compose(camera);
-        gbuffer.present_to_screen();
-        */
     }
     
 }
@@ -593,9 +522,20 @@ public static class Clock {
     public static double delta_time => game_time.ElapsedGameTime.TotalSeconds;
     public static double delta_time_ms => game_time.ElapsedGameTime.TotalMilliseconds;
 
-    public static double update_thread_tick_rate = 60.0;
+    private static double _update_tick_rate = 60.0;
+    public static double update_thread_tick_rate {
+        get {
+            return _update_tick_rate;
+        }
+        set {
+            _update_tick_rate = value;
+            update_thread_goal_time = new TimeSpan((long)(10000 * (1000.0/update_thread_tick_rate)));
+        }
+    }
+
     public static TimeSpan update_thread_goal_time = new TimeSpan((long)(10000 * (1000.0/update_thread_tick_rate)));
-    public static double update_thread_delta => 10000.0 * (1000.0 / update_thread_tick_rate);
+    public static double update_thread_delta => (1000.0 / update_thread_tick_rate);
+    
     public static double frame_rate { get; set; } = 0;
     private static double _frame_rate_timer = 0;
     private static double _frame_counter = 0;
@@ -634,16 +574,16 @@ public static class Clock {
     
     
     public class UpdateThread {
+        private string name = "";
+        
         public Action update_action { get; set; }
         
         public ControlBinds binds = new ControlBinds(State.engine_bind_list);
         public Input input_update_thread => binds.input;
 
-        private string name = "";
-
-        public UpdateThread(string name) {
-            this.name = name;
-        }
+        private bool currently_updating = false;
+        public bool CurrentlyUpdating => currently_updating;
+        
         public UpdateThread(string name, Action update_action) {
             this.name = name;
             this.update_action = update_action;
@@ -653,8 +593,6 @@ public static class Clock {
             Threads.StartTask($"Update{(name.Length > 0 ? " (" + name + ")" : "")}", Update);
         }
     
-        private bool currently_updating = false;
-        public bool CurrentlyUpdating => currently_updating;
         private void Update() {
             while (!Threads.IsCancellationRequested) {
                 var start_dt = DateTime.Now;
@@ -676,6 +614,7 @@ public static class Clock {
                 }
 
                 currently_updating = false;
+                State.universe.StabilizeChunkPositions();
                 //SLEEP
                 while (!Threads.IsCancellationRequested) {
                     //time since start of tick

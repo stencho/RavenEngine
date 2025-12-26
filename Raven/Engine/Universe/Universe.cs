@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.Xna.Framework;
 using Raven.Engine.Controls;
 using Raven.Caching;
+using Raven.Engine.Components;
 using Raven.Graphics;
 using Raven.Graphics.Drawing2D;
 using Raven.Graphics.Drawing3D;
@@ -75,14 +76,24 @@ public class Universe {
     public void SpawnEntity(Entity entity, Vector3ui128 chunk_pos, Vector3 offset) {
         if (chunks.Test(chunk_pos)) {
             //chunk already cached
-            entity.position = new ChunkPosition(chunks.Request(chunk_pos), offset);
+            entity.SetPosition(new ChunkPosition(chunks.Request(chunk_pos), offset));
+            entity.Initialize();
+            entity.parent_universe = this;
+            entity.parent_chunk = chunks.Cache[chunk_pos].item;
+            
             chunks.Cache[chunk_pos].item.SpawnEntity(entity);
+            
         } else {
             //chunk not cached
             chunks.Store(chunk_pos, new Chunk(this, chunk_pos));
-            entity.position = new ChunkPosition(chunks.Request(chunk_pos), offset);
+            entity.SetPosition(new ChunkPosition(chunks.Request(chunk_pos), offset));
+            entity.Initialize();
+            entity.parent_universe = this;
+            entity.parent_chunk = chunks.Cache[chunk_pos].item;
+            
             chunks.Cache[chunk_pos].item.SpawnEntity(entity);
         }
+        
         entity.Initialized();
     }
     
@@ -94,23 +105,21 @@ public class Universe {
         update_thread.Start();
     }
 
-    public int tasks_expected = 0;
-    public int tasks_done = 0;
+    public int chunks_updated = 0;
 
-    internal void chunk_task_callback() {
-        Interlocked.Increment(ref tasks_done);
+    internal void universe_task_callback() {
+        Interlocked.Increment(ref chunks_updated);
     }
     
     void Update() {
+        
         foreach (var c in chunks.Cache.Values) {
-            Interlocked.Increment(ref tasks_expected);
-            
             var chunk = c.item;
-            Threads.Request(chunk.update_packet);
+            Threads.Request(chunk.chunk_update_packet);
             //chunk.Update();
         }
 
-        while (tasks_done < tasks_expected) ;
+        while (chunks_updated < chunks.Cache.Values.Count) ;
     }
 
     public void UpdateGraphics() {
@@ -118,6 +127,7 @@ public class Universe {
             var chunk = c.item;
             chunk.UpdateGraphics();
         }
+        GBufferCamera.Manager.UpdateLinkedChunkPositions();
     }
 
     public void DebugDraw(Camera camera) {
@@ -135,11 +145,12 @@ public class Universe {
             foreach (var chunk in chunks.Cache.Values) {
                 lock (chunk.item.Entities) {
                     foreach (var ent in chunk.item.Entities) {
-                        ent.position_stable = ent.position;
+                        ent.StabilizeChunkPosition();
                     }
                 }
             }
         }
+        
     }
     
     public List<EntityVisibilityInfo> BuildVisibilityList(Camera camera) {

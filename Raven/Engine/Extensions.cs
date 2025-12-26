@@ -22,10 +22,10 @@ public static class Extensions {
     }
 
     public static string ToXString(this Vector2 v2) {
-        return $"{v2.X}x{v2.Y}";
+        return $"{v2.X:0.00}x{v2.Y:0.00}";
     }
     public static string ToXString(this Vector3 v3) {
-        return $"{v3.X}x{v3.Y}x{v3.Z}";
+        return $"{v3.X:0.00}x{v3.Y:0.00}x{v3.Z:0.00}";
     }
     public static string simple_vector3_string(this Vector3 input) {
         return string.Format("{0:F2}, {1:F2}, {2:F2}", input.X, input.Y, input.Z);

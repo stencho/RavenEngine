@@ -132,7 +132,7 @@ namespace Raven.UI  {
                     windows.BringToFront(console);
                     force_focus(console);
 
-                    State.engine_binds.global_enable = false;
+                    ControlBinds.global_enable = false;
                     return;
                 }
 
@@ -142,9 +142,9 @@ namespace Raven.UI  {
                     windows.BringToFront(console);
                     force_focus(console);
 
-                    State.engine_binds.global_enable = false;
+                    ControlBinds.global_enable = false;
                 } else {
-                    State.engine_binds.global_enable = true;
+                    ControlBinds.global_enable = true;
 
                     for (int o = 0; o < windows.Count; o++) {
                         windows[o].has_focus = false;
@@ -152,7 +152,7 @@ namespace Raven.UI  {
                 }
             }
 
-            if (!State.is_active || Input.mouse_lock) return;
+            if (!State.is_active || State.input_main_thread.mouse_lock) return;
 
             for (int i = windows.Count-1; i >= 0; --i) {
                 windows[i].update();
@@ -217,9 +217,9 @@ namespace Raven.UI  {
                             windows[i].subforms[i1].top_of_mouse_stack = false;
                         }
                     }
-                    State.engine_binds.global_enable = true;
+                    ControlBinds.global_enable = true;
                 } else {
-                    State.engine_binds.global_enable = false;
+                    ControlBinds.global_enable = false;
                 }
             }
 

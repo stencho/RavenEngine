@@ -1,27 +1,63 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using RavenRPG.Engine.Universe;
 using RavenRPG.Engine.Universe.SpacialPartitioning;
 
 namespace Raven.Engine;
-
 public class ChunkPosition {
-    public Vector3ui128 index => chunk.position;
-    public Vector3 offset = Vector3.One * (Chunk.base_chunk_size_per_direction * 0.5f);
-    
     public Chunk? chunk;
     
-    public ChunkPosition(Chunk chunk) { this.chunk = chunk; }
-    public ChunkPosition(Chunk chunk, Vector3 offset) { this.chunk = chunk; this.offset = offset; }
+    public Vector3ui128 index => chunk.position;
 
+    public Vector3 offset = Vector3.One * (Chunk.base_chunk_size_per_direction * 0.5f);
+        
+    public Vector3 offset_stable = Vector3.Zero;
+    public Vector3 offset_stable_previous = Vector3.Zero;
+    public Vector3 offset_interpolated = Vector3.Zero;
+    
+    private double current_time = 0.0;
+    public double InterpolationCurrentTime => current_time;
+
+    private double length;
+    public double InterpolationLength => length;
+
+    public float InterpolationPosition => (float)(current_time / length);
+    
     public Vector3 wants_movement = Vector3.Zero;
     List<Vector3> finalized_movement_path = new List<Vector3>();
     Vector3 final_position => finalized_movement_path.Last();
     Vector3 previous_final_position;
+    
+    public ChunkPosition(Chunk chunk) { this.chunk = chunk; }
+    public ChunkPosition(Chunk chunk, Vector3 offset) { this.chunk = chunk; this.offset = offset; }
+
+    public static bool EnableInterpolation = true;
+    
+    public void interpolate(double step_milliseconds) {
+        if (!EnableInterpolation) {
+            offset_interpolated = offset_stable;
+            return;
+        }
+        
+        current_time += step_milliseconds;
+        if (current_time > length) 
+            current_time = length;
+        offset_interpolated = Vector3.LerpPrecise(offset_stable_previous, offset_stable, InterpolationPosition);
+    }
+    
+    public void stabilize(double frame_time) {
+        offset_stable_previous = offset_stable;
+        offset_stable = offset;
+        
+        current_time = 0.0;
+        length = frame_time;
+    }
     
     public bool will_be_out_of_current_chunk() {
         if (MathF.Abs(offset.X + final_position.X) > Chunk.base_chunk_size_per_direction) return true;
@@ -76,7 +112,7 @@ public class ChunkPosition {
                     move_until_collision();
                     break;
                 case MoveStyle.Direct:
-                    move_and_slide();
+                    move_directly();
                     break;
             }
         }
@@ -109,7 +145,11 @@ public class LinkedChunkPosition {
     public Vector3 child_offset_from_parent = Vector3.Zero;
 
     public ChunkPosition parent;
-    ChunkPosition _child; public ChunkPosition child => _child;
+    ChunkPosition _child;
+
+    public LinkedChunkPosition() { }
+
+    public ChunkPosition child => _child;
 
     public Vector3 parent_to_child => child_offset_from_parent;
     public Vector3 child_to_parent => -child_offset_from_parent;
@@ -144,13 +184,13 @@ public class Chunk {
 
     public ConcurrentBag<Entity> Entities { get; set; } = new();
 
-    public Threads.ThreadRequestPacket update_packet;
+    public Threads.ThreadRequestPacket chunk_update_packet;
     
     public Chunk(Universe parent, Vector3ui128 pos) {
         this.parent = parent;
         _pos = pos;
-        update_packet = new Threads.ThreadRequestPacket(
-            Update
+        chunk_update_packet = new Threads.ThreadRequestPacket(
+            Update, parent.universe_task_callback
             );
     }
 
@@ -158,10 +198,19 @@ public class Chunk {
         Entities.Add(entity);
     }
 
+    public int entities_updated = 0;
+
+    internal void task_callback() => Interlocked.Increment(ref entities_updated);
+    private TimeSpan update_thread_spawner_wait_delay = new TimeSpan(100);
+    
     public void Update() {
+        entities_updated = 0;
         foreach (var e in Entities) {
-            Interlocked.Increment(ref parent.tasks_expected);
             Threads.Request(e.update_packet);
+        }
+
+        while (entities_updated < Entities.Count) {
+            Thread.Sleep(update_thread_spawner_wait_delay);
         }
         
         //movement/collision solver needs to happen at this point
@@ -170,11 +219,12 @@ public class Chunk {
             e.position.FinalizeMove();
         }
         
-        parent.chunk_task_callback();
+        parent.universe_task_callback();
     }
     
     public void UpdateGraphics() {
         foreach (var e in Entities) {
+            e.UpdateInterpolatedPosition();
             e.UpdateGraphics();
         }
     }

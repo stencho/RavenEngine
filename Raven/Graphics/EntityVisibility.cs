@@ -9,7 +9,7 @@ public struct EntityVisibilityInfo {
     public ChunkPosition camera_chunk_position => camera.current_camera_chunk;
     
     public Entity entity;
-    public ChunkPosition entity_chunk_position => entity.position_stable;
+    public ChunkPosition entity_chunk_position => entity.position;
 
     public Vector3 entity_camera_offset;
     public float entity_camera_distance;

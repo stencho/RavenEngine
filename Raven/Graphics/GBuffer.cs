@@ -55,28 +55,57 @@ namespace Raven.Graphics {
             public static void DrawAllScreenBuffers() {
                 State.graphics_device.SetRenderTarget(null);
                 Draw2D.end();
-                foreach (var gbuffer in gbuffers.Values.Where(buffer => buffer.draw_to_screen).OrderBy(buffer => buffer.screen_draw_info.layer)) {
-                    Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None);
-                    Draw2D.image(gbuffer.rt_composed, gbuffer.screen_draw_info.position, gbuffer.screen_draw_info.size);
+                foreach (var gbuffer in gbuffers.Values
+                             .Where(buffer => buffer.draw_to_screen)
+                             .OrderBy(buffer => buffer.screen_draw_info.layer)) {
+                    
+                    if (gbuffer.screen_draw_info.fullscreen) {
+                        if (State.super_res_scale <= 1.0f) Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None);
+                        else Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearWrap, DepthStencilState.None);
+                        Draw2D.image(gbuffer.rt_composed, Vector2i.Zero, State.resolution);
+                    } else {
+                        Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None);
+                        Draw2D.image(gbuffer.rt_composed, gbuffer.screen_draw_info.position,
+                            gbuffer.screen_draw_info.size);
+                    }
+
                     Draw2D.end();
+                }
+            }
+
+            public static void UpdateFullscreenBufferResolutions() {
+                foreach (var gbuffer in gbuffers.Values
+                             .Where(buffer => buffer.draw_to_screen)) {
+                    if (gbuffer.screen_draw_info.fullscreen) {
+                        gbuffer.change_resolution(State.resolution, State.super_res_scale);
+                    }
                 }
             }
         }
         
         public struct ScreenDrawInfo {
+            public bool fullscreen = false;
             public Vector2i position, size;
             public int layer;
 
+            public ScreenDrawInfo() => fullscreen = true;
+            
             public ScreenDrawInfo(Vector2i position, Vector2i size, int layer = -1) {
                 this.position = position;
                 this.size = size;
                 this.layer = layer;
+                fullscreen = false;
             }
         }
 
         bool draw_to_screen = false;
         ScreenDrawInfo screen_draw_info;
 
+        public void EnableScreenDrawFullscreen(int layer = -1) {
+            screen_draw_info = new ScreenDrawInfo();
+            screen_draw_info.layer = layer;
+            draw_to_screen = true;
+        }
         public void EnableScreenDraw(Vector2i position, Vector2i size, int layer = -1) {
             screen_draw_info = new ScreenDrawInfo(position, size, layer);
             draw_to_screen = true;
@@ -145,13 +174,25 @@ namespace Raven.Graphics {
         
         ~GBuffer() => Manager.Remove(managed_guid);
         
-        public void change_resolution(GraphicsDevice gd, int W, int H) {
+        public void change_resolution(Vector2i res) {
+            _width = res.X;
+            _height = res.Y;
+            
+            CreateInPlace(res.X, res.Y, 1);
+        }
+        public void change_resolution(Vector2i res, float super_res_scale) {
+            _width = res.X;
+            _height = res.Y;
+            
+            CreateInPlace(res.X, res.Y, super_res_scale);
+        }
+        public void change_resolution(int W, int H) {
             _width = W;
             _height = H;
             
             CreateInPlace(W, H, 1);
         }
-        public void change_resolution(GraphicsDevice gd, int W, int H, float super_res_scale) {
+        public void change_resolution(int W, int H, float super_res_scale) {
             _width = W;
             _height = H;
 
@@ -169,8 +210,6 @@ namespace Raven.Graphics {
         public void prepare(Camera camera) {
             camera.update_projection(resolution);
             camera.update();
-            
-            State.universe.StabilizeChunkPositions();
             
             Renderer.create_visibility_lists(camera);
         
@@ -241,7 +280,7 @@ namespace Raven.Graphics {
             rt_final = new RenderTarget2D(State.graphics_device, (int)(width * res_scale), (int)(height * res_scale), false, SurfaceFormat.Color, DepthFormat.None);
             rt_final_half = new RenderTarget2D(State.graphics_device, (int)(width / 2), (int)(height / 2), false, SurfaceFormat.Color, DepthFormat.None);
             rt_2D = new RenderTarget2D(State.graphics_device, (int)(width), (int)(height), false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
-            rt_composed = new RenderTarget2D(State.graphics_device, (int)(width * res_scale), (int)(height * res_scale), false, SurfaceFormat.Color, DepthFormat.None);
+            rt_composed = new RenderTarget2D(State.graphics_device, (int)(width), (int)(height), false, SurfaceFormat.Color, DepthFormat.None);
             
             target_bindings[0] = !rt_diffuse.FlipFlop || !rt_diffuse.DoubleBuffered ? rt_diffuse.flip : rt_diffuse.flop;
             target_bindings[1] = rt_normal;
