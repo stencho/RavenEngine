@@ -777,6 +777,9 @@ namespace Raven.Engine {
         public static explicit operator Vector3ui128(Vector3i64 v) {
             return new Vector3ui128((UInt128)v.X, (UInt128)v.Y, (UInt128)v.Z);
         }
+        public static explicit operator Vector3ui128(Vector3 v) {
+            return new Vector3ui128((UInt128)v.X, (UInt128)v.Y, (UInt128)v.Z);
+        }
 
         #region UInt128
         public static Vector3ui128 operator -(Vector3ui128 a, UInt128 b) => new Vector3ui128() { X = a.X - b, Y = a.Y - b, Z = a.Z - b };
@@ -800,8 +803,8 @@ namespace Raven.Engine {
         public static Vector3ui128 operator /(Vector3ui128 a, Vector3ui128 b) => new Vector3ui128() { X = a.X / b.X, Y = a.Y / b.Y, Z = a.Z / b.Z };
         #endregion
         
-        public static bool operator ==(Vector3ui128 a, Vector3ui128 b) => (a.X == b.X && a.Y == b.Y);
-        public static bool operator !=(Vector3ui128 a, Vector3ui128 b) => (a.X != b.X || a.Y != b.Y);
+        public static bool operator ==(Vector3ui128 a, Vector3ui128 b) => (a.X == b.X && a.Y == b.Y && a.Z == b.Z);
+        public static bool operator !=(Vector3ui128 a, Vector3ui128 b) => (a.X != b.X || a.Y != b.Y && a.Z != b.Z);
         
         public override string ToString() => $"{{ {X} : {Y} : {Z} }}";
         public string ToXString() => $"{X}x{Y}x{Z}";

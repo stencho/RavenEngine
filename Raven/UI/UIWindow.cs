@@ -115,8 +115,8 @@ namespace Raven.UI {
 
         public void hide() { _visible = false; }
         public void show() { _visible = true; }
-        public void toggle_vis() { _visible = !_visible; }
-        public void toggle_vis(bool toggle) { _visible = toggle; }
+        public void toggle_visibility() { _visible = !_visible; }
+        public void toggle_visibility(bool toggle) { _visible = toggle; }
 
         public void setup() {
             _collision.Add("form", new BoundingBox2D(Vector2i.Zero, size));

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,6 +27,7 @@ public static class Threads {
     public static string list_all_active_threads {
         get {
             string output = "";
+            Prune();
             lock (threads) {
                 var arr = threads.ToArray().OrderBy(a => a.Value.start_time.Ticks).ToArray();
                 foreach (var kvp in arr) {
@@ -109,6 +111,9 @@ public static class Threads {
     private const bool use_pruner = false;
     
     public static void Initialize() {
+        ThreadPool.SetMinThreads(MaxTasks,MaxTasks);
+        ThreadPool.SetMaxThreads(MaxTasks,MaxTasks);
+        
         StartTask($"Thread Dispatcher", DispatcherThread, cancellation_token_source.Token);
         if (use_pruner)
             StartTask($"ThreadInfo Pruner", ThreadInfoPruner, cancellation_token_source.Token);
@@ -141,7 +146,7 @@ public static class Threads {
 
             if (!use_pruner) Prune();
             
-            await Task.Delay(dispatch_wait);
+            Thread.Sleep(dispatch_wait);
         }
     }
 
@@ -161,6 +166,67 @@ public static class Threads {
 
             //Debug.WriteLine("Attempted Prune");
             Thread.Sleep(prune_wait_ms);
+        }
+    }
+
+    public static void StartTaskBatch<T>(IEnumerable<T> objects, Action<T> action, Func<T, string> name, [CallerFilePath] string caller_filename = "", [CallerMemberName] string member_name = "") {
+        lock (objects) {
+            int tasks = objects.Count();
+            int completed = 0;
+
+            foreach (T obj in objects) {
+                Guid task_guid = Guid.NewGuid();
+
+                waiting_for_task_slot:
+                if (_task_count < _max_tasks) {
+                    Task.Run(() => {
+                        IncrementTaskCount();
+                        try {
+                            threads.TryAdd(task_guid, new ThreadInfo(name(obj), caller_filename, member_name));
+                            action.Invoke(obj);
+                        } finally {
+                            threads[task_guid].FinishTask();
+                            DecrementTaskCount();
+                            Interlocked.Increment(ref completed);
+                        }
+                    }, cancellation_token).ContinueWith(t => {
+                        if (t.IsFaulted) {
+                            throw new Exception($"Task failed: [{caller_filename}::{member_name}] {t.Exception}");
+                        }
+                    }, TaskContinuationOptions.OnlyOnFaulted);
+                } else goto waiting_for_task_slot;
+            }
+
+            while (completed < tasks) { }
+        }
+    }
+    
+    public static void StartTaskBatch<K,V>(IEnumerable<KeyValuePair<K,V>> objects, Action<KeyValuePair<K,V>> action, Func<KeyValuePair<K,V>, string> name, [CallerFilePath] string caller_filename = "", [CallerMemberName] string member_name = "") {
+        lock (objects) {
+            int tasks = objects.Count();
+            int completed = 0;
+
+            foreach (KeyValuePair<K,V> kvp in objects) {
+                Guid task_guid = Guid.NewGuid();
+
+                Task.Run(() => {
+                    IncrementTaskCount();
+                    try {
+                        threads.TryAdd(task_guid, new ThreadInfo(name(kvp), caller_filename, member_name));
+                        action.Invoke(kvp);
+                    } finally {
+                        threads[task_guid].FinishTask();
+                        DecrementTaskCount();
+                        Interlocked.Increment(ref completed);
+                    }
+                }, cancellation_token).ContinueWith(t => {
+                    if (t.IsFaulted) {
+                        throw new Exception($"Task failed: [{caller_filename}::{member_name}] {t.Exception}");
+                    }
+                }, TaskContinuationOptions.OnlyOnFaulted);
+            }
+            
+            while (completed < tasks) { }
         }
     }
     
@@ -203,6 +269,25 @@ public static class Threads {
         }, TaskContinuationOptions.OnlyOnFaulted);
     }
 
+    public static Task StartTask<T>(string task_name, Action<T> action, T data, [CallerFilePath] string caller_filename = "", [CallerMemberName] string member_name = "") {
+        Guid task_guid = Guid.NewGuid();
+        
+        return Task.Run(() => {
+            IncrementTaskCount();
+            try {
+                threads.TryAdd(task_guid, new ThreadInfo(task_name, caller_filename, member_name));
+                action.Invoke(data);
+            } finally {
+                threads[task_guid].FinishTask();
+                DecrementTaskCount();
+            }
+        }, cancellation_token).ContinueWith(t => {
+            if (t.IsFaulted) {
+                throw new Exception($"Task failed: [{caller_filename}::{member_name}] {t.Exception}");
+            }
+        }, TaskContinuationOptions.OnlyOnFaulted);
+    }
+    
     public static Task StartTask(string task_name, Action action, CancellationToken cancellation_token, [CallerFilePath] string caller_filename = "", [CallerMemberName] string member_name = "") {            
         Guid task_guid = Guid.NewGuid();
         

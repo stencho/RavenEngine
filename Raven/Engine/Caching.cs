@@ -59,6 +59,7 @@ namespace Raven.Caching {
             StartPruning();
         }
         public ConcurrentCache(Func<I, bool> prune_rule) {
+            MaxAge = -1;
             type = typeof(I);
             StartPruning();
         }
@@ -75,6 +76,7 @@ namespace Raven.Caching {
             StartPruning();
         }
         public ConcurrentCache(string name, Func<I, bool> prune_rule) {
+            MaxAge = -1;
             this.name = name;
             type = typeof(I);
             StartPruning();

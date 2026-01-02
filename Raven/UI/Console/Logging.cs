@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using Raven.Engine;
 using Raven.Graphics.Drawing2D;
 
 namespace Raven.Console {
@@ -124,10 +125,6 @@ namespace Raven.Console {
         }
 
         public static volatile List<log_data> data = new List<log_data>();
-
-        public static void screenshot() {
-            //Scene.screenshot();
-        }
 
         public static void clear() {
             data = new List<log_data>();

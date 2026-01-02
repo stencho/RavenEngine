@@ -52,12 +52,12 @@ public class ComponentManager {
         //component with the same name exists, so add a number to the end and
         //iterate it until no component with the exact same name exists
         int c = 0; 
-        string orig_name = component.name;
-        while (Components.ContainsKey(component.name)) 
-            component.name = orig_name + (++c).ToString();
+        string orig_name = component.Name;
+        while (Components.ContainsKey(component.Name)) 
+            component.Name = orig_name + (++c).ToString();
         
         component.set_parent(parent);
-        Components.TryAdd(component.name, component);
+        Components.TryAdd(component.Name, component);
     }
 
     public void RenameComponent(string name, string new_name) {
@@ -68,7 +68,7 @@ public class ComponentManager {
             new_name = orig_name + (++c).ToString();
         
         //Rename the component
-        Components[name].name = new_name;
+        Components[name].Name = new_name;
         
         //Remove and re-add to the dictionary to change the key 
         var comp = Components[name];
@@ -87,6 +87,12 @@ public class ComponentManager {
 
         return null;
     }
+    public T GetFirst<T>() where T : Component {
+        if (HasComponentOfType<T>(out var component)) {
+            return component as T;
+        }
+        return null;
+    }
     
     public bool HasComponent(string name) {
         return Components.ContainsKey(name);
@@ -98,13 +104,25 @@ public class ComponentManager {
         }
         return false;
     }
+    
+    public bool HasComponentOfType<T>(out T component) where T : Component {
+        foreach (var c in Components) {
+            if ((c.Value.Type) == typeof(T)) {
+                component = c.Value as T;
+                return true;
+            }
+        }
+
+        component = default;
+        return false;
+    }
 
     public string ListAllComponents(int spaces_at_start_of_each_line = 0) {
         string output = new string(' ', spaces_at_start_of_each_line);
         output += "[Components]\n";
         foreach (var c in Components) {
             output += new string(' ', spaces_at_start_of_each_line +  2);
-            output += $"[{c.Value.name} : {c.Value.Type.Name}]\n{c.Value.list_all_data(spaces_at_start_of_each_line +  4)}";
+            output += $"[{c.Value.Name} : {c.Value.Type.Name}]\n{c.Value.list_all_data(spaces_at_start_of_each_line +  4)}";
             output += "\n";
             //output += $" | {c.Value.name} > ]n".PadLeft(spaces_at_start_of_each_line + 3) + "";
         }
@@ -114,7 +132,7 @@ public class ComponentManager {
 }
 
 public abstract class Component {
-    public abstract string name { get; set; }
+    public abstract string Name { get; set; }
     public virtual Type Type { get; set; }
     protected Entity parent;
     protected Dictionary<string, ComponentData> data { get; set; } = new();

@@ -36,7 +36,9 @@ public class Input {
     volatile bool mouse_locked = false;
     volatile bool mouse_locked_p = false;
     public bool mouse_lock { get; set; } = false;
+    public bool mouse_lock_prev => mouse_locked_p;
     public bool mouse_cursor { get; set; } = false;
+    private Point mouse_lock_stored_position;
     
     public Collision2D.Shape2D mouse_collision_object => _mouse_coll_obj;
     Collision2D.Shape2D _mouse_coll_obj;
@@ -47,6 +49,7 @@ public class Input {
     
     public Vector2 mouse_delta => _mouse_delta;
     Vector2 _mouse_delta;
+
     
     
     bool is_mouse_in_bounds() {
@@ -57,6 +60,7 @@ public class Input {
     }
    
     internal void Update() {
+        mouse_state_prev = mouse_state;
         mouse_state = Mouse.GetState();
         ksp = ks;
         ks = Keyboard.GetState();
@@ -87,12 +91,12 @@ public class Input {
         
         _mouse_coll_obj = new Circle2D(mouse_position_float, 1f);
         
-        if (mouse_locked && !mouse_locked_p) {                    
-            Mouse.SetPosition(window_center.X, window_center.Y);        
-
-            mouse_state = Mouse.GetState();
-            mouse_state_prev = mouse_state;
+        if (mouse_locked && !mouse_locked_p) {
+            mouse_lock_stored_position = mouse_state.Position;
             
+            Mouse.SetPosition(window_center.X, window_center.Y);        
+            
+            _mouse_delta = Vector2.Zero;
             
         } else if (mouse_locked) {    
             _mouse_delta = (window_center.ToVector2())
@@ -101,16 +105,19 @@ public class Input {
 
             Mouse.SetPosition(window_center.X, window_center.Y);
         } else if (!mouse_locked) {
-            _mouse_delta = ((Vector2.UnitX * -(mouse_state_prev.X - mouse_state.X)) + (Vector2.UnitY * -(mouse_state_prev.Y - mouse_state.Y)));
+            if (mouse_locked_p) {
+                Mouse.SetPosition(mouse_lock_stored_position.X, mouse_lock_stored_position.Y);
+                
+                _mouse_delta = Vector2.Zero;
+            } else {
+                _mouse_delta = ((Vector2.UnitX * -(mouse_state_prev.X - mouse_state.X)) +
+                                (Vector2.UnitY * -(mouse_state_prev.Y - mouse_state.Y)));
+            }
         }
 
         old_delta = wheel_delta;
         wheel_delta = mouse_state.ScrollWheelValue - old_wheel_value;
         old_wheel_value = mouse_state.ScrollWheelValue;
-        
-        mouse_locked_p = mouse_locked;
-        mouse_state_prev = mouse_state;
-
     }
     
     

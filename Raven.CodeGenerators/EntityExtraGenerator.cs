@@ -73,6 +73,7 @@ public sealed class EntityUpdatePacketGenerator : ISourceGenerator
         }
         sb.AppendLine("using System;");
         sb.AppendLine("using Raven.Engine;");
+        sb.AppendLine("using Microsoft.Xna.Framework;");
         sb.AppendLine($"partial class {symbol.Name}");
         sb.AppendLine("{");
         sb.AppendLine($"public string name {{ get; set; }} = \"{symbol.Name}\";");
@@ -99,12 +100,14 @@ public sealed class EntityUpdatePacketGenerator : ISourceGenerator
             }
             
             public void StabilizeChunkPosition() {
-                position.stabilize(Clock.update_thread_delta);                
+                position.stabilize(Clock.update_thread_delta_ms);                
             }
             
             public void UpdateInterpolatedPosition() {
                 position.interpolate(Clock.delta_time_ms);
             }
+            
+            private void MoveAndSlide(Vector3 movement) => position.MoveAndSlide(movement);
         """);
         sb.AppendLine("}");
 

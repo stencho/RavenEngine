@@ -18,8 +18,6 @@ public partial class GBufferCamera : Component {
         }
     }
     
-    public override string name { get; set; } = "Camera";
-
     public Camera camera;
     public GBuffer buffer => camera.gbuffer;
 

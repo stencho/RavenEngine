@@ -11,7 +11,7 @@ using RavenRPG.Engine.Universe.SpacialPartitioning;
 
 namespace Raven.Engine;
 public class ChunkPosition {
-    public Chunk? chunk;
+    public Chunk chunk;
     
     public Vector3ui128 index => chunk.position;
 
@@ -48,7 +48,7 @@ public class ChunkPosition {
         current_time += step_milliseconds;
         if (current_time > length) 
             current_time = length;
-        offset_interpolated = Vector3.LerpPrecise(offset_stable_previous, offset_stable, InterpolationPosition);
+        offset_interpolated = Vector3.Lerp(offset_stable_previous, offset_stable, InterpolationPosition);
     }
     
     public void stabilize(double frame_time) {
@@ -88,7 +88,7 @@ public class ChunkPosition {
     MoveStyle current_move_style = MoveStyle.Direct;
     
     public void MoveAndSlide(Vector3 movement) {
-        wants_movement = movement;
+        wants_movement = movement * (float)Clock.update_thread_delta;
         current_move_style = MoveStyle.MoveAndSlide;
     }
 
@@ -162,7 +162,7 @@ public class LinkedChunkPosition {
 }
 
 public class Chunk {
-    public const float base_chunk_size_per_direction = 5000f;
+    public const float base_chunk_size_per_direction = 500f;
     
     public bool is_near_a_camera() {
         //Camera.CameraTracker.
@@ -182,7 +182,7 @@ public class Chunk {
 
     private Octree<Entity> octree;
 
-    public ConcurrentBag<Entity> Entities { get; set; } = new();
+    public List<Entity> Entities { get; set; } = new();
 
     public Threads.ThreadRequestPacket chunk_update_packet;
     
@@ -204,17 +204,22 @@ public class Chunk {
     private TimeSpan update_thread_spawner_wait_delay = new TimeSpan(100);
     
     public void Update() {
-        entities_updated = 0;
+        
+        /*
+        Threads.StartTaskBatch(
+            Entities, 
+            ent => ent.Update(),
+            ent => "EntityUpdateBatch::" + ent.name
+        );
+        */
+        
         foreach (var e in Entities) {
-            Threads.Request(e.update_packet);
+            e.Update();
         }
 
-        while (entities_updated < Entities.Count) {
-            //Thread.Sleep(update_thread_spawner_wait_delay);
-        }
-        
         //movement/collision solver needs to happen at this point
         
+        //this should be separated and threaded
         foreach (var e in Entities) {
             e.position.FinalizeMove();
         }

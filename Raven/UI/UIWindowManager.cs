@@ -1,6 +1,7 @@
 ﻿
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using Microsoft.Xna.Framework.Graphics;
 using Raven.Console;
@@ -8,6 +9,7 @@ using Raven.Engine;
 using Raven.Engine.Collision;
 using Raven.Engine.Controls;
 using Raven.Graphics.Drawing2D;
+using Raven.UI.UniverseInspector;
 
 namespace Raven.UI  {
     public enum ui_layer_state {
@@ -19,10 +21,16 @@ namespace Raven.UI  {
     public class UIWindowManager {
         public List<IUIForm> windows = new List<IUIForm>();
         ConsoleWindow console;
+        InspectorWindow  inspector;
+        
         public UIWindowManager() {
             console = new ConsoleWindow(new Vector2i(200, 200), new Vector2i(400, 230));
             console.hide();
-            add_window((IUIForm)console);
+            add_window(console);
+            
+            inspector = new InspectorWindow(new Vector2i(State.resolution.X - 400, State.resolution.Y - 700), new Vector2i(400, 700));
+            inspector.hide();
+            add_window(inspector);
         }
 
         public string list_windows() {
@@ -99,7 +107,7 @@ namespace Raven.UI  {
             if (windex >= 0) {
                 windows[windex].has_focus = true;
     
-                if (sindex >= 0)
+                if (sindex >= 0 && windows[windex].subforms.Count > 0)
                     windows[windex].subforms[sindex].has_focus = true;
             }
              
@@ -113,6 +121,12 @@ namespace Raven.UI  {
 
         }
 
+        void defocus_all_windows() {
+            for (int o = 0; o < windows.Count; o++) {
+                windows[o].has_focus = false;
+            }
+        }
+        
         public void update() {
             //Clock.frame_probe.set("wm_update");
                         
@@ -125,38 +139,49 @@ namespace Raven.UI  {
             //if (Controls.just_pressed(Keys.OemTilde)) {
             if (State.engine_binds.just_pressed("toggle_console")) {
                 if (console.visible && !console.has_focus) {
-                    for (int o = 0; o < windows.Count; o++) {
-                        windows[o].has_focus = false;
-                    }
-
+                    defocus_all_windows();
                     windows.BringToFront(console);
                     force_focus(console);
-
                     ControlBinds.global_enable = false;
                     return;
                 }
 
-                console.toggle_vis();
+                console.toggle_visibility();
 
                 if (console.visible) {
                     windows.BringToFront(console);
                     force_focus(console);
-
                     ControlBinds.global_enable = false;
                 } else {
                     ControlBinds.global_enable = true;
-
-                    for (int o = 0; o < windows.Count; o++) {
-                        windows[o].has_focus = false;
-                    }
+                    defocus_all_windows();
                 }
             }
 
+            if (State.engine_binds.just_pressed("toggle_inspector")) {
+                if (inspector.visible && !inspector.has_focus) {
+                    defocus_all_windows();
+                    windows.BringToFront(inspector);
+                    force_focus(inspector);
+                    ControlBinds.global_enable = false;
+                }
+                
+                inspector.toggle_visibility();
+
+                if (inspector.visible) {
+                    windows.BringToFront(inspector);
+                    force_focus(inspector);
+                    ControlBinds.global_enable = false;
+                } else {
+                    ControlBinds.global_enable = true;
+                    defocus_all_windows();
+                }
+            }
+            
             if (!State.is_active || State.input_main_thread.mouse_lock) return;
 
-            for (int i = windows.Count-1; i >= 0; --i) {
+            for (int i = windows.Count-1; i >= 0; i--) {
                 windows[i].update();
-
 
                 if (windows[i].visible == false) {
                     windows[i].has_focus = false;
@@ -272,7 +297,7 @@ namespace Raven.UI  {
                     }
                 }
             }
-            s += "\n";
+            //s += "\n";
             return s;
         }
 

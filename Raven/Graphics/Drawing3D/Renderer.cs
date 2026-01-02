@@ -23,6 +23,7 @@ namespace Raven.Graphics.Drawing3D {
         public static void create_visibility_lists(Camera camera) {
             visible_lights.Clear();
             visible.Clear();
+            
         }
 
         public static void clear_to_skybox(Camera camera, GBuffer gbuffer) {
@@ -167,6 +168,7 @@ namespace Raven.Graphics.Drawing3D {
 
             graphics_device.BlendState = DynamicLightRequirements.blend_state;
             graphics_device.DepthStencilState = DepthStencilState.DepthRead;
+            
             foreach(light light in visible_lights) {
                 if (light.type == LightType.SPOT) {
                     e_spotlight.Parameters["World"].SetValue(light.world);

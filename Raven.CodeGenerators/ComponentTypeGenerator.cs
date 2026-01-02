@@ -75,6 +75,7 @@ public sealed class ComponentTypeGenerator : ISourceGenerator
         sb.AppendLine($"public partial class {className}");
         sb.AppendLine("{");
         sb.AppendLine($"    public override Type Type {{ get; set; }} = typeof({className});");
+        sb.AppendLine($"    public override String Name {{ get; set; }} = \"{className}\";");
         sb.AppendLine("}");
 
         context.AddSource($"{className}.Type.g.cs", sb.ToString());

@@ -31,11 +31,13 @@ public class Universe {
                 var c = chunks.Cache[chunk_id].item;
                 output += $"    [{c.position.ToXString()}]\n";
                 output += $"      [{c.Entities.Count} Entit{(c.Entities.Count == 1 ? "y" : "ies")}]\n";
+                
                 foreach (Entity e in c.Entities) {
                     output += $"     > [{e.name}]\n";
                     output += $"        [chunk ID] {e.position.index.ToXString()} [chunk offset] {e.position.offset.ToXString()}\n";
                     output += e.Components.ListAllComponents(8);
                 }
+                
                 output += "\n";
             }
             
@@ -113,13 +115,20 @@ public class Universe {
     }
     
     void Update() {
+        Threads.StartTaskBatch(
+            chunks.Cache,
+            c => c.Value.item.Update(),
+            c => "ChunkUpdateBatch::" + c.Value.item.position.ToXString()
+            );
+        
+        return;
         foreach (var c in chunks.Cache.Values) {
             var chunk = c.item;
-            Threads.Request(chunk.chunk_update_packet);
-            //chunk.Update();
+            //Threads.Request(chunk.chunk_update_packet);
+            chunk.Update();
         }
 
-        while (chunks_updated < chunks.Cache.Values.Count) ;
+        //while (chunks_updated < chunks.Cache.Values.Count) ;
     }
 
     public void UpdateGraphics() {
@@ -130,6 +139,22 @@ public class Universe {
         GBufferCamera.Manager.UpdateLinkedChunkPositions();
     }
 
+    public void RenderUniverse(Camera camera, GBuffer gbuffer) {
+        foreach (var c in chunks.Cache.Values) {
+            var chunk = c.item;
+            //check if camera can see chunk
+            //if it can, find parts of octree that it can see
+            //find objects in those octree parts and add their
+            //relative offsets to a visibility list
+            //or for now
+            foreach (var e in chunk.Entities) {
+                if (e.Components.HasComponentOfType<RenderModelStatic>(out var rm)) {
+                    rm.DrawBasic(camera, gbuffer);
+                }
+            }
+        }
+    }
+    
     public void DebugDraw(Camera camera) {
         foreach (var chunk in chunks.Cache.Values) {
             var c = chunk.item;
@@ -171,11 +196,12 @@ public class Universe {
 }
 
 public class ChunkCache : ConcurrentCache<Vector3ui128, Chunk> {
-    public ChunkCache() : base("ChunkCache") {
-        
+    public ChunkCache() : base("ChunkCache", 
+            chunk => !chunk.is_near_a_camera() && chunk.is_empty) {
         //empty chunks need to be pruned from the cache but also should not do this while
         //near a camera/player, as quickly moving between chunks could introduce stutters as they
         //are loaded and unloaded, hence the prune_rule
-        this.prune_rule = chunk => !chunk.is_near_a_camera() && chunk.is_empty;
+        
+        
     }
 }

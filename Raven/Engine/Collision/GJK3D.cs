@@ -436,9 +436,6 @@ namespace Raven.Engine.Collision {
         const int max_iterations = 35;
         public static collision_result swept_gjk_intersects_with_halving(Shape3D shape_A, Shape3D shape_B, Matrix w_a, Matrix w_b, Vector3 sweep_a, Vector3 sweep_b) {
             collision_result result = gjk_intersects(shape_A, shape_B, w_a, w_b, sweep_a, sweep_b);
-
-
-
             
             result.sweep_end = sweep_a;
             if (result.hit && result.penetration > Math3D.epsilon) {

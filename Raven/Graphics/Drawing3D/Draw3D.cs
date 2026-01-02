@@ -377,6 +377,41 @@ namespace Raven.Graphics.Drawing3D;
 
         }
 
+        public static void batch_draw_setup(Camera camera, GBuffer buffer) {
+            State.graphics_device.SetRenderTargets(buffer.target_bindings);
+            
+            State.e_gbuffer.Parameters["atmosphere_color"].SetValue(State.Skybox.sun_moon.atmosphere_color.ToVector3());
+            State.e_gbuffer.Parameters["sky_color"].SetValue(State.Skybox.sun_moon.sky_color.ToVector3());
+
+            State.e_gbuffer.Parameters["FarClip"].SetValue(camera.far_clip);
+            State.e_gbuffer.Parameters["camera_pos"].SetValue(camera.position);
+            
+            State.e_gbuffer.Parameters["View"].SetValue(camera.view);
+            State.e_gbuffer.Parameters["Projection"].SetValue(camera.projection);
+            
+            State.e_gbuffer.Parameters["fullbright"].SetValue(false);
+            
+            State.graphics_device.BlendState = BlendState.AlphaBlend;
+            State.graphics_device.DepthStencilState = DepthStencilState.Default;
+            State.graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
+        }
+
+        public static void batch_draw_diffuse_texture(Camera camera, GBuffer buffer, VertexBuffer vb, IndexBuffer ib,
+            Texture2D texture, Color color, Matrix world) {
+            State.e_gbuffer.Parameters["World"].SetValue(world);
+            State.e_gbuffer.Parameters["WVIT"].SetValue(Matrix.Transpose(Matrix.Invert(world * camera.view)));
+            
+            State.e_gbuffer.Parameters["DiffuseMap"].SetValue(texture);
+            State.e_gbuffer.Parameters["tint"].SetValue(color.ToVector3());
+            State.graphics_device.SetVertexBuffer(vb);
+            State.graphics_device.Indices = ib;
+            
+            State.e_gbuffer.Techniques["BasicColorDrawing"].Passes[0].Apply();
+            State.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, (vb.VertexCount));
+
+            State.e_gbuffer.Parameters["tint"].SetValue(Color.White.ToVector3());
+        }
+
         public static void draw_buffers_diffuse_texture(Camera camera, GBuffer buffer, VertexBuffer vb, IndexBuffer ib, Texture2D texture, Color color, Matrix world) {
             State.graphics_device.SetRenderTargets(buffer.target_bindings);
             
@@ -393,9 +428,6 @@ namespace Raven.Graphics.Drawing3D;
             State.e_gbuffer.Parameters["Projection"].SetValue(camera.projection);
             State.e_gbuffer.Parameters["WVIT"].SetValue(Matrix.Transpose(Matrix.Invert(world * camera.view)));
 
-            State.e_gbuffer.Parameters["DiffuseMap"].SetValue(texture);
-            State.e_gbuffer.Parameters["tint"].SetValue(color.ToVector3());
-
             State.e_gbuffer.Parameters["fullbright"].SetValue(false);
             //e_diffuse.Parameters["FarClip"].SetValue(2000f);
             //State.e_gbuffer.Parameters["opacity"].SetValue(1f);
@@ -403,6 +435,8 @@ namespace Raven.Graphics.Drawing3D;
             State.graphics_device.BlendState = BlendState.AlphaBlend;
             State.graphics_device.DepthStencilState = DepthStencilState.Default;
             
+            State.e_gbuffer.Parameters["DiffuseMap"].SetValue(texture);
+            State.e_gbuffer.Parameters["tint"].SetValue(color.ToVector3());
             State.graphics_device.SetVertexBuffer(vb);
             State.graphics_device.Indices = ib;
 

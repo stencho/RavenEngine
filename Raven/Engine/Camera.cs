@@ -38,12 +38,12 @@ namespace Raven.Engine {
             public static void BuildAllCameraGBuffers() {
                 foreach (var camera in cameras.Values) {
                     if (camera.using_gbuffer) {
-                        camera.gbuffer.prepare(camera);
+                        camera.gbuffer.RenderUniverse(camera);
                         camera.gbuffer.Draw3DLayer?.Invoke();
-                        //draw vis lists here
                         Renderer.draw_lighting(camera, camera.gbuffer);
-                        camera.gbuffer.Draw2DLayer?.Invoke();
-                        camera.gbuffer.compose(camera);
+                        State.graphics_device.SetRenderTarget(camera.gbuffer.rt_2D);
+                        camera.gbuffer.Draw2DLayer();
+                        camera.gbuffer.Compose(camera);
                     }
                 }
             }

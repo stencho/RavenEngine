@@ -26,11 +26,6 @@ public class RavenGame : Game {
 
     protected override void Initialize() {
         State.Initialize(this, Content, _graphics, Window);
-        State.Draw_2D = () => 
-        {
-            Draw2D.fill_circle(State.input_main_thread.mouse_position, 5f, Color.White);
-            Draw2D.circle(State.input_main_thread.mouse_position, 5f, 2f, Color.Black);
-        };
         base.Initialize();
     }
 
