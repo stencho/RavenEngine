@@ -43,6 +43,12 @@ public static class Resources {
             content.UnloadAsset(FullName);
             Loaded = false;
         }
+
+        public static string NormalizePath(string path) {
+            if (Environment.OSVersion.Platform != PlatformID.Unix)
+                return path.Replace('\\', '/');
+            else return path;
+        }
     }
     
     public class ContentDataTexture : IContentData {
@@ -63,8 +69,8 @@ public static class Resources {
         }
 
         public ContentDataTexture(string full_name) {
-            FullName = full_name;
-            Name = full_name.Remove(0, full_name.IndexOf('/')+1);
+            FullName = IContentData.NormalizePath(full_name);
+            Name = FolderNameFromType(Type) + "/" + FullName.Remove(0, FullName.IndexOf('/')+1);
             Debug.WriteLine($"Content added: {Name} :: {FullName} :: {Type.ToString()}");
             DataType = DataType.File;
         }
@@ -103,8 +109,8 @@ public static class Resources {
         }
 
         public ContentDataShader(string full_name) {
-            FullName = full_name;
-            Name = full_name.Remove(0, full_name.IndexOf('/')+1);
+            FullName = IContentData.NormalizePath(full_name);
+            Name = FolderNameFromType(Type) + "/" + FullName.Remove(0, FullName.IndexOf('/')+1);
             Debug.WriteLine($"Content added: {Name} :: {FullName} :: {Type.ToString()}");
         }
 
@@ -132,8 +138,8 @@ public static class Resources {
         }
 
         public ContentDataFont(string full_name) {
-            FullName = full_name;
-            Name = full_name.Remove(0, full_name.IndexOf('/')+1);
+            FullName = IContentData.NormalizePath(full_name);
+            Name = FolderNameFromType(Type) + "/" + FullName.Remove(0, FullName.IndexOf('/')+1);
             Debug.WriteLine($"Content added: {Name} :: {FullName} :: {Type.ToString()}");
         }
 
@@ -162,8 +168,8 @@ public static class Resources {
         }
 
         public ContentDataModel(string full_name) {
-            FullName = full_name;
-            Name = full_name.Remove(0, full_name.IndexOf('/')+1);
+            FullName = IContentData.NormalizePath(full_name);
+            Name = FolderNameFromType(Type) + "/" + FullName.Remove(0, FullName.IndexOf('/')+1);
             Debug.WriteLine($"Content added: {Name} :: {FullName} :: {Type.ToString()}");
         }
 
@@ -191,8 +197,8 @@ public static class Resources {
         //TODO add double buffering
         
         public ContentDataRenderTarget(string full_name, RenderTarget2D target) {
-            FullName = full_name;
-            Name = full_name.Remove(0, full_name.IndexOf('/')+1);
+            FullName = IContentData.NormalizePath(full_name);
+            Name = FolderNameFromType(Type) + "/" + FullName.Remove(0, FullName.IndexOf('/')+1);
             _target = target;
             Debug.WriteLine($"Content added: {Name} :: {FullName} :: {Type.ToString()}");
         }
@@ -216,8 +222,8 @@ public static class Resources {
         public Action DrawAction { get; set; }
         
         public ContentDataGBuffer(string full_name, GBuffer target) {
-            FullName = full_name;
-            Name = full_name.Remove(0, full_name.IndexOf('/')+1);
+            FullName = IContentData.NormalizePath(full_name);
+            Name = FolderNameFromType(Type) + "/" + FullName.Remove(0, FullName.IndexOf('/')+1);
             _target = target;
             Debug.WriteLine($"Content added: {Name} :: {FullName} :: {Type.ToString()}");
         }
@@ -277,7 +283,7 @@ public static class Resources {
             foreach (var file in Directory.GetFiles(content.RootDirectory + "/" + FolderNameFromType(type), "*.xnb", SearchOption.AllDirectories)) {
                 var fi = new FileInfo(file);
                 var rp = fi.FullName.Remove(0, path_crop_length);
-                rp = rp.Remove(rp.Length - 4);
+                rp = IContentData.NormalizePath(rp.Remove(rp.Length - 4));
 
                 switch (type) {
                     case ContentType.Texture:
