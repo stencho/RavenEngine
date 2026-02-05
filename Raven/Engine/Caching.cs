@@ -102,7 +102,7 @@ namespace Raven.Caching {
             if (!item.GetType().IsAssignableFrom(type)) return;
             if (Test(key)) return;
             if (cache.TryAdd(key, (new cache_item_life(life_time), item))) {
-                Log.log($"Stored {key}::{item.ToString()} in cache for {life_time} seconds");
+                //Log.log($"Stored {key}::{item.ToString()} in cache for {life_time} seconds");
             } else {
                 Log.log($"Failed cache store on {key}::{item.ToString()}");
             }
