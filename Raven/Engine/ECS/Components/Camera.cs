@@ -1,11 +1,12 @@
 using System.Buffers.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Xna.Framework;
+using Raven.Engine.Worlds;
 using Raven.Graphics;
 
 namespace Raven.Engine.Components;
 
-[ListManagedClass]
+[ListManaged]
 public partial class GBufferCamera : Component {
     public static partial class Manager {
         public static void UpdateLinkedChunkPositions() {

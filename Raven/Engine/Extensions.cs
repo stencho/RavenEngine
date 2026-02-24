@@ -406,6 +406,36 @@ public static class Extensions {
     public static UInt64 Sqrt(this UInt64 i) => sqrt64(i);
     public static Int64 Sqrt(this Int64 i) => sqrt64(i);
     
+    public static UInt128 Minus (this UInt128 A, Int128 B) {
+        if (B >= 0) {
+            UInt128 BU = (UInt128)B;
+            if (A <= BU) return 0;
+            return A - BU;
+        } else {
+            UInt128 mag = B == Int128.MinValue ?
+                (UInt128)Int128.MaxValue + 1 :
+                (UInt128)(-B);
+            
+            if (UInt128.MaxValue - A <  mag) return UInt128.MaxValue;
+            return A + mag;
+        }
+    }
+    
+    public static UInt128 Plus (this UInt128 A, Int128 B) {
+        if (B >= 0) {
+            UInt128 BU = (UInt128)B;
+            if (UInt128.MaxValue - A < BU) return UInt128.MaxValue;
+            return A + BU;
+        } else {
+            UInt128 mag = B == Int128.MinValue ?
+                (UInt128)Int128.MaxValue + 1 :
+                (UInt128)(-B);
+            
+            if (A <  mag) return 0;
+            return A - mag;
+        }
+    }
+    
     #region MATRIX ROWS AND COLUMNS
     public static Vector4 row1(this Matrix m) {
       return new Vector4(m.M11, m.M21, m.M31, m.M41);

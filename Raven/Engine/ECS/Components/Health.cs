@@ -8,6 +8,5 @@ namespace Raven.Engine.Components;
 public partial class HealthComponent : Component {
     public HealthComponent(float starting_health = 1.0f) {
         add_data("Health", starting_health);
-        
     }
 }

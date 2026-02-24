@@ -13,9 +13,6 @@ public class Input {
     KeyboardState ks; public KeyboardState keyboard_state => ks;
     KeyboardState ksp; public KeyboardState keyboard_state_prev => ksp;
     
-    internal MouseState mouse_state;
-    internal MouseState mouse_state_prev;
-    
     GamePadState[] xs = new GamePadState[4];
     public GamePadState[] xinput_state => xs;
     GamePadState[] xsp = new GamePadState[4];
@@ -26,31 +23,14 @@ public class Input {
     Keys[] pressed_keys_previous;
     
     // MOUSE
-    public Vector2i mouse_position => new Vector2i(mouse_state.Position.X, mouse_state.Position.Y);
-    public Vector2 mouse_position_float => new Vector2(mouse_state.Position.X, mouse_state.Position.Y);
+    public Vector2i mouse_position => MouseWatcher.Manager.Position;
+    public Vector2 mouse_position_float => new Vector2(MouseWatcher.Manager.Position.X, MouseWatcher.Manager.Position.Y);
 
     public bool mouse_in_bounds => is_mouse_in_bounds();
 
     Vector2i window_center = Vector2i.Zero;
-
-    volatile bool mouse_locked = false;
-    volatile bool mouse_locked_p = false;
-    public bool mouse_lock { get; set; } = false;
-    public bool mouse_lock_prev => mouse_locked_p;
-    public bool mouse_cursor { get; set; } = false;
-    private Point mouse_lock_stored_position;
     
-    public Collision2D.Shape2D mouse_collision_object => _mouse_coll_obj;
-    Collision2D.Shape2D _mouse_coll_obj;
-
-    public int old_wheel_value = 0;
-    public int wheel_delta = 0;
-    int old_delta = 0;
-    
-    public Vector2 mouse_delta => _mouse_delta;
-    Vector2 _mouse_delta;
-
-    
+    private MouseWatcher mouse = new MouseWatcher();
     
     bool is_mouse_in_bounds() {
         return (mouse_position.X > 0
@@ -60,12 +40,9 @@ public class Input {
     }
    
     internal void Update() {
-        mouse_state_prev = mouse_state;
-        mouse_state = Mouse.GetState();
         ksp = ks;
         ks = Keyboard.GetState();
         
-
         pressed_keys_previous = pressed_keys;
         pressed_keys = ks.GetPressedKeys();
         
@@ -79,47 +56,12 @@ public class Input {
         xs[2] = GamePad.GetState(PlayerIndex.Three);
         xs[3] = GamePad.GetState(PlayerIndex.Four);
         
-        State.game.IsMouseVisible = mouse_cursor;
 
         window_center.X = (State.window.ClientBounds.Width / 2);
         window_center.Y = (State.window.ClientBounds.Height / 2);
         
-        _mouse_delta = Vector2.Zero;
-                
-        mouse_locked_p = mouse_locked;
-        mouse_locked = mouse_lock;
-        
-        _mouse_coll_obj = new Circle2D(mouse_position_float, 1f);
-        
-        if (mouse_locked && !mouse_locked_p) {
-            mouse_lock_stored_position = mouse_state.Position;
-            
-            Mouse.SetPosition(window_center.X, window_center.Y);        
-            
-            _mouse_delta = Vector2.Zero;
-            
-        } else if (mouse_locked) {    
-            _mouse_delta = (window_center.ToVector2())
-                              - (Vector2.UnitX * mouse_state.X)
-                              - (Vector2.UnitY * mouse_state.Y);
-
-            Mouse.SetPosition(window_center.X, window_center.Y);
-        } else if (!mouse_locked) {
-            if (mouse_locked_p) {
-                Mouse.SetPosition(mouse_lock_stored_position.X, mouse_lock_stored_position.Y);
-                
-                _mouse_delta = Vector2.Zero;
-            } else {
-                _mouse_delta = ((Vector2.UnitX * -(mouse_state_prev.X - mouse_state.X)) +
-                                (Vector2.UnitY * -(mouse_state_prev.Y - mouse_state.Y)));
-            }
-        }
-
-        old_delta = wheel_delta;
-        wheel_delta = mouse_state.ScrollWheelValue - old_wheel_value;
-        old_wheel_value = mouse_state.ScrollWheelValue;
+        mouse.ResetMouseDelta();
     }
-    
     
     #region is/was pressed
     public bool was_pressed(Keys k) { return ksp.IsKeyDown(k); }
@@ -127,65 +69,10 @@ public class Input {
     public bool just_pressed(Keys k) { return is_pressed(k) && !was_pressed(k); }
     public bool just_released(Keys k) { return !is_pressed(k) && was_pressed(k); }
 
-    public bool is_pressed(MouseButtons mb) {
-        if (!State.is_active) return false;
-        switch (mb) {
-            case MouseButtons.Left:
-                return mouse_state.LeftButton == ButtonState.Pressed;
-
-            case MouseButtons.Right:
-                return mouse_state.RightButton == ButtonState.Pressed;
-
-            case MouseButtons.Middle:
-                return mouse_state.MiddleButton == ButtonState.Pressed;
-
-            case MouseButtons.Mouse4:
-                return mouse_state.XButton1 == ButtonState.Pressed;
-
-            case MouseButtons.Mouse5:
-                return mouse_state.XButton2 == ButtonState.Pressed;
-
-            case MouseButtons.ScrollUp:
-                return wheel_delta > 0;
-
-            case MouseButtons.ScrollDown:
-                return wheel_delta < 0;
-
-            default: return false;
-        }
-    }
-    public bool was_pressed(MouseButtons mb) {
-        switch (mb) {
-            case MouseButtons.Left:
-                return mouse_state_prev.LeftButton == ButtonState.Pressed;
-
-            case MouseButtons.Right:
-                return mouse_state_prev.RightButton == ButtonState.Pressed;
-
-            case MouseButtons.Middle:
-                return mouse_state_prev.MiddleButton == ButtonState.Pressed;
-
-            case MouseButtons.Mouse4:
-                return mouse_state_prev.XButton1 == ButtonState.Pressed;
-
-            case MouseButtons.Mouse5:
-                return mouse_state_prev.XButton2 == ButtonState.Pressed;
-
-            case MouseButtons.ScrollUp:
-                return old_delta > 0;
-
-            case MouseButtons.ScrollDown:
-                return old_delta < 0;
-
-            default: return false;
-        }
-    }
-    public bool just_pressed(MouseButtons mb) {
-        return is_pressed(mb) && !was_pressed(mb);
-    }
-    public bool just_released(MouseButtons mb) {
-        return !is_pressed(mb) && was_pressed(mb);
-    }
+    public bool is_pressed(MouseWatcher.MouseButtons button) => mouse.is_pressed(button);
+    public bool was_pressed(MouseWatcher.MouseButtons button) => mouse.was_pressed(button);
+    public bool just_pressed(MouseWatcher.MouseButtons button) => mouse.is_pressed(button) && !mouse.was_pressed(button);
+    public bool just_released(MouseWatcher.MouseButtons button) => !mouse.was_pressed(button) && mouse.was_pressed(button);
     
     public bool is_pressed(XInputButtons test_button, PlayerIndex player) {
         switch (test_button) {
@@ -273,19 +160,6 @@ public class Input {
     #endregion
     
     #region enums
-    public enum MouseButtons {
-        Left,
-        Right,
-        Middle,
-        Mouse4,
-        Mouse5,
-        ScrollUp,
-        ScrollDown
-    }
-
-    public enum MouseAxis {
-        X, Y
-    }
 
     public enum XInputAxis {
         LSX, LSY, RSX, RSY,
@@ -308,38 +182,7 @@ public class Input {
     #endregion
     
     #region analog controls
-    public float get_axis(MouseAxis axis) { return 0f; }
     public float get_axis(XInputAxis axis) { return 0f; }
     #endregion
     
-}
-
-public class picker_raycasts {
-    public Raycasting.raycast crosshair_ray;
-    public Raycasting.raycast mouse_pick_ray;
-
-    public Line3D gjk_crosshair_ray = new Line3D();
-    public Line3D gjk_mouse_pick_ray = new Line3D();
-
-    public void update(Camera camera) {
-        crosshair_ray = new Raycasting.raycast(camera.position, camera.direction);
-
-        gjk_crosshair_ray.A = camera.position;
-        gjk_crosshair_ray.B = camera.direction;
-
-        //mouse picker stuff
-        Vector3 n = new Vector3(State.input_main_thread.mouse_position.X, State.input_main_thread.mouse_position.Y, 0);
-        Vector3 f = new Vector3(State.input_main_thread.mouse_position.X, State.input_main_thread.mouse_position.Y, 1);
-
-        Vector3 near = State.viewport.Unproject(n, camera.projection, camera.view, Matrix.Identity);
-        Vector3 far = State.viewport.Unproject(f, camera.projection, camera.view, Matrix.Identity);
-
-        Vector3 d = far - near;
-        d.Normalize();
-
-        mouse_pick_ray = new Raycasting.raycast(near, d);
-
-        gjk_mouse_pick_ray.A = near;
-        gjk_mouse_pick_ray.B = d;
-    }
 }

@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raven", "Raven\Raven.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raven.CodeGenerators", "Raven.CodeGenerators\Raven.CodeGenerators.csproj", "{D130670C-0805-4155-9F13-C605D47A7931}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cassowary", "Cassowary\Cassowary.csproj", "{563E5F1E-2998-471C-BAF2-2A82DEC75B87}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{D130670C-0805-4155-9F13-C605D47A7931}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D130670C-0805-4155-9F13-C605D47A7931}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D130670C-0805-4155-9F13-C605D47A7931}.Release|Any CPU.Build.0 = Release|Any CPU
+		{563E5F1E-2998-471C-BAF2-2A82DEC75B87}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{563E5F1E-2998-471C-BAF2-2A82DEC75B87}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{563E5F1E-2998-471C-BAF2-2A82DEC75B87}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{563E5F1E-2998-471C-BAF2-2A82DEC75B87}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

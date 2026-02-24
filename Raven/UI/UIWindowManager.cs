@@ -22,6 +22,8 @@ namespace Raven.UI  {
         public List<IUIForm> windows = new List<IUIForm>();
         ConsoleWindow console;
         InspectorWindow  inspector;
+
+        private MouseWatcher mouse = new MouseWatcher();
         
         public UIWindowManager() {
             console = new ConsoleWindow(new Vector2i(200, 200), new Vector2i(400, 230));
@@ -115,7 +117,7 @@ namespace Raven.UI  {
 
         int top_hit_subform = 0;
 
-        bool mouse_button_just_pressed => (State.input_main_thread.just_pressed(Input.MouseButtons.Left) || State.input_main_thread.just_pressed(Input.MouseButtons.Right));
+        bool mouse_button_just_pressed => (mouse.just_pressed(MouseWatcher.MouseButtons.Left) || mouse.just_pressed(MouseWatcher.MouseButtons.Right));
 
         public void screenshot_top_window(int index) {
 
@@ -178,7 +180,7 @@ namespace Raven.UI  {
                 }
             }
             
-            if (!State.is_active || State.input_main_thread.mouse_lock) return;
+            if (!State.is_active || MouseWatcher.Manager.MouseLock) return;
 
             for (int i = windows.Count-1; i >= 0; i--) {
                 windows[i].update();
@@ -248,13 +250,14 @@ namespace Raven.UI  {
                 }
             }
 
+            mouse.ResetMouseDelta();
         }
         
         public void render_window_internals() {
             //Clock.frame_probe.set("draw_wm_internals");
             
             foreach (IUIForm window in windows) {
-                lock (window)
+                //lock (window)
                     if (window.visible)
                         window.render_internal();
             }
@@ -306,7 +309,7 @@ namespace Raven.UI  {
             bool t = false;
 
             foreach (string is2d in collision.Keys) {
-                if (Collision2D.GJK2D.test_shapes_simple(collision[is2d], State.input_main_thread.mouse_collision_object, out _)) {
+                if (Collision2D.GJK2D.test_shapes_simple(collision[is2d], MouseWatcher.Manager.MouseCollisionObject, out _)) {
                     t = true;
 
                     mouse_interactions.Add(is2d);

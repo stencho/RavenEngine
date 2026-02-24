@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Xna.Framework;
 using Raven.Graphics;
 using Raven.Graphics.Drawing3D;
+using Raven.Engine.Worlds;
 
 namespace Raven.Engine;
 
@@ -15,14 +16,11 @@ namespace Raven.Engine;
 public interface Entity {
     public string name { get; set; }
     
+    public Universe parent_universe { get; set; }
+    public Chunk parent_chunk { get; set; }
     public ChunkPosition position { get;  }
     
     public ComponentManager Components { get; set; }
-    
-    public Universe parent_universe { get; set; }
-    public Chunk parent_chunk { get; set; }
-    
-    public Threads.ThreadRequestPacket update_packet{ get; set; }
     
     public void Initialize();
     public void Initialized();
@@ -34,6 +32,7 @@ public interface Entity {
 
     public void SetPosition(ChunkPosition position);
 }
+
 #endregion
 #region COMPONENTS
 

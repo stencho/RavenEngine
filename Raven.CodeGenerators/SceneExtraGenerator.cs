@@ -6,20 +6,20 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace RavenCodeGenerators;
 [Generator]
-public sealed class EntityUpdatePacketGenerator : ISourceGenerator
-{
+public sealed class SceneExtraGenerator : ISourceGenerator {
     public void Initialize(GeneratorInitializationContext context)
     {
         context.RegisterForSyntaxNotifications(() => new Receiver());
     }
-
+    
+    
     public void Execute(GeneratorExecutionContext context)
     {
         if (context.SyntaxReceiver is not Receiver receiver)
             return;
 
         var entityInterface =
-            context.Compilation.GetTypeByMetadataName("Raven.Engine.Entity");
+            context.Compilation.GetTypeByMetadataName("Raven.Engine.Worlds.IWorld");
 
         if (entityInterface is null)
             return;
@@ -54,7 +54,7 @@ public sealed class EntityUpdatePacketGenerator : ISourceGenerator
 
         return false;
     }
-
+    
     private static string GeneratePartial(INamedTypeSymbol symbol)
     {
         var ns = symbol.ContainingNamespace.IsGlobalNamespace
@@ -73,34 +73,12 @@ public sealed class EntityUpdatePacketGenerator : ISourceGenerator
         }
         sb.AppendLine("using System;");
         sb.AppendLine("using Raven.Engine;");
+        sb.AppendLine("using Raven.Engine.Worlds;");
         sb.AppendLine("using Microsoft.Xna.Framework;");
         sb.AppendLine($"partial class {symbol.Name}");
         sb.AppendLine("{");
-        sb.AppendLine($"public string name {{ get; set; }} = \"{symbol.Name}\";");
         sb.AppendLine("""
-            
-            public ChunkPosition _position;
-            public ChunkPosition position => _position;
-            public void SetPosition(ChunkPosition position) { _position = position; }
-            
-            public ComponentManager Components { get; set; } = new();
-            
-            public Universe parent_universe { get; set; }
-            public Chunk parent_chunk { get; set; }
-            
-            public void Initialize() {
-                Components.set_parent(this);
-            }
-            
-            public void StabilizeChunkPosition() {
-                position.stabilize(Clock.update_thread_delta_ms);                
-            }
-            
-            public void UpdateInterpolatedPosition() {
-                position.interpolate(Clock.delta_time_ms);
-            }
-            
-            private void MoveAndSlide(Vector3 movement) => position.MoveAndSlide(movement);
+            public bool CurrentlyStabilizing = false;
         """);
         sb.AppendLine("}");
 

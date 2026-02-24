@@ -7,7 +7,6 @@ using Raven.Engine;
 using Raven.Engine.Controls;
 using Raven.Graphics.Drawing2D;
 using Raven.UI;
-using static Raven.Engine.Controls.ControlBinds;
 using TextCopy;
 
 namespace Raven.Console {
@@ -80,6 +79,7 @@ namespace Raven.Console {
             width = w;
         }
 
+        private MouseWatcher mouse = new MouseWatcher();
 
         // cursor
         int cursor_position = 0;
@@ -875,7 +875,7 @@ namespace Raven.Console {
                 mouse_over_index = current_input.Length;
 
             // mouse just clicked, also over the string
-            if (State.input_main_thread.just_pressed(Input.MouseButtons.Left) && mouse_over_index > -1) {
+            if (mouse.just_pressed(MouseWatcher.MouseButtons.Left) && mouse_over_index > -1) {
                 // basically, if shift is held, and nothing is selected,
                 // we pretend that the starting point was the cursor pos,
                 // which immediately means everything between there and the mouse pos is selected
@@ -891,7 +891,7 @@ namespace Raven.Console {
                     mouse_clicked_on_index = mouse_over_index;
 
                 // mouse click just released
-            } else if (State.input_main_thread.just_released(Input.MouseButtons.Left)) {
+            } else if (mouse.just_released(MouseWatcher.MouseButtons.Left)) {
                 // if there's no selection, that means the mouse is still on the same character it started on
                 // so we just move the cursor there
                 if (!selection) {
@@ -903,7 +903,7 @@ namespace Raven.Console {
             }
 
             // left click is down
-            if (State.input_main_thread.is_pressed(Input.MouseButtons.Left)) {
+            if (mouse.is_pressed(MouseWatcher.MouseButtons.Left)) {
                 // if the mouse is currently clicking the form and also over a character
                 if (mouse_clicked_on && mouse_over_index > -1) {
                     // basically just set the selected region to the region between where the
@@ -998,6 +998,7 @@ namespace Raven.Console {
             // set up state for previous frame comparisons
 
             pks_k = State.input_main_thread.keyboard_state_prev.GetPressedKeys();
+            mouse.ResetMouseDelta();
         }
 #endregion
 

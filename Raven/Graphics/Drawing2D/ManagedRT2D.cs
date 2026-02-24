@@ -4,7 +4,7 @@ using Raven.Engine;
 
 namespace Raven.Graphics.Drawing2D;
 
-[GuidManagedClass]
+[GuidManaged]
 public partial class ManagedRT2D {
     public static partial class Manager {
         public static string ListAllBuffers {

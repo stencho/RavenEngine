@@ -11,15 +11,17 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Raven.Engine.Universes;
+using Raven.Engine.Worlds;
 using Raven.Console;
 using Raven.Engine.Components;
 using Raven.Engine.Controls;
 using Raven.Graphics;
 using Raven.Graphics.Drawing2D;
 using Raven.Graphics.Drawing3D;
-using Raven.RPG.Entities;
+using Raven.Graphics.InterpolatedTypes;
+using Raven.Engine.Entities;
 using Raven.UI;
+using KeyboardInput = Microsoft.Xna.Framework.Input.KeyboardInput;
 
 namespace Raven.Engine;
 public static class State {
@@ -180,11 +182,11 @@ public static class State {
             (bind_type.digital, controller_type.keyboard, Keys.LeftShift, "shift"),
             (bind_type.digital, controller_type.keyboard, Keys.LeftControl, "ctrl"),
 
-            (bind_type.digital, controller_type.mouse, Input.MouseButtons.Left, "click"),
-            (bind_type.digital, controller_type.mouse, Input.MouseButtons.Right, "click_right"),
-            (bind_type.digital, controller_type.mouse, Input.MouseButtons.Middle, "click_middle"),
-            (bind_type.digital, controller_type.mouse, Input.MouseButtons.ScrollUp, "scroll_up"),
-            (bind_type.digital, controller_type.mouse, Input.MouseButtons.ScrollDown, "scroll_down"),
+            (bind_type.digital, controller_type.mouse, MouseWatcher.MouseButtons.Left, "click"),
+            (bind_type.digital, controller_type.mouse, MouseWatcher.MouseButtons.Right, "click_right"),
+            (bind_type.digital, controller_type.mouse, MouseWatcher.MouseButtons.Middle, "click_middle"),
+            (bind_type.digital, controller_type.mouse, MouseWatcher.MouseButtons.ScrollUp, "scroll_up"),
+            (bind_type.digital, controller_type.mouse, MouseWatcher.MouseButtons.ScrollDown, "scroll_down"),
             
             (bind_type.digital, controller_type.keyboard, Keys.F, "t_supp"),
             (bind_type.digital, controller_type.keyboard, Keys.D1, "speenL"),
@@ -219,7 +221,7 @@ public static class State {
     
     public static Viewport viewport => graphics_device.Viewport;
     
-    public static Universe universe = new();
+    public static Universe universe;
 
     public static bool is_active => game.IsActive;
     public static bool show_all_debug_info = false;
@@ -268,7 +270,7 @@ public static class State {
         State.window =  window;
         State.spritebatch = new SpriteBatch(State.graphics_device);
 
-        game.IsFixedTimeStep = true;
+        game.IsFixedTimeStep = false;
         game.InactiveSleepTime = TimeSpan.Zero;
         graphics.SynchronizeWithVerticalRetrace = false;
         window.IsBorderless = false;
@@ -281,8 +283,10 @@ public static class State {
         gvars.add_gvar("super_resolution_scale", gvar_data_type.FLOAT, 1f, true);
         gvars.add_gvar("frame_limit", gvar_data_type.INT, 180, true);
         gvars.add_gvar("tick_rate", gvar_data_type.INT, 60, true);
+        gvars.add_gvar("input_polling_rate", gvar_data_type.INT, 360, true);
         gvars.add_gvar("vsync", gvar_data_type.BOOL, true, true);
         gvars.add_gvar("light_spot_resolution", gvar_data_type.INT, 1024, false);
+        gvars.add_gvar("bind_tap_time", gvar_data_type.INT, 300, true);
         
         change_backbuffer_resolution();
         
@@ -293,6 +297,7 @@ public static class State {
         gvars.add_change_action("vsync", () => { graphics.SynchronizeWithVerticalRetrace = gvars.get_bool("vsync"); });
         gvars.add_change_action("frame_limit", () => ChangeFrameLimit());
         gvars.add_change_action("tick_rate", () => ChangeTickRate());
+        
         ChangeFrameLimit();
         ChangeTickRate();
             
@@ -303,13 +308,20 @@ public static class State {
         engine_binds.force_enable("toggle_inspector");
         engine_binds.force_enable("toggle_full_info");
         engine_binds.force_enable("screenshot");
-        
+
+        KeyboardWatcher.Manager.StartPolling();
+        MouseWatcher.Manager.StartPolling();
+        universe = new();
         universe.StartUpdating();
     }
 
     public static TestEntity test_ent;
     public static TestEntity test_ent2;
     public static FreeCamEntity free_cam;
+    
+    public static LerpedFloat l_float_loop = new LerpedFloat(0f, 1f, 1000.0, InterpolationType.Loop);
+    public static LerpedFloat l_float_bounce = new LerpedFloat(0f, 1f, 1000.0, InterpolationType.Bounce);
+    public static LerpedFloat l_float_once = new LerpedFloat(0f, 1f, 1000.0, InterpolationType.Once);
     
     public static void Load(ContentManager content) {
         Resources.LoadContentList(content);
@@ -368,14 +380,14 @@ public static class State {
         //test_ent.Components.GetComponent<RenderModel>("RenderModel").Texture
         //universe.SpawnEntity(test_ent, Vector3ui128.Zero, Vector3.Zero);
         //universe.SpawnEntity(test_ent2, Vector3ui128.Right, Vector3.Right * 5);
-        universe.SpawnEntity(free_cam, Vector3ui128.Zero, Vector3.Zero);
+        universe.SpawnEntity(free_cam, Vector3ui128.Up * 5, Vector3.Zero);
 
         var cam = free_cam.Components.GetFirst<GBufferCamera>().camera;
         
         cam.gbuffer.EnableScreenDrawFullscreen(-1);
         
-        for (int i = 0; i < 500; i++) {
-            universe.SpawnEntity(new TestEntity(), (Vector3ui128)(RNG.rng_v3 * 5), RNG.rng_v3_neg_one_to_one * 50f);
+        for (int i = 0; i < 3000; i++) {
+            universe.SpawnEntity(new TestEntity(), ((Vector3ui128)(RNG.rng_v3 * 20) * (Vector3ui128.UnitX + Vector3ui128.UnitZ)) + (Vector3ui128.UnitY * 5), RNG.rng_v3_neg_one_to_one * Chunk.base_chunk_size_per_direction);
         }
 
         
@@ -404,7 +416,7 @@ public static class State {
                     case 1:
                         buffer_text = " <normals>";
                         break;
-                    case 2:
+                     case 2:
                         buffer_text = " <depth>";
                         break;
                     case 3:
@@ -416,10 +428,11 @@ public static class State {
                 }
 
                 var debug_str = "";
-                debug_str += $"[Render] {Clock.frame_rate} FPS{buffer_text}\n[Update] {Clock.tick_rate} Ticks/s, ~{Clock.update_thread_non_sleep_ms:0.000}ms non-sleep ({Clock.total_ms_last_update:0.000}/{Clock.update_thread_goal_time.TotalMilliseconds:0.000}ms)\n[Threads] {Threads.TaskCount}/{Threads.MaxTasks}\n";
+                debug_str += $"[Render] {Clock.frame_rate} FPS{buffer_text}\n[Update] {Clock.tick_rate} Ticks/s{(ChunkPosition.EnableInterpolation ? " (interpolated)," : ",")} ~{Clock.update_thread_non_sleep_ms:0.000}ms non-sleep ({Clock.total_tick_ms_last_update:0.000}/{Clock.update_thread_goal_time.TotalMilliseconds:0.000}ms)\n[Polling] Mouse: {MouseWatcher.Manager.TicksPerSecond}t/s Keyboard: {KeyboardWatcher.Manager.TicksPerSecond}t/s\n[Threads] {Threads.TaskCount}/{Threads.MaxTasks}\n";
+                debug_str += $"[Freecam] {free_cam.position.index.ToXString()} {free_cam.position.offset.ToXString()} \n";
                 if (show_all_debug_info) {
                     debug_str += $"\n[GVars]\n{gvars.list_all()}\n\n[Loaded Assets]\n{Resources.ListAllContent()}\n";
-                    Draw2D.text_shadow($"{Camera.Manager.ListAllCameras}\n{GBuffer.Manager.ListAllBuffers}\n{ManagedRT2D.Manager.ListAllBuffers}\n[Windows] {UI.list_windows()}\n",
+                    Draw2D.text_shadow($"{Camera.Manager.ListAllCameras}\n{GBuffer.Manager.ListAllBuffers}\n{ManagedRT2D.Manager.ListAllBuffers}\n[Windows] {UI.list_windows()}\n{Renderer.VisibilityString}\n{Universe.VisibilityString}\n",
                     (Vector2i.UnitX * 250) + (Vector2i.UnitY * 100), Color.White, Color.Black);
 
                 }
@@ -434,13 +447,18 @@ public static class State {
                 Draw2D.line(tl, tl + (Vector2i.UnitY * 11), Color.Red, 1f);
                 Draw2D.text_shadow($"[Environment] {(int)hour} O'clock", Vector2i.Down * 285 + (Vector2i.Right * (resolution.X - Skybox.sun_moon.lerps.debug_band.Bounds.Size.X)), Color.White, Color.Black);
                 UI.draw();
-
-                universe.DrawChunkMapAroundEntity(free_cam, new Vector2i(resolution.X - 250, 0), Vector2i.One * 250);
-
-                if (!State.input_main_thread.mouse_lock && !State.input_main_thread.mouse_lock_prev ) {
+                
+                //universe.DrawChunkMapAroundEntity(free_cam, new Vector2i(resolution.X - 250, 0), Vector2i.One * 250, 8);
+                
+                if (!MouseWatcher.Manager.MouseLock) {
                     Draw2D.fill_circle(State.input_main_thread.mouse_position, 3f, Color.White);
                     Draw2D.circle(State.input_main_thread.mouse_position, 3f, 2f, Color.Black);
                 }
+                
+                Draw2D.line(new Vector2(100, 10), new Vector2(150, 10), Color.BurlyWood, 1f);
+                Draw2D.fill_circle(new Vector2(100 + (50 * l_float_bounce.progress_f), 10), 6f, Color.IndianRed);
+                Draw2D.fill_circle(new Vector2(100 + (50 * l_float_loop.progress_f), 18), 6f, Color.DarkOliveGreen);
+                Draw2D.fill_circle(new Vector2(100 + (50 * l_float_once.progress_f), 24), 6f, Color.MediumPurple);
             };
         //camera.enable_gbuffer(1280,720);
         wait_for_init = true;
@@ -555,21 +573,30 @@ public static class State {
 
     private static float skull_rotate = 0f;
     private static light skull_lamp;
+
+    private static bool currently_rendering;
+    public static bool CurrentlyRendering => currently_rendering; 
     
     public static void Render() {
-        while (Clock.UpdateThread.CurrentlyStabilizing) ;//Thread.SpinWait(1);
-        
+        while (universe.CurrentlyStabilizing) ;
+        currently_rendering = true;
+        IAutoInterpolate.Manager.UpdateRenderThread(Clock.delta_time_ms);
         GBuffer.Manager.ClearAll2DLayers();
         universe.UpdateGraphics();
         UI.render_window_internals();
         Camera.Manager.BuildAllCameraGBuffers();
         GBuffer.Manager.DrawAllScreenBuffers();
+        currently_rendering = false;
     }
     
 }
 
 public static class Clock {
     public static GameTime game_time;
+    private static Stopwatch game_run_time_stopwatch = Stopwatch.StartNew();
+    public static double game_run_time_ms => game_run_time_stopwatch.ElapsedTicks / 10000.0;
+    public static long game_run_time_ticks => game_run_time_stopwatch.ElapsedTicks;
+    
     public static double delta_time => game_time.ElapsedGameTime.TotalSeconds;
     public static double delta_time_ms => game_time.ElapsedGameTime.TotalMilliseconds;
 
@@ -585,10 +612,13 @@ public static class Clock {
     }
 
     public static TimeSpan update_thread_goal_time = new TimeSpan((long)(10000 * (1000.0/update_thread_tick_rate)));
+    
     public static double update_thread_delta_ms => (1000.0 / update_thread_tick_rate);
     public static double update_thread_delta => (1000.0 / update_thread_tick_rate) / 1000.0;
 
     public static double update_thread_non_sleep_ms = 0.0;
+    
+    public static double total_tick_ms_last_update = 0;
     
     public static double frame_rate { get; set; } = 0;
     private static double _frame_rate_timer = 0;
@@ -598,9 +628,9 @@ public static class Clock {
     private static double _tick_rate_timer = 0;
     private static double _tick_counter = 0;
 
+    
     public static ulong frame_count = 0;
     public static ulong tick_count = 0;
-    
 
     public static void FrameRateUpdate(double milliseconds) {
         _frame_rate_timer += milliseconds;
@@ -614,8 +644,6 @@ public static class Clock {
 
         frame_count++;
     }
-
-    public static double total_ms_last_update = 0;
     
     public static void TickRateUpdate(double milliseconds) {
         _tick_rate_timer += milliseconds;
@@ -625,6 +653,29 @@ public static class Clock {
             tick_rate = _tick_counter;
             _tick_rate_timer -= 1000.0;
             _tick_counter = 0;
+        }
+    }
+
+    public class TickRateWatcher {
+        public TimeSpan poll_thread_goal_time => new TimeSpan((long)(10000 * (1000.0/poll_rate)));
+
+        public ulong poll_count = 0;
+        
+        public double poll_rate { get; set; } = 1000.0;
+        private double poll_rate_timer = 0;
+        private double poll_counter = 0;
+        private double ticks_per_second;
+        public double TicksPerSecond => ticks_per_second;
+        
+        public void PollRateUpdate(double milliseconds) {
+            poll_rate_timer += milliseconds;
+            poll_counter++;
+            poll_count++;
+            if (poll_rate_timer >= 1000.0) {
+                ticks_per_second = poll_counter;
+                poll_rate_timer -= 1000.0;
+                poll_counter = 0;
+            }
         }
     }
     
@@ -648,36 +699,32 @@ public static class Clock {
     
         Stopwatch loop_stopwatch = Stopwatch.StartNew();
         
-        static bool currently_stabilizing = false;
-        public static bool CurrentlyStabilizing => currently_stabilizing;
-
         private void Update() {
+            long frame_start = 0;
+            
+            double elapsed_ms() => (loop_stopwatch.ElapsedTicks - frame_start) * 1000.0 / (double)Stopwatch.Frequency;
+            double remaining_ms() => (Clock.update_thread_goal_time.TotalMilliseconds - elapsed_ms()) * 1000.0 / (double)Stopwatch.Frequency;
+            
             while (!State.wait_for_init) ;
             while (!Threads.IsCancellationRequested) {
-                long frame_start = loop_stopwatch.ElapsedTicks;
+                frame_start = loop_stopwatch.ElapsedTicks;
 
                 //UPDATE 
                 binds.Update();
 
                 if (update_action != null) update_action();
-
-                currently_stabilizing = true;
-                State.universe.StabilizeChunkPositions();
-                currently_stabilizing = false;
                 
-                double elapsed_ms() => (loop_stopwatch.ElapsedTicks - frame_start) * 1000.0 / (double)Stopwatch.Frequency;
-                double remaining_ms() => (Clock.update_thread_goal_time.TotalMilliseconds - elapsed_ms()) * 1000.0 / (double)Stopwatch.Frequency;
                 update_thread_non_sleep_ms = elapsed_ms();
                 
                 if (remaining_ms() > 1.0) {
-                    Thread.Sleep((int)(remaining_ms() - 0.5));    
+                    Thread.Sleep((int)(remaining_ms() - 0.2));    
                 }
                 while (remaining_ms() > 0.0 && !Threads.IsCancellationRequested) {
                     Thread.SpinWait(1);
                 }
                 
-                Clock.total_ms_last_update = elapsed_ms();
-                Clock.TickRateUpdate(total_ms_last_update);
+                Clock.total_tick_ms_last_update = elapsed_ms();
+                Clock.TickRateUpdate(total_tick_ms_last_update);
             }
         }
     }

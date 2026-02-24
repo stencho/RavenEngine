@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Raven.Engine;
+using Raven.Engine.Collision;
+using Raven.Engine.Collision.Shapes3D;
+using Raven.Engine.Worlds;
 using Color = Microsoft.Xna.Framework.Color;
 using static Raven.Engine.State;
 
@@ -10,7 +13,9 @@ namespace Raven.Graphics.Drawing3D {
     public static class Renderer {
         static volatile List<light> visible_lights = new List<light>();
         static volatile List<int> visible = new List<int>();
-
+        public static volatile List<(Vector3ui128 index, Vector3 offset)> VisibleChunks = new();
+        public static volatile string VisibilityString = "";
+        
         public class render_obj {
             public VertexBuffer vertex_buffer;
             public IndexBuffer index_buffer;
@@ -23,10 +28,31 @@ namespace Raven.Graphics.Drawing3D {
         public static void create_visibility_lists(Camera camera) {
             visible_lights.Clear();
             visible.Clear();
+            VisibleChunks.Clear();
+            VisibilityString = "";
             
+            var camera_chunk = camera.current_camera_chunk.index;
+
+            foreach (var c in universe.chunks.Cache) {
+                var dir = c.Value.item.position - camera_chunk;
+                var len = Vector3ui128.Distance(camera_chunk, c.Value.item.position);
+                
+                var to_chunk = (dir.ToVector3() * ((float)Chunk.base_chunk_size_per_direction) * 2f);
+                var chunk_aabb = new BoundingBox(to_chunk - (Vector3.One * (float)Chunk.base_chunk_size_per_direction), to_chunk + (Vector3.One * (float)Chunk.base_chunk_size_per_direction));
+                
+                if (len > 3) continue;
+
+                if (camera.frustum.Intersects(chunk_aabb)) {
+                    //VisibilityString += $"{(len == 0 ? ">" : "")}{dir.ToXString()} {len.ToString()} {to_chunk.ToXString()}\n";
+                    
+                    VisibleChunks.Add((c.Key, to_chunk));
+                }
+            }
+
         }
 
-        public static void clear_to_skybox(Camera camera, GBuffer gbuffer) {
+        public static void clear_to_skybox(Camera camera, GBuffer gbuffer) {                
+
             graphics_device.DepthStencilState = DepthStencilState.None;
 
             gbuffer.draw_to_bindings();

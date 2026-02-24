@@ -808,6 +808,10 @@ namespace Raven.Engine {
         
         public override string ToString() => $"{{ {X} : {Y} : {Z} }}";
         public string ToXString() => $"{X}x{Y}x{Z}";
+
+        public Vector3 ToVector3() {
+            return new Vector3((long)X, (long)Y, (long)Z);
+        }
         public static string simple_string(Vector3ui128 input) { return $"{input.X}, {input.Y}, {input.Z}"; }
         public static string simple_string_brackets(Vector3ui128 input) { return $"[{input.X}, {input.Y}, {input.Z}]"; }
         
@@ -850,16 +854,206 @@ namespace Raven.Engine {
         public static Vector3ui128 One => _one;
         public static Vector3ui128 Zero => _zero;
 
-        public static Vector3ui128 Up => -_unitY;
-        public static Vector3ui128 Down => _unitY;
+        public static Vector3ui128 Up => _unitY;
+        public static Vector3ui128 Down => -_unitY;
 
         public static Vector3ui128 Left => -_unitX;
         public static Vector3ui128 Right => _unitX;
         
         public static Vector3ui128 Forward => -_unitZ;
         public static Vector3ui128 Backward => -_unitZ;
+        
+        public static UInt128 Distance(Vector3ui128 a, Vector3ui128 b) {
+            UInt128 dx = AbsDiff(a.X, b.X);
+            UInt128 dy = AbsDiff(a.Y, b.Y);
+            UInt128 dz = AbsDiff(a.Z, b.Z);
+
+            return Max(dx, dy, dz);
+        }
+        
+        public static double DistanceD(Vector3ui128 a, Vector3ui128 b) {
+            UInt128 dx = AbsDiff(a.X, b.X);
+            UInt128 dy = AbsDiff(a.Y, b.Y);
+            UInt128 dz = AbsDiff(a.Z, b.Z);
+
+            return (double)Max(dx, dy, dz);
+        }
+        public static float DistanceF(Vector3ui128 a, Vector3ui128 b) {
+            UInt128 dx = AbsDiff(a.X, b.X);
+            UInt128 dy = AbsDiff(a.Y, b.Y);
+            UInt128 dz = AbsDiff(a.Z, b.Z);
+
+            return (float)Max(dx, dy, dz);
+        }
+        
+        public static Vector3 NormalizedDirection(Vector3ui128 a, Vector3ui128 b)
+        {
+            Vector3ui128 ab = new Vector3ui128 {
+                X = b.X - a.X,
+                Y = b.Y - a.Y,
+                Z = b.Z - a.Z
+            };
+
+            // Find max component to scale by
+            UInt128 max = ab.X;
+            if (ab.Y > max) max = ab.Y;
+            if (ab.Z > max) max = ab.Z;
+
+            if (max == 0)
+                return Vector3.Zero; // same point, no direction
+
+            // Scale into sane range [0,1]
+            double x = (double)(ab.X / max);
+            double y = (double)(ab.Y / max);
+            double z = (double)(ab.Z / max);
+
+            // Now normalize in floating point safely
+            double len = Math.Sqrt(x * x + y * y + z * z);
+            if (len == 0)
+                return Vector3.Zero;
+
+            return new Vector3(
+                (float)(x / len),
+                (float)(y / len),
+                (float)(z / len)
+            );
+        }
+        
+        static UInt128 AbsDiff(UInt128 a, UInt128 b)
+        {
+            return a > b ? a - b : b - a;
+        }
+        static UInt128 Max(UInt128 a, UInt128 b, UInt128 c)
+        {
+            UInt128 m = a > b ? a : b;
+            return m > c ? m : c;
+        }
+        
     }
     
+    public struct Vector2ui128 {
+        public UInt128 X;
+        public UInt128 Y;
+        
+        public Vector2ui128(UInt128 XY) {
+            this.X = XY;
+            this.Y = XY;
+        }
+        public Vector2ui128(UInt128 X, UInt128 Y) {
+            this.X = X;
+            this.Y = Y;
+        }
+        public Vector2ui128(float X, float Y) {
+            this.X = (UInt128)X;
+            this.Y = (UInt128)Y;
+        }
+        public Vector2ui128(double X, double Y) {
+            this.X = (UInt128)X;
+            this.Y = (UInt128)Y;
+        }
+
+        public Vector2ui128(Vector3i vector) {
+            this.X = (UInt128)vector.X;
+            this.Y = (UInt128)vector.Y;
+        }
+        
+        public Vector2ui128(Vector2i vector) {
+            this.X = (UInt128)vector.X;
+            this.Y = (UInt128)vector.Y;
+        }
+        
+        public Vector2ui128(Vector3i64 vector) {
+            this.X = (UInt128)vector.X;
+            this.Y = (UInt128)vector.Y;
+        }
+        
+        public Vector2ui128(Vector3ui64 vector) {
+            this.X = (UInt128)vector.X;
+            this.Y = (UInt128)vector.Y;
+        }
+        
+        public static explicit operator Vector2ui128(Vector3ui64 v) {
+            return new Vector2ui128((UInt128)v.X, (UInt128)v.Y);
+        }
+        public static explicit operator Vector2ui128(Vector3i64 v) {
+            return new Vector2ui128((UInt128)v.X, (UInt128)v.Y);
+        }
+        public static explicit operator Vector2ui128(Vector3 v) {
+            return new Vector2ui128((UInt128)v.X, (UInt128)v.Y);
+        }
+
+        #region UInt128
+        public static Vector2ui128 operator -(Vector2ui128 a, UInt128 b) => new Vector2ui128() { X = a.X - b, Y = a.Y - b};
+        public static Vector2ui128 operator +(Vector2ui128 a, UInt128 b) => new Vector2ui128() { X = a.X + b, Y = a.Y + b};
+        public static Vector2ui128 operator *(Vector2ui128 a, UInt128 b) => new Vector2ui128() { X = a.X * b, Y = a.Y * b};
+        public static Vector2ui128 operator /(Vector2ui128 a, UInt128 b) => new Vector2ui128() { X = a.X / b, Y = a.Y / b};
+        #endregion
+        
+        #region int
+        public static Vector2ui128 operator -(Vector2ui128 a, int b) => new Vector2ui128() { X = a.X - (ulong)b, Y = a.Y - (ulong)b};
+        public static Vector2ui128 operator +(Vector2ui128 a, int b) => new Vector2ui128() { X = a.X + (ulong)b, Y = a.Y + (ulong)b};
+        public static Vector2ui128 operator *(Vector2ui128 a, int b) => new Vector2ui128() { X = a.X * (ulong)b, Y = a.Y * (ulong)b};
+        public static Vector2ui128 operator /(Vector2ui128 a, int b) => new Vector2ui128() { X = a.X / (ulong)b, Y = a.Y / (ulong)b};
+
+        #endregion
+        #region Vector2ui128
+        public static Vector2ui128 operator -(Vector2ui128 a) => new Vector2ui128() { X = 0 - a.X, Y = 0 - a.Y };
+        public static Vector2ui128 operator -(Vector2ui128 a, Vector2ui128 b) => new Vector2ui128() { X = a.X - b.X, Y = a.Y - b.Y};
+        public static Vector2ui128 operator +(Vector2ui128 a, Vector2ui128 b) => new Vector2ui128() { X = a.X + b.X, Y = a.Y + b.Y};
+        public static Vector2ui128 operator *(Vector2ui128 a, Vector2ui128 b) => new Vector2ui128() { X = a.X * b.X, Y = a.Y * b.Y};
+        public static Vector2ui128 operator /(Vector2ui128 a, Vector2ui128 b) => new Vector2ui128() { X = a.X / b.X, Y = a.Y / b.Y};
+        #endregion
+        
+        public static bool operator ==(Vector2ui128 a, Vector2ui128 b) => (a.X == b.X && a.Y == b.Y);
+        public static bool operator !=(Vector2ui128 a, Vector2ui128 b) => (a.X != b.X || a.Y != b.Y);
+        
+        public override string ToString() => $"{{ {X} : {Y} }}";
+        public string ToXString() => $"{X}x{Y}";
+        public static string simple_string(Vector2ui128 input) { return $"{input.X}, {input.Y}"; }
+        public static string simple_string_brackets(Vector2ui128 input) { return $"[{input.X}, {input.Y}]"; }
+        
+        /*
+        public static bool TryParse(string input, out Vector2ui128 result) {
+            result = Zero;
+
+            string[] split = input.Split('x', ',');
+
+            if (split.Length != 3) return false;
+
+            for (int i = 0; i < split.Length; i++) {
+                split[i] = split[i].Trim(' ', '[', ']', '{', '}', '(', ')');
+            }
+
+            if (int.TryParse(split[0], out result.X) && int.TryParse(split[1], out result.Y) && int.TryParse(split[2], out result.Z)) {
+                return true;
+            }
+            
+            result = Zero;
+            return false;
+        }
+        */
+        
+        private static Vector2ui128 _one = new Vector2ui128 { X = 1, Y = 1 };
+        private static Vector2ui128 _zero = new Vector2ui128 { X = 0, Y = 0 };
+
+        private static Vector2ui128 _unitX = new Vector2ui128 { X = 1, Y = 0};
+        private static Vector2ui128 _unitY = new Vector2ui128 { X = 0, Y = 1};
+
+        public static Vector2ui128 UnitX => _unitX;
+        public static Vector2ui128 UnitY => _unitY;
+
+        public static Vector2ui128 Width => _unitX;
+        public static Vector2ui128 Height => _unitY;
+        
+        public static Vector2ui128 One => _one;
+        public static Vector2ui128 Zero => _zero;
+
+        public static Vector2ui128 Up => -_unitY;
+        public static Vector2ui128 Down => _unitY;
+
+        public static Vector2ui128 Left => -_unitX;
+        public static Vector2ui128 Right => _unitX;
+    }
 #pragma warning restore CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
 #pragma warning restore CS0660 // Type defines operator == or operator != but does not override Object.Equals(object o)
 

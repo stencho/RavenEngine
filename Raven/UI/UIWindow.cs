@@ -26,6 +26,8 @@ namespace Raven.UI {
         public Vector2i position { get; set; } = Vector2i.Zero;
         public Vector2i size { get; set; } = Vector2i.One * 250;
 
+        private MouseWatcher mouse = new MouseWatcher();
+        
         public Vector2i top_left => position;
         public Vector2i bottom_right => position + size;
         public Vector2i top_right => position + (Vector2i.UnitX * size.X);
@@ -160,7 +162,7 @@ namespace Raven.UI {
                     bottom_right + parent_form.client_top_left + (Vector2i.One * (resize_handle_thickness / 2)).ToVector2());
 
 
-                mdown = State.input_main_thread.is_pressed(Input.MouseButtons.Left) && State.is_active && State.input_main_thread.mouse_in_bounds;
+                mdown = mouse.is_pressed(MouseWatcher.MouseButtons.Left) && State.is_active && State.input_main_thread.mouse_in_bounds;
 
                 _mouse_coll_obj_child = new Circle2D(State.input_main_thread.mouse_position_float, 1f);
 
@@ -184,10 +186,10 @@ namespace Raven.UI {
                     bottom_right + (Vector2i.One * (resize_handle_thickness / 2)).ToVector2());
 
 
-                mdown = State.input_main_thread.is_pressed(Input.MouseButtons.Left) && State.is_active && State.input_main_thread.mouse_in_bounds;
+                mdown = mouse.is_pressed(MouseWatcher.MouseButtons.Left) && State.is_active && State.input_main_thread.mouse_in_bounds;
 
-                _resize_handle_R_mo = Collision2D.GJK2D.test_shapes_simple(_collision["resize_handle_R"], State.input_main_thread.mouse_collision_object, out _);
-                _resize_handle_B_mo = Collision2D.GJK2D.test_shapes_simple(_collision["resize_handle_B"], State.input_main_thread.mouse_collision_object, out _);
+                _resize_handle_R_mo = Collision2D.GJK2D.test_shapes_simple(_collision["resize_handle_R"], MouseWatcher.Manager.MouseCollisionObject, out _);
+                _resize_handle_B_mo = Collision2D.GJK2D.test_shapes_simple(_collision["resize_handle_B"], MouseWatcher.Manager.MouseCollisionObject, out _);
             }
 
             //do resize stuff here
@@ -215,7 +217,7 @@ namespace Raven.UI {
                 _draw_render_targets = false;
 
                 //size change is basically just mouse delta
-                var size_change = State.input_main_thread.mouse_delta;
+                var size_change = mouse.MouseDelta;
 
                 var sizefit = size;
                 if (size.X > State.resolution.X)
@@ -235,10 +237,10 @@ namespace Raven.UI {
                 float tmpX = size.X;
                 float tmpY = size.Y;
 
-                if (State.input_main_thread.mouse_position.X > State.resolution.X)
+                if (MouseWatcher.Manager.Position.X > State.resolution.X)
                     tmpX = State.resolution.X - top_left.X;
 
-                if (State.input_main_thread.mouse_position.Y > State.resolution.Y)
+                if (MouseWatcher.Manager.Position.Y > State.resolution.Y)
                     tmpY = State.resolution.Y - top_left.Y;
 
                 size = new Vector2i(tmpX, tmpY);
@@ -254,8 +256,9 @@ namespace Raven.UI {
 
 
             if (_resize_handle_R_grabbed || _resize_handle_B_grabbed) {
-                last_mouse_pos = State.input_main_thread.mouse_position;
+                last_mouse_pos = MouseWatcher.Manager.Position;
                 mdown_p = mdown;
+                mouse.ResetMouseDelta();
                 return;
             }
 
@@ -266,13 +269,13 @@ namespace Raven.UI {
             //mouse just clicked
             if (mdown && !mdown_p && top_of_mouse_stack) {
                 //if clicking top bar, grab the top bad
-                if (Collision2D.GJK2D.test_shapes_simple(_collision["top_bar"], State.input_main_thread.mouse_collision_object, out _))
+                if (Collision2D.GJK2D.test_shapes_simple(_collision["top_bar"], MouseWatcher.Manager.MouseCollisionObject, out _))
                     _grabbed_bar = true;
             }
 
             //mouse down and bar grabbed, position needs to change according to mouse delta
             if (mdown && _grabbed_bar) {
-                this.position += State.input_main_thread.mouse_delta;
+                this.position += mouse.MouseDelta;
             }
 
             //mouse released, release bar
@@ -308,7 +311,8 @@ namespace Raven.UI {
                 client_render_target = new RenderTarget2D(State.graphics_device, client_size.X, client_size.Y);
                 _render_targets_need_resize = false;
             }
-
+            
+            mouse.ResetMouseDelta();
         }
 
 

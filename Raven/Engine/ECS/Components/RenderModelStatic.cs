@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Raven.Graphics;
@@ -27,6 +28,7 @@ public partial class RenderModelStatic : Component {
 
     public Vector3 OffsetFromParent = Vector3.Zero;
     
+    
     public RenderModelStatic(string model = "cube", string texture = "OnePXWhite") {
         add_data("ModelName", model);
         add_data("TextureName", texture);
@@ -48,11 +50,11 @@ public partial class RenderModelStatic : Component {
         }
     }
 
-    public void DrawBasic(Camera camera, GBuffer buffer) {
+    public void DrawBasic(Camera camera, GBuffer buffer, Vector3 chunk_offset) {
         Draw3D.batch_draw_setup(camera,buffer);
         
         ForAllMeshParts((VertexBuffer VertexBuffer, IndexBuffer IndexBuffer) => {
-            Draw3D.batch_draw_diffuse_texture(camera, buffer,  VertexBuffer, IndexBuffer, Texture, Color.White, WorldMatrix);
+            Draw3D.batch_draw_diffuse_texture(camera, buffer,  VertexBuffer, IndexBuffer, Texture, Color.White, WorldMatrix * Matrix.CreateTranslation(chunk_offset));
         });
     }
 }

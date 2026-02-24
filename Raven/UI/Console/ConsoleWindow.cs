@@ -245,6 +245,8 @@ namespace Raven.Console {
                             skipdraw = true;
                     }
 
+                    if (pos.Y > msy_overall) break;
+                    
                     msx += msx_single;
 
                     if (skipdraw) continue;

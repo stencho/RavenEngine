@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Raven.Engine;
 using Raven.Console;
-using Raven.Engine.Universes;
+using Raven.Engine.Worlds;
 
 namespace Raven.Caching {
     public static class CacheCancellation {
@@ -113,6 +113,15 @@ namespace Raven.Caching {
             if (!item.GetType().IsAssignableFrom(type)) return;
             cache.AddOrUpdate(key, (new cache_item_life(MaxAge), item), (key, old) => (new cache_item_life(), item));
         }
+
+        public I RequestOrCreate(K key, I new_item) {
+            if (!Test(key)) {
+                
+            }
+
+            return new_item;
+        }
+        
         public I Request(K key) {
             cache[key].life.refresh();
             return cache[key].item;

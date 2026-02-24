@@ -11,7 +11,7 @@ using Raven.Graphics.Drawing3D;
 using Raven.Graphics.Effects;
 
 namespace Raven.Graphics {
-    [GuidManagedClass]
+    [GuidManaged]
     public partial class GBuffer {
         public static partial class Manager {
             public static string ListAllBuffers {
@@ -64,6 +64,8 @@ namespace Raven.Graphics {
             public static void DrawAllScreenBuffers() {
                 State.graphics_device.SetRenderTarget(null);
                 Draw2D.end();
+                
+                //Automatically draw all GBuffers which have draw_to_screen enabled, using their screen_draw_info
                 foreach (var gbuffer in gbuffers.Values
                              .Where(buffer => buffer.draw_to_screen)
                              .OrderBy(buffer => buffer._screen_draw_info.layer)) {

@@ -71,7 +71,7 @@ namespace Raven.Engine.Controls {
         public int times_bind_pressed(string bind) => digital_binds.bind_buttons_pressed(bind);
 
         public void add_bind_digital(Keys button, params string[] binds) => digital_binds.add_bind(button, binds);
-        public void add_bind_digital(Input.MouseButtons button, params string[] binds) => digital_binds.add_bind(button, binds);
+        public void add_bind_digital(MouseWatcher.MouseButtons button, params string[] binds) => digital_binds.add_bind(button, binds);
         public void add_bind_digital(Input.XInputButtons button, params string[] binds) => digital_binds.add_bind(button, binds);
         #endregion
 
@@ -122,7 +122,7 @@ namespace Raven.Engine.Controls {
                                 add_bind_digital((Input.XInputButtons)param.bind_data, param.bind);
                                 break;
                             case controller_type.mouse:
-                                add_bind_digital((Input.MouseButtons)param.bind_data, param.bind);
+                                add_bind_digital((MouseWatcher.MouseButtons)param.bind_data, param.bind);
                                 break;
                         }
                         break;
@@ -633,8 +633,8 @@ namespace Raven.Engine.Controls {
 
         public string button_string => button.ToString();
 
-        public Input.MouseButtons button => _button;
-        Input.MouseButtons _button = Input.MouseButtons.Left;
+        public MouseWatcher.MouseButtons button => _button;
+        MouseWatcher.MouseButtons _button = MouseWatcher.MouseButtons.Left;
 
         public bool[] recent_state => _recent_state;
         bool[] _recent_state;
@@ -644,7 +644,7 @@ namespace Raven.Engine.Controls {
 
         public bool force_enable { get; set; } = false;
 
-        public MouseButtonBind(DigitalBinds parent, Input.MouseButtons button, string[] binds) {
+        public MouseButtonBind(DigitalBinds parent, MouseWatcher.MouseButtons button, string[] binds) {
             this.parent = parent;
             this.binds.AddRange(binds);
             _button = button;
@@ -734,7 +734,7 @@ namespace Raven.Engine.Controls {
                         add_bind((Input.XInputButtons)bd.button, bd.binds);
                         break;
                     case controller_type.mouse:
-                        add_bind((Input.MouseButtons)bd.button, bd.binds);
+                        add_bind((MouseWatcher.MouseButtons)bd.button, bd.binds);
                         break;
                 }
             }
@@ -772,7 +772,7 @@ namespace Raven.Engine.Controls {
 
         }
 
-        public void add_bind(Input.MouseButtons button, params string[] binds) {
+        public void add_bind(MouseWatcher.MouseButtons button, params string[] binds) {
             foreach (IDigitalBind b in _binds) {
                 if (b.bind_type != controller_type.mouse) continue;
                 var cb = ((MouseButtonBind)b);

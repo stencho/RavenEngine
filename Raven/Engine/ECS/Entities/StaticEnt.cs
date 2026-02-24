@@ -6,6 +6,7 @@ using Raven.Graphics.Drawing3D;
 namespace Raven.Engine;
 
 public partial class StaticModelEntity : Entity {
+    
     public StaticModelEntity() {}
     
     public void Initialized() {

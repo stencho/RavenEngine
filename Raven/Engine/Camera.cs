@@ -3,20 +3,21 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Raven.Engine.Worlds;
 using Raven.Graphics;
+using Raven.Graphics.Drawing2D;
 using Raven.Graphics.Drawing3D;
 
 namespace Raven.Engine {
-    [GuidManagedClass]
+    [GuidManaged]
     public partial class Camera {
         public static partial class Manager {
-            
             public static string ListAllCameras {
                 get {
                     string output = "[Cameras]\n";
                     foreach (var camera in cameras) {
                         output += $"  [{camera.Value.ManagedGuid}]\n";
-                        output += $"   | position > {camera.Value.position.ToXString()}\n";
+                        output += $"   | position > {camera.Value.current_camera_chunk.index.ToXString()} {camera.Value.position.ToXString()}\n";
                         output += $"   | forward > {camera.Value.orientation.Forward.ToXString()}\n";
                         output += $"   | GBuffer > {(camera.Value.ManagedGBufferGuid != Guid.Empty ? camera.Value.ManagedGBufferGuid.ToString() : "")}\n";
                         output += "\n";
@@ -42,7 +43,8 @@ namespace Raven.Engine {
                         camera.gbuffer.Draw3DLayer?.Invoke();
                         Renderer.draw_lighting(camera, camera.gbuffer);
                         State.graphics_device.SetRenderTarget(camera.gbuffer.rt_2D);
-                        camera.gbuffer.Draw2DLayer();
+                        AutoRender2D.Manager.RenderAll();
+                        camera.gbuffer.Draw2DLayer?.Invoke();
                         camera.gbuffer.Compose(camera);
                     }
                 }
