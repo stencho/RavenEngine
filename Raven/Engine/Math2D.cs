@@ -121,6 +121,10 @@ namespace Raven.Engine {
             return false;
         }
 
+        public static bool point_within_square(Rectangle rect, Vector2i point) =>
+            (point.X > rect.Left && point.X < rect.Right && point.Y > rect.Top && point.Y < rect.Bottom); 
+        
+
         public static bool point_within_square(Vector2 min, Vector2 max, Vector2i point) {
             if (point.X > min.X && point.X < max.X && point.Y > min.Y && point.Y < max.Y) return true;
             return false;

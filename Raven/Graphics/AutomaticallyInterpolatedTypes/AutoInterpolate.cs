@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Raven.Graphics.InterpolatedTypes;
 
-public enum InterpolationType { Loop, Bounce, Once, OnceEvery }
+public enum InterpolationType { Loop, Bounce, Once, OnceEvery, OnceEveryRandom }
 public enum InterpolationThread { Render, EntityUpdate } 
 
 

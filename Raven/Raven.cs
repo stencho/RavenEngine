@@ -39,7 +39,7 @@ public class RavenGame : Game {
             Exit();
         }
         
-        State.Update(gameTime);
+        State.UpdateGraphics(gameTime);
         
         base.Update(gameTime);
     }

@@ -18,8 +18,8 @@ public class PickerRaycast {
         gjk_crosshair_ray.B = camera.direction;
 
         //mouse picker stuff
-        Vector3 n = new Vector3(State.input_main_thread.mouse_position.X, State.input_main_thread.mouse_position.Y, 0);
-        Vector3 f = new Vector3(State.input_main_thread.mouse_position.X, State.input_main_thread.mouse_position.Y, 1);
+        Vector3 n = new Vector3(MouseWatcher.Manager.Position.X, MouseWatcher.Manager.Position.Y, 0);
+        Vector3 f = new Vector3(MouseWatcher.Manager.Position.X, MouseWatcher.Manager.Position.Y, 1);
 
         Vector3 near = State.viewport.Unproject(n, camera.projection, camera.view, Matrix.Identity);
         Vector3 far = State.viewport.Unproject(f, camera.projection, camera.view, Matrix.Identity);

@@ -144,7 +144,7 @@ namespace Raven.UI  {
                     defocus_all_windows();
                     windows.BringToFront(console);
                     force_focus(console);
-                    ControlBinds.global_enable = false;
+                    BindWatcher.global_enable = false;
                     return;
                 }
 
@@ -153,9 +153,9 @@ namespace Raven.UI  {
                 if (console.visible) {
                     windows.BringToFront(console);
                     force_focus(console);
-                    ControlBinds.global_enable = false;
+                    BindWatcher.global_enable = false;
                 } else {
-                    ControlBinds.global_enable = true;
+                    BindWatcher.global_enable = true;
                     defocus_all_windows();
                 }
             }
@@ -165,7 +165,7 @@ namespace Raven.UI  {
                     defocus_all_windows();
                     windows.BringToFront(inspector);
                     force_focus(inspector);
-                    ControlBinds.global_enable = false;
+                    BindWatcher.global_enable = false;
                 }
                 
                 inspector.toggle_visibility();
@@ -173,9 +173,9 @@ namespace Raven.UI  {
                 if (inspector.visible) {
                     windows.BringToFront(inspector);
                     force_focus(inspector);
-                    ControlBinds.global_enable = false;
+                    BindWatcher.global_enable = false;
                 } else {
-                    ControlBinds.global_enable = true;
+                    BindWatcher.global_enable = true;
                     defocus_all_windows();
                 }
             }
@@ -244,9 +244,9 @@ namespace Raven.UI  {
                             windows[i].subforms[i1].top_of_mouse_stack = false;
                         }
                     }
-                    ControlBinds.global_enable = true;
+                    BindWatcher.global_enable = true;
                 } else {
-                    ControlBinds.global_enable = false;
+                    BindWatcher.global_enable = false;
                 }
             }
 

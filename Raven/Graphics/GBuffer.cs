@@ -29,24 +29,6 @@ namespace Raven.Graphics {
                 }
             }
 
-            public static void PrepareAllBuffers(Camera camera) {
-                foreach (var gbuffer in gbuffers.Values) {
-                    gbuffer.RenderUniverse(camera);
-                }
-            }
-            
-            public static void DrawAll3DLayers(Camera camera) {
-                foreach (var gbuffer in gbuffers.Values) {
-                    gbuffer.Draw3DLayer?.Invoke();
-                }
-            }
-            
-            public static void DrawAll2DLayers() {
-                foreach (var gbuffer in gbuffers.Values) {
-                    gbuffer.Draw2DLayer?.Invoke();
-                }
-            }
-
             public static void ClearAll2DLayers() {
                 foreach (var gbuffer in gbuffers.Values) {
                     State.graphics_device.SetRenderTarget(gbuffer.rt_2D);
@@ -55,10 +37,13 @@ namespace Raven.Graphics {
                 }
             }
 
-            public static void ComposeAllLayers(Camera camera) {
-                foreach (var gbuffer in gbuffers.Values) {
-                    gbuffer.Compose(camera);
-                }
+            private static Guid gbuffer_ui_draw;
+            public static void SelectGBufferForUI(Guid buffer_id) => gbuffer_ui_draw = buffer_id;
+            public static void SelectGBufferForUI(GBuffer buffer) => gbuffer_ui_draw = buffer.managed_guid;
+
+            public static void DrawUIToSelectedGBuffer() {
+                State.graphics_device.SetRenderTarget(gbuffers[gbuffer_ui_draw].rt_2D);
+                State.UI.draw();
             }
             
             public static void DrawAllScreenBuffers() {
@@ -116,18 +101,19 @@ namespace Raven.Graphics {
 
         public bool DrawToScreen => draw_to_screen;
 
-        public void EnableScreenDrawFullscreen(int layer = -1) {
+        public void enable_screen_draw_fullscreen(int layer = -1) {
             _screen_draw_info = new ScreenDrawInfo();
             _screen_draw_info.layer = layer;
             draw_to_screen = true;
         }
-        public void EnableScreenDraw(Vector2i position, Vector2i size, int layer = -1) {
+        public void enable_screen_draw(Vector2i position, Vector2i size, int layer = -1) {
             _screen_draw_info = new ScreenDrawInfo(position, size, layer);
             draw_to_screen = true;
         }
 
         public Action Draw3DLayer;
         public Action Draw2DLayer;
+        public Action Draw2DLayerOverUI;
         
         public ManagedRT2D rt_diffuse;
         public RenderTarget2D rt_normal;
@@ -191,6 +177,10 @@ namespace Raven.Graphics {
             Manager.Remove(managed_guid);
         }
 
+        public void draw_UI_to_this_buffer() {
+            Manager.SelectGBufferForUI(managed_guid);
+        }
+        
         public void change_resolution(Vector2i res) {
             _width = res.X;
             _height = res.Y;
@@ -228,13 +218,15 @@ namespace Raven.Graphics {
             camera.update_projection(resolution);
             camera.update();
             
+            
+            
             Renderer.create_visibility_lists(camera);
         
             Renderer.build_lighting(camera, this);
         
             Renderer.clear_to_skybox(camera, this);
             
-            State.universe.RenderUniverse(camera, this);
+            State.CurrentScene.Render(camera, this);
         }
 
         public void flip_diffuse() {

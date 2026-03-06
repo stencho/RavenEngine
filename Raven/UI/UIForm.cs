@@ -156,12 +156,12 @@ namespace Raven.UI {
 
             var mo = test_mouse();
 
-            mdown = State.input_main_thread.is_pressed(MouseWatcher.MouseButtons.Left);
+            mdown = State.engine_binds.Mouse.is_pressed(MouseWatcher.MouseButtons.Left);
            // mo = Math2D.AABB_test(mouse_position.X, mouse_position.Y, parent_top_left.X + X, parent_top_left.Y + Y, width, height);
             if (mo && (top_of_mouse_stack && is_child)) {
                 current_flags = button_mouse_status.mouse_over;
 
-                if (State.input_main_thread.is_pressed(MouseWatcher.MouseButtons.Left)) {
+                if (State.engine_binds.Mouse.is_pressed(MouseWatcher.MouseButtons.Left)) {
                     current_flags = button_mouse_status.mouse_over | button_mouse_status.mouse_down;
                 }
 
@@ -178,7 +178,7 @@ namespace Raven.UI {
                 if (molerp > 0) molerp -= 0.05f;
                 else if (molerp < 0) molerp = 0;
 
-                if (State.input_main_thread.is_pressed(MouseWatcher.MouseButtons.Left)) {
+                if (State.engine_binds.Mouse.is_pressed(MouseWatcher.MouseButtons.Left)) {
                     current_flags = button_mouse_status.mouse_down;
                 } else {
                     current_flags = button_mouse_status.none;

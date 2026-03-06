@@ -143,8 +143,8 @@ namespace Raven.Console {
         int mouse_clicked_on_index = -1;
         bool only_moving_cursor => mouse_over_index != mouse_clicked_on_index;
 
-        bool shift => State.input_main_thread.is_pressed(Keys.LeftShift) || State.input_main_thread.is_pressed(Keys.RightShift);
-        bool ctrl => State.input_main_thread.is_pressed(Keys.LeftControl) || State.input_main_thread.is_pressed(Keys.RightControl);
+        bool shift => State.engine_binds.Keyboard.is_pressed(Keys.LeftShift) || State.engine_binds.Keyboard.is_pressed(Keys.RightShift);
+        bool ctrl => State.engine_binds.Keyboard.is_pressed(Keys.LeftControl) || State.engine_binds.Keyboard.is_pressed(Keys.RightControl);
         /// <summary>
         /// creates a single line console text and input handler
         /// </summary>
@@ -856,14 +856,14 @@ namespace Raven.Console {
         /// <param name="check_keys">Disables all key entry</param>
         public void update(bool check_keys, Vector2i parent_top_left) {
             // setup
-            var ks_k = State.input_main_thread.keyboard_state.GetPressedKeys();
-            var pks_k = State.input_main_thread.keyboard_state_prev.GetPressedKeys();
+            var ks_k = State.engine_binds.Keyboard.pressed_keys;
+            var pks_k = State.engine_binds.Keyboard.pressed_keys_previous;
 
             // mouse
 
             // mouse over the text input
-            if (Math2D.AABB_test(State.input_main_thread.mouse_position.X, State.input_main_thread.mouse_position.Y, parent_top_left.X + X, parent_top_left.Y + Y, width, height)) {
-                mouse_over_index = ((State.input_main_thread.mouse_position.X - parent_top_left.X - X)) / font_width;
+            if (Math2D.AABB_test(MouseWatcher.Manager.Position.X, MouseWatcher.Manager.Position.Y, parent_top_left.X + X, parent_top_left.Y + Y, width, height)) {
+                mouse_over_index = ((MouseWatcher.Manager.Position.X - parent_top_left.X - X)) / font_width;
                 mouse_over_index += view_left;
 
             } else {
@@ -922,7 +922,7 @@ namespace Raven.Console {
             if (check_keys) {
                 //reset any keys released this frame
                 foreach (Keys pk in pks_k) {
-                    if (State.input_main_thread.just_released(pk))
+                    if (State.engine_binds.Keyboard.just_released(pk))
                         reset_key_state(pk);
                 }
 
@@ -969,7 +969,7 @@ namespace Raven.Console {
                 // this is where we set keys to be pressed
                 // if check keys is turned on, the key was only just pressed, there is an available key_state slot
                 // then we set the first available slot up with a fresh key state
-                if (check_keys && State.input_main_thread.just_pressed(k)) {
+                if (check_keys && State.engine_binds.Keyboard.just_pressed(k)) {
                     if (first_available_key_state() != -1)
                         key_states[first_available_key_state()] = (k, true, DateTime.Now, 0, key_repeat_time);
                 }
@@ -997,7 +997,7 @@ namespace Raven.Console {
 
             // set up state for previous frame comparisons
 
-            pks_k = State.input_main_thread.keyboard_state_prev.GetPressedKeys();
+            pks_k = State.engine_binds.Keyboard.pressed_keys_previous;
             mouse.ResetMouseDelta();
         }
 #endregion

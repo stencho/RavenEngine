@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
+using Raven.Console;
 using Raven.Engine;
 using Raven.Engine.Collision;
 using Raven.Engine.Collision.Shapes2D;
@@ -144,6 +146,7 @@ namespace Raven.UI {
         Vector2i parent_pos => parent_form.position;
 
         public virtual void update() {
+            
             test_mouse();
 
             if (is_child) {
@@ -162,9 +165,9 @@ namespace Raven.UI {
                     bottom_right + parent_form.client_top_left + (Vector2i.One * (resize_handle_thickness / 2)).ToVector2());
 
 
-                mdown = mouse.is_pressed(MouseWatcher.MouseButtons.Left) && State.is_active && State.input_main_thread.mouse_in_bounds;
-
-                _mouse_coll_obj_child = new Circle2D(State.input_main_thread.mouse_position_float, 1f);
+                mdown = mouse.is_pressed(MouseWatcher.MouseButtons.Left) ;
+                
+                _mouse_coll_obj_child = new Circle2D(MouseWatcher.Manager.Position.ToVector2(), 1f);
 
 
                 _resize_handle_R_mo = Collision2D.GJK2D.test_shapes_simple(_collision["resize_handle_R"], _mouse_coll_obj_child, out _);
@@ -186,7 +189,7 @@ namespace Raven.UI {
                     bottom_right + (Vector2i.One * (resize_handle_thickness / 2)).ToVector2());
 
 
-                mdown = mouse.is_pressed(MouseWatcher.MouseButtons.Left) && State.is_active && State.input_main_thread.mouse_in_bounds;
+                mdown = mouse.is_pressed(MouseWatcher.MouseButtons.Left) && State.is_active && MouseWatcher.Manager.mouse_in_bounds;
 
                 _resize_handle_R_mo = Collision2D.GJK2D.test_shapes_simple(_collision["resize_handle_R"], MouseWatcher.Manager.MouseCollisionObject, out _);
                 _resize_handle_B_mo = Collision2D.GJK2D.test_shapes_simple(_collision["resize_handle_B"], MouseWatcher.Manager.MouseCollisionObject, out _);
@@ -303,7 +306,8 @@ namespace Raven.UI {
                 subforms[i].update();
             }
 
-            last_mouse_pos = State.input_main_thread.mouse_position;
+            last_mouse_pos = MouseWatcher.Manager.Position;
+            
             mdown_p = mdown;
 
             if (_render_targets_need_resize) {

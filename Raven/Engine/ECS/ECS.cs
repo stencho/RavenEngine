@@ -15,12 +15,14 @@ namespace Raven.Engine;
 #region ENTITIES
 public interface Entity {
     public string name { get; set; }
+    public Guid GUID { get; }
     
-    public Universe parent_universe { get; set; }
-    public Chunk parent_chunk { get; set; }
-    public ChunkPosition position { get;  }
+    public ObjectPosition position { get; }
+    public void SetPosition(Vector3 position);
     
     public ComponentManager Components { get; set; }
+    
+    public Scene parent_scene { get; set; }
     
     public void Initialize();
     public void Initialized();
@@ -29,8 +31,6 @@ public interface Entity {
     public void AfterCollision();
     public void UpdateGraphics();
     public void UpdateInterpolatedPosition();
-
-    public void SetPosition(ChunkPosition position);
 }
 
 #endregion

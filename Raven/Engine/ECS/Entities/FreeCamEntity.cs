@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using Raven.Console;
 using Raven.Engine.Worlds;
 using Raven.Engine;
@@ -13,21 +15,34 @@ using Raven.Graphics.Drawing3D;
 namespace Raven.Engine.Entities;
 
 public partial class FreeCamEntity : Entity {
-    private ControlBinds binds => parent_universe.binds;
-    private Input input => parent_universe.input;
-    
     public GBufferCamera gbuffer_camera;
     
     private static double camera_x_rot = 0.0;
     private static double camera_y_rot = 0.0;
-
-    private MouseWatcher mouse;
     
+    private BindWatcher binds;
+
+    internal static (string bind, object[] bind_data)[]
+        bind_list = [
+            ("forward", [Keys.W]),
+            ("left", [Keys.A]),
+            ("right", [Keys.D]),
+            ("backward", [Keys.S]),
+            ("up", [Keys.Space]),
+            ("down", [Keys.C]),
+            
+            ("shift", [Keys.LeftShift]),
+            ("ctrl", [Keys.LeftControl]),
+            
+            ("click", [MouseWatcher.MouseButtons.Left]),
+            ("click_right", [MouseWatcher.MouseButtons.Right]),
+        ];
     public FreeCamEntity() {
         gbuffer_camera = new GBufferCamera(this, State.resolution, State.super_res_scale);
         
         Components.AddComponent(this, gbuffer_camera);
-        mouse = new MouseWatcher();
+        
+        binds = new BindWatcher(bind_list);
     }
 
     public void Initialized() {}
@@ -48,6 +63,7 @@ public partial class FreeCamEntity : Entity {
     }
     
     public void Update() {
+        binds.Update();
         var camera = Components.GetFirst<GBufferCamera>().camera;
         
         Vector3 movement = Vector3.Zero;
@@ -58,20 +74,16 @@ public partial class FreeCamEntity : Entity {
         if (binds.pressed("up")) movement += Vector3.Up;
         if (binds.pressed("down")) movement += Vector3.Down;
         
-        velocity = Vector3.LerpPrecise(velocity, Vector3.Zero, 10f * (float)Clock.update_thread_delta);
-
-        if (binds.pressed("click")) {
-            Log.log($"Resetting from: {position.index.ToXString()}:{position.offset.ToXString()}");
-            velocity = Vector3.Zero;
-            position.offset = Vector3.Zero;
-        }
+        velocity = Vector3.LerpPrecise(velocity, Vector3.Zero, 10f * (float)DELTA);
         
         if (movement != Vector3.Zero) {
             movement = Vector3.Normalize(movement);
-            velocity += movement * (accel * (binds.pressed("shift") ? 15f : 2f) * (binds.pressed("ctrl") ? 25f : 2f) * (float)Clock.update_thread_delta);
+            velocity += movement * (accel * (binds.pressed("shift") ? 15f : 2f) * (binds.pressed("ctrl") ? 25f : 2f) * (float)DELTA);
         } 
         
         MoveAndSlide(velocity);
+        
+        binds.UpdateEnd();
     }
 
     public void AfterCollision() {
@@ -79,15 +91,15 @@ public partial class FreeCamEntity : Entity {
 
     public void UpdateGraphics() {
         var camera = Components.GetFirst<GBufferCamera>().camera;
-        if (mouse.is_pressed(MouseWatcher.MouseButtons.Right)) {
+        if (binds.Mouse.is_pressed(MouseWatcher.MouseButtons.Right)) {
             MouseWatcher.Manager.MouseLock = true;
             float ar_h = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height /
                          (float)GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
             float ar_w = (float)GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width /
                          (float)GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
 
-            camera_x_rot += ((mouse.MouseDeltaF.Y / (GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height)));
-            camera_y_rot += ((mouse.MouseDeltaF.X / (GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width)) * ar_w);
+            camera_y_rot += ((binds.Mouse.MouseDeltaF.X / (GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width)) * ar_w);
+            camera_x_rot += ((binds.Mouse.MouseDeltaF.Y / (GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height)));
             if (camera_x_rot > 1f)  camera_x_rot = 1f; if (camera_x_rot < -1f) camera_x_rot = -1f;
             camera_y_rot = WrapSymmetric(camera_y_rot, Math.PI);
             
@@ -97,6 +109,5 @@ public partial class FreeCamEntity : Entity {
             MouseWatcher.Manager.MouseLock = false;
         }
         
-        mouse.ResetMouseDelta();
     }
 }

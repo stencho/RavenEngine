@@ -14,7 +14,7 @@ public partial class GBufferCamera : Component {
                 if (gbc.parent == null) continue;
                 gbc.camera_position.parent = gbc.parent.position;
                 gbc.camera_position.Update();
-                gbc.camera.position = gbc.camera.linked_chunk_position.child.offset_interpolated;
+                gbc.camera.position = gbc.camera.LinkedObjectPosition.child.position_interpolated;
             }
         }
     }
@@ -24,7 +24,7 @@ public partial class GBufferCamera : Component {
 
     private Vector2i _resolution = -Vector2i.One;
 
-    private LinkedChunkPosition camera_position = new LinkedChunkPosition();
+    private LinkedObjectPosition camera_position = new LinkedObjectPosition();
     
     public float resolution_scale {
         get { return buffer.resolution_scale; }
@@ -75,7 +75,7 @@ public partial class GBufferCamera : Component {
         camera.enable_gbuffer(resolution.X, resolution.Y, res_scale);
 
         camera_position.parent = parent.position;
-        camera.linked_chunk_position = camera_position;
+        camera.LinkedObjectPosition = camera_position;
         
         if (resolution == -Vector2i.One)
             camera.gbuffer.CreateInPlace(State.graphics.PreferredBackBufferWidth, State.graphics.PreferredBackBufferHeight, res_scale);    

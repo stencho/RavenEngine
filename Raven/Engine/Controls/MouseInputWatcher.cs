@@ -26,6 +26,7 @@ public partial class MouseWatcher {
         public static Vector2 MouseDeltaF => mouse_delta.ToVector2();
         
         public static Vector2i Position => new Vector2i(mouse_state.X, mouse_state.Y);
+        public static bool mouse_in_bounds => Math2D.point_within_square(Vector2i.Zero, State.window.ClientBounds.Size.ToVector2i(), Position);
         
         public static bool show_mouse_cursor { get; set; } = false;
         
@@ -44,7 +45,7 @@ public partial class MouseWatcher {
             _mouse_coll_obj = new Circle2D(Position.ToVector2(), 1f);
         }
         
-        public static void UpdateDeltas() {
+        private static void UpdateDeltas() {
             mouse_state_prev = mouse_state;
             mouse_state = Mouse.GetState();
             
@@ -85,7 +86,7 @@ public partial class MouseWatcher {
             }
 
             mousewatchers.ForEach(mf => 
-                mf.UpdateDeltas(mouse_delta));
+                mf.UpdateDeltas(mouse_delta, mouse_state.ScrollWheelValue - mouse_state_prev.ScrollWheelValue));
             
             _mouse_coll_obj.SetPosition(Position.ToVector2());
         }
@@ -105,9 +106,10 @@ public partial class MouseWatcher {
     public Vector2i MouseDelta => mouse_delta;
     public Vector2 MouseDeltaF => mouse_delta.ToVector2();
     
-    public int wheel_value = 0;
-    public int wheel_delta = 0;
-    private int old_delta = 0;
+    private int mouse_wheel_delta = 0;
+    private int mouse_wheel_delta_previous = 0;
+    
+    public int MouseWheelDelta => mouse_wheel_delta;
     
     public MouseWatcher() => Manager.Add(this);
     ~MouseWatcher() => Manager.Remove(this);
@@ -115,25 +117,25 @@ public partial class MouseWatcher {
     private MouseState mouse_state_current;
     private MouseState mouse_state_previous;
 
-    internal void UpdateDeltas(Vector2i delta) {
+    public Vector2i MouseDeltaLastUpdate = Vector2i.Zero;
+    
+    internal void UpdateDeltas(Vector2i delta, int mouse_wheel_delta) {
         mouse_state_current = Manager.MouseState;
 
         mouse_delta += delta;
-
-        old_delta = wheel_delta;
-        wheel_delta = mouse_state_current.ScrollWheelValue - wheel_value;
-        wheel_value = mouse_state_current.ScrollWheelValue;
+        this.mouse_wheel_delta += mouse_wheel_delta;
     }
 
     public void ResetMouseDelta() {
-        wheel_delta = 0;
-        wheel_value = 0;
+        MouseDeltaLastUpdate = mouse_delta;
+        mouse_wheel_delta_previous = mouse_wheel_delta;
+        mouse_wheel_delta = 0;
         mouse_delta = Vector2i.Zero;
         mouse_state_previous = mouse_state_current;
     }
     
     public bool is_pressed(MouseButtons mb) {
-        if (!State.is_active) return false;
+        if (!State.is_active || !Manager.mouse_in_bounds) return false;
         switch (mb) {
             case MouseButtons.Left:
                 return mouse_state_current.LeftButton == ButtonState.Pressed;
@@ -151,14 +153,15 @@ public partial class MouseWatcher {
                 return mouse_state_current.XButton2 == ButtonState.Pressed;
 
             case MouseButtons.ScrollUp:
-                return wheel_delta > 0;
+                return mouse_wheel_delta > 0;
 
             case MouseButtons.ScrollDown:
-                return wheel_delta < 0;
+                return mouse_wheel_delta < 0;
 
             default: return false;
         }
     }
+    
     public bool was_pressed(MouseButtons mb) {
         switch (mb) {
             case MouseButtons.Left:
@@ -177,10 +180,10 @@ public partial class MouseWatcher {
                 return mouse_state_previous.XButton2 == ButtonState.Pressed;
 
             case MouseButtons.ScrollUp:
-                return old_delta > 0;
+                return mouse_wheel_delta_previous > 0;
 
             case MouseButtons.ScrollDown:
-                return old_delta < 0;
+                return mouse_wheel_delta_previous < 0;
 
             default: return false;
         }
@@ -190,5 +193,19 @@ public partial class MouseWatcher {
     }
     public bool just_released(MouseButtons mb) {
         return !is_pressed(mb) && was_pressed(mb);
+    }
+    
+    public string state_info() {
+        string s = $"[MOUSE]\nbuttons :: ";
+        var c = false;
+        foreach (var mb in Enum.GetValues(typeof(MouseButtons))) {
+            if (is_pressed((MouseButtons)mb)) {
+                if (c) s += ", "; else c = true;
+                s += Enum.GetName(typeof(MouseButtons), mb);
+            }
+        }
+
+        s += $"\ndelta :: {MouseDeltaLastUpdate.ToXString()}";
+        return s + "\n\n";
     }
 }

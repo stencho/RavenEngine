@@ -17,19 +17,6 @@
         <None Remove="Icon.ico" />
         <None Remove="Icon.bmp" />
         <None Remove="Content\Effects\**" />
-        <None Remove="Content\Shaders\clear.fx" />
-        <None Remove="Content\Shaders\compositor.fx" />
-        <None Remove="Content\Shaders\directionallight.fx" />
-        <None Remove="Content\Shaders\exp_light_depth.fx" />
-        <None Remove="Content\Shaders\fill_gbuffer.fx" />
-        <None Remove="Content\Shaders\light_depth.fx" />
-        <None Remove="Content\Shaders\particle.fx" />
-        <None Remove="Content\Shaders\pointlight.fx" />
-        <None Remove="Content\Shaders\sdf_pixel.fx" />
-        <None Remove="Content\Shaders\skybox.fx" />
-        <None Remove="Content\Shaders\spotlight.fx" />
-        <None Remove="Content\Shaders\terrain.fx" />
-        <None Remove="Content\Shaders\texture_effects.fx" />
         <None Remove="Engine\Collision\Solver\**" />
     </ItemGroup>
     <ItemGroup>
@@ -56,21 +43,8 @@
       <Compile Remove="Content\Effects\**" />
       <Compile Remove="Graphics\Drawing3D\render_info.cs" />
       <Compile Remove="Engine\Collision\Solver\**" />
-    </ItemGroup>
-    <ItemGroup>
-      <ClCompile Include="Content\Shaders\clear.fx" />
-      <ClCompile Include="Content\Shaders\compositor.fx" />
-      <ClCompile Include="Content\Shaders\directionallight.fx" />
-      <ClCompile Include="Content\Shaders\exp_light_depth.fx" />
-      <ClCompile Include="Content\Shaders\fill_gbuffer.fx" />
-      <ClCompile Include="Content\Shaders\light_depth.fx" />
-      <ClCompile Include="Content\Shaders\particle.fx" />
-      <ClCompile Include="Content\Shaders\pointlight.fx" />
-      <ClCompile Include="Content\Shaders\sdf_pixel.fx" />
-      <ClCompile Include="Content\Shaders\skybox.fx" />
-      <ClCompile Include="Content\Shaders\spotlight.fx" />
-      <ClCompile Include="Content\Shaders\terrain.fx" />
-      <ClCompile Include="Content\Shaders\texture_effects.fx" />
+      <Compile Remove="Engine\Worlds\Universes\Universe.cs" />
+      <Compile Remove="Engine\Controls\Bindings.cs" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\Raven.CodeGenerators\Raven.CodeGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"  />

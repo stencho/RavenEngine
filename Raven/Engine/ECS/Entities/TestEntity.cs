@@ -12,22 +12,20 @@ public partial class TestEntity : Entity {
         Components.AddComponent(this, new RenderModelStatic("cube", "smugdean"));
         speed = 2 + RNG.rng_float * 5;
         funny = 10 + RNG.rng_float * 40;
-        
     }
 
     public void Initialized() {
-        start = position.offset;
-        chunk_start = position.index;
+        start = position.XYZ;
     }
 
-    private Vector3ui128 chunk_start;
+    
     private Vector3 start = Vector3.Zero;
     private float funny = 0f;
     private float speed = 0f;
     private bool boing = false;
     
-    public void Update() {
-        if (ChunkPosition.MeasureAbsoluteDistance(chunk_start, start, position.index, position.offset, out _) > funny) {
+    public void Update() { 
+        if (Vector3.Distance(start, position.XYZ) > funny) {
             boing = !boing;
         }
             

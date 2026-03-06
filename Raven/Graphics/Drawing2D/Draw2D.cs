@@ -310,20 +310,20 @@ public static class Draw2D {
     public static void begin() {
         if (!sb_drawing) {
             //sb.Begin();
-            sb.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointWrap, null, null, null, null);
+            sb.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointWrap);
             sb_drawing = true;
         }
     }
 
     public static void begin(BlendState blend_state) {
         if (!sb_drawing) {
-            sb.Begin(SpriteSortMode.Immediate, blend_state, SamplerState.PointWrap, null, null, null, null);
+            sb.Begin(SpriteSortMode.Immediate, blend_state, SamplerState.PointWrap);
             sb_drawing = true;
         }
     }
     public static void begin(BlendState blend_state, SamplerState sampler_state) {
         if (!sb_drawing) {
-            sb.Begin(SpriteSortMode.Immediate, blend_state, sampler_state, null, null, null, null);
+            sb.Begin(SpriteSortMode.Immediate, blend_state, sampler_state);
             sb_drawing = true;
         }
     }

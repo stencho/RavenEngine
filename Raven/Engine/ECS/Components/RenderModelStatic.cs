@@ -21,7 +21,7 @@ namespace Raven.Engine.Components;
 
 public partial class RenderModelStatic : Component {
 
-    public Matrix WorldMatrix => Matrix.CreateScale(Scale) * Orientation * Matrix.CreateTranslation(parent.position.offset_interpolated + OffsetFromParent);
+    public Matrix WorldMatrix => Matrix.CreateScale(Scale) * Orientation * Matrix.CreateTranslation(parent.position.position_interpolated + OffsetFromParent);
     
     public Model Model => Resources.GetModel(ModelName);
     public Texture2D Texture => Resources.GetTexture(TextureName);
@@ -50,11 +50,9 @@ public partial class RenderModelStatic : Component {
         }
     }
 
-    public void DrawBasic(Camera camera, GBuffer buffer, Vector3 chunk_offset) {
-        Draw3D.batch_draw_setup(camera,buffer);
-        
+    public void DrawBasic(Camera camera, GBuffer buffer) {
         ForAllMeshParts((VertexBuffer VertexBuffer, IndexBuffer IndexBuffer) => {
-            Draw3D.batch_draw_diffuse_texture(camera, buffer,  VertexBuffer, IndexBuffer, Texture, Color.White, WorldMatrix * Matrix.CreateTranslation(chunk_offset));
+            Draw3D.batch_draw_diffuse_texture(camera, buffer,  VertexBuffer, IndexBuffer, Texture, Color.White, WorldMatrix);
         });
     }
 }

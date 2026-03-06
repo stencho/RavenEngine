@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Raven.Engine;
@@ -12,8 +13,8 @@ using static Raven.Engine.State;
 namespace Raven.Graphics.Drawing3D {
     public static class Renderer {
         static volatile List<light> visible_lights = new List<light>();
-        static volatile List<int> visible = new List<int>();
-        public static volatile List<(Vector3ui128 index, Vector3 offset)> VisibleChunks = new();
+        static volatile List<Entity> visible_entities = new List<Entity>();
+        
         public static volatile string VisibilityString = "";
         
         public class render_obj {
@@ -27,28 +28,12 @@ namespace Raven.Graphics.Drawing3D {
 
         public static void create_visibility_lists(Camera camera) {
             visible_lights.Clear();
-            visible.Clear();
-            VisibleChunks.Clear();
+            visible_entities.Clear();
             VisibilityString = "";
-            
-            var camera_chunk = camera.current_camera_chunk.index;
 
-            foreach (var c in universe.chunks.Cache) {
-                var dir = c.Value.item.position - camera_chunk;
-                var len = Vector3ui128.Distance(camera_chunk, c.Value.item.position);
-                
-                var to_chunk = (dir.ToVector3() * ((float)Chunk.base_chunk_size_per_direction) * 2f);
-                var chunk_aabb = new BoundingBox(to_chunk - (Vector3.One * (float)Chunk.base_chunk_size_per_direction), to_chunk + (Vector3.One * (float)Chunk.base_chunk_size_per_direction));
-                
-                if (len > 3) continue;
-
-                if (camera.frustum.Intersects(chunk_aabb)) {
-                    //VisibilityString += $"{(len == 0 ? ">" : "")}{dir.ToXString()} {len.ToString()} {to_chunk.ToXString()}\n";
-                    
-                    VisibleChunks.Add((c.Key, to_chunk));
-                }
+            foreach (var e in State.CurrentScene.entities.Values) {
+                visible_entities.Add(e);
             }
-
         }
 
         public static void clear_to_skybox(Camera camera, GBuffer gbuffer) {                
@@ -94,7 +79,7 @@ namespace Raven.Graphics.Drawing3D {
             e_gbuffer.Parameters["View"].SetValue(camera.view);
             e_gbuffer.Parameters["Projection"].SetValue(camera.projection);
 
-            foreach (var o in visible) {
+            foreach (var o in visible_entities.OrderByDescending(a => Vector3.Distance(camera.position, a.position.XYZ))) {
                 graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
                 graphics_device.BlendState = BlendState.NonPremultiplied;
                 graphics_device.BlendFactor = Color.Transparent;
@@ -267,25 +252,6 @@ namespace Raven.Graphics.Drawing3D {
         public static void compose() {
 
         }
-
-        
-
-        public static void render(Camera camera, GBuffer buffer) {
-            //clear_visible();            
-            create_visibility_lists(camera);
-
-            // update_lighting();
-            build_lighting(camera, buffer);
-
-            clear_to_skybox(camera, buffer);
-
-            draw_scene(camera, buffer);
-
-            draw_lighting(camera, buffer);
-
-            //compose(); //???????
-        }
-
 
     }
 }

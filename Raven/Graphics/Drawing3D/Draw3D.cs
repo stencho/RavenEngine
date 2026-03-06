@@ -433,7 +433,7 @@ namespace Raven.Graphics.Drawing3D;
             //State.e_gbuffer.Parameters["opacity"].SetValue(1f);
 
             State.graphics_device.BlendState = BlendState.AlphaBlend;
-            State.graphics_device.DepthStencilState = DepthStencilState.Default;
+//            State.graphics_device.DepthStencilState = DepthStencilState.Default;
             
             State.e_gbuffer.Parameters["DiffuseMap"].SetValue(texture);
             State.e_gbuffer.Parameters["tint"].SetValue(color.ToVector3());

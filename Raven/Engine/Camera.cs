@@ -17,7 +17,7 @@ namespace Raven.Engine {
                     string output = "[Cameras]\n";
                     foreach (var camera in cameras) {
                         output += $"  [{camera.Value.ManagedGuid}]\n";
-                        output += $"   | position > {camera.Value.current_camera_chunk.index.ToXString()} {camera.Value.position.ToXString()}\n";
+                        output += $"   | position > {camera.Value.current_camera_chunk?.XYZ.ToXString()} {camera.Value.position.ToXString()}\n";
                         output += $"   | forward > {camera.Value.orientation.Forward.ToXString()}\n";
                         output += $"   | GBuffer > {(camera.Value.ManagedGBufferGuid != Guid.Empty ? camera.Value.ManagedGBufferGuid.ToString() : "")}\n";
                         output += "\n";
@@ -45,6 +45,8 @@ namespace Raven.Engine {
                         State.graphics_device.SetRenderTarget(camera.gbuffer.rt_2D);
                         AutoRender2D.Manager.RenderAll();
                         camera.gbuffer.Draw2DLayer?.Invoke();
+                        GBuffer.Manager.DrawUIToSelectedGBuffer();
+                        camera.gbuffer.Draw2DLayerOverUI?.Invoke();
                         camera.gbuffer.Compose(camera);
                     }
                 }
@@ -92,8 +94,8 @@ namespace Raven.Engine {
 
         public Guid ManagedGBufferGuid => gbuffer.ManagedGuid;
 
-        public LinkedChunkPosition linked_chunk_position;
-        public ChunkPosition current_camera_chunk => linked_chunk_position.child;
+        public LinkedObjectPosition LinkedObjectPosition;
+        public ObjectPosition current_camera_chunk => LinkedObjectPosition.child;
         
         //public Mouse_Picker mouse_picker;
 

@@ -110,7 +110,6 @@ namespace Raven.Engine.Collision {
 
 
 
-            lock (sweep_points) {
                 var a = 0;
                 foreach (var v in sweep_points) {
                     //Draw3D.cube(v, Vector3.One, Color.Red, Matrix.Identity);
@@ -135,7 +134,7 @@ namespace Raven.Engine.Collision {
                         end_simplex.A_transform_direction * Matrix.CreateTranslation(sweep_points[sweep_points.Count - 1]));
 
 
-                }
+                
             }
         }
         */
