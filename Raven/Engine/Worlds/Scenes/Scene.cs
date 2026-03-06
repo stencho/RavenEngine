@@ -56,7 +56,7 @@ public partial class Scene {
 
         public static void UpdateGraphics() {
             foreach (Scene scene in scenes.Values) {
-                if (scene.always_update && scene.GUID != active_scene_id) {
+                if ((scene.always_update && scene.GUID != active_scene_id) || scene.GUID == active_scene_id) {
                     scene.UpdateGraphics();
                 }
             }

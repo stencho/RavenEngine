@@ -182,8 +182,7 @@ PSO MainPS(VertexShaderOutput input)
 	//output.Diffuse.a *= d;
 	
 	if (dist >= 0.999) { 
-		output.Lighting.a = 0;	
-		output.Diffuse.a = 0;
+		clip(-1);
 	}
 	//output.Diffuse.a = 1-fog_val;
 

@@ -41,10 +41,10 @@ public class BindWatcher {
     public void AddBind(string name, MouseWatcher.MouseButtons mouse_button) =>
         AddBind(new InputBinds.Bind(name, new InputBinds.MouseInput(mouse_button)));
     
-    public void AddBind(string name, Input.XInputButtons button) =>
+    public void AddBind(string name, XInputWatcher.XInputButtons button) =>
         AddBind(new InputBinds.Bind(name, new InputBinds.XInputInput(button)));
     
-    public void AddBind(string name, Input.XInputAxis axis) =>
+    public void AddBind(string name, XInputWatcher.XInputAxis axis) =>
         AddBind(new InputBinds.Bind(name, new InputBinds.XInputAnalogInput(axis)));
     
     public void AddMultipleBinds(params InputBinds.Bind[] binds) => binds.ForEach(AddBind);
@@ -63,10 +63,10 @@ public class BindWatcher {
                     case MouseWatcher.MouseButtons mouse_button:
                         AddBind(b.name, mouse_button);
                         break;
-                    case Input.XInputButtons xinput_button:
+                    case XInputWatcher.XInputButtons xinput_button:
                         AddBind(b.name, xinput_button);
                         break;
-                    case Input.XInputAxis xinput_axis:
+                    case XInputWatcher.XInputAxis xinput_axis:
                         AddBind(b.name, xinput_axis);
                         break;
                     default:
@@ -89,7 +89,7 @@ public class BindWatcher {
         foreach (var b in binds.Values) {
             //if (!b.released()) {
                 if (c) s += "\n"; else c = true;
-                s += $"[{b.Name}] -> ";
+                s += $"[{b.Name}] P:{b.pressed()} D:{b.DigitalState} A:{b.AnalogState} -> ";
                 var cc = false;
                 foreach (var i in b.Inputs) {
                     if (cc) s += " | "; else cc = true;
@@ -97,13 +97,21 @@ public class BindWatcher {
                         switch (i.InputType) {
                             case InputBinds.InputType.Keyboard:
                                 InputBinds.KeyInput k = i as InputBinds.KeyInput;
-                                s += $"[{k.Key}] {k.State.ToString()} {k.PressedForMs}";
+                                s += $"[{k.Key}] {Keyboard.is_pressed(k.Key)}";
                                 break;
                             case InputBinds.InputType.Mouse:
                                 var m = i as InputBinds.MouseInput;
-                                s += $"[{m.MouseButton}] {m.State.ToString()} {m.PressedForMs}";
+                                s += $"[{m.MouseButton}] {Mouse.is_pressed(m.MouseButton)}";
                                 break;
                             case InputBinds.InputType.XInput:
+                                
+                                if (i.BindType == InputBinds.BindType.Analog) {
+                                    var xi = i as InputBinds.XInputAnalogInput;     
+                                    s += $"[{xi.Axis}] IDK";
+                                } else {
+                                    var xi = i as InputBinds.XInputInput;
+                                    s += $"[{xi.Button}] IDK";
+                                }
                                 break;
                             default:
                                 throw new ArgumentOutOfRangeException();
@@ -121,46 +129,86 @@ public class BindWatcher {
     public void Update() {
         Keyboard.Update();
         
+        // go through each bind known to this bind watcher
         foreach (var bind in binds.Values) {
-            foreach (var d_bind in bind.Inputs) {
-                switch (d_bind.InputType) {
-                    case InputBinds.InputType.Keyboard:
-                        var k = d_bind as InputBinds.KeyInput;
-                        if (Keyboard.just_pressed(k.Key)) {
-                            (d_bind as InputBinds.KeyInput)?.press();
-                        } else if (Keyboard.just_released(k.Key)) {
-                            (d_bind as InputBinds.KeyInput)?.release();
-                        }
-                        break;
-                    case InputBinds.InputType.Mouse:
-                        var mb = d_bind as InputBinds.MouseInput;
-                        if (Mouse.just_pressed(mb.MouseButton)) {
-                            (d_bind as InputBinds.MouseInput)?.press();
-                        } else if (Mouse.just_released(mb.MouseButton)) {
-                            (d_bind as InputBinds.MouseInput)?.release();
-                        }
-                        break;
-                    
-                    case InputBinds.InputType.XInput:
-                        if (d_bind.BindType == InputBinds.BindType.Analog) {
-                            
-                        } else {
-                            
-                        }
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
+            // handle releasing digital state
+            if (bind.pressed()) {
+                // go through each of the inputs and check if any are pressed
+                // if they are, skip to the next bind as this one is still pressed 
+                foreach (var d_bind in bind.Inputs) {
+                    switch (d_bind.InputType) {
+                        case InputBinds.InputType.Keyboard:
+                            var k = d_bind as InputBinds.KeyInput;
+                            if (Keyboard.is_pressed(k.Key)) {
+                                goto next;
+                            }
+                            break;
+                        case InputBinds.InputType.Mouse:
+                            var mb = d_bind as InputBinds.MouseInput;
+                            if (Mouse.is_pressed(mb.MouseButton)) {
+                                goto next;
+                            }
+                            break;
+
+                        case InputBinds.InputType.XInput:
+                            if (d_bind.BindType == InputBinds.BindType.Analog) {
+
+                            } else {
+                                //TODO XInputWatcher
+                            }
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                }
+                
+                // made it through all inputs and none were pressed, so release the bind
+                bind.release();
+                bind.ActiveInput = null;
+                
+            // handle pressing digital state    
+            } else {
+                // go through each of the inputs and check if they have just been pressed
+                // if they have, press the bind
+                foreach (var d_bind in bind.Inputs) {
+                    switch (d_bind.InputType) {
+                        case InputBinds.InputType.Keyboard:
+                            var k = d_bind as InputBinds.KeyInput;
+                            if (Keyboard.just_pressed(k.Key)) {
+                                bind.press();
+                                bind.ActiveInput = d_bind;
+                                goto next;
+                            }
+                            break;
+                        case InputBinds.InputType.Mouse:
+                            var mb = d_bind as InputBinds.MouseInput;
+                            if (Mouse.just_pressed(mb.MouseButton)) {
+                                bind.press();
+                                bind.ActiveInput = d_bind;
+                                goto next;
+                            }
+                            break;
+
+                        case InputBinds.InputType.XInput:
+                            if (d_bind.BindType == InputBinds.BindType.Analog) {
+
+                            } else {
+                                //TODO XInputWatcher
+                            }
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
                 }
             }
+
+            next: continue;
         }
     }
     
     public void UpdateEnd() {
         foreach (var b in binds.Values) {
-            foreach (var input in b.Inputs) {
-                var bind = input as InputBinds.DigitalInput;
-                bind.end_of_update();
-            }
+            b.end_of_update();
         }
         Mouse.ResetMouseDelta();
         Keyboard.UpdateEnd();
@@ -215,6 +263,14 @@ public static class InputBinds {
         public List<IInput> Inputs { get; set; } = new();
 
         public bool AlwaysEnabled { get; set; } = false;
+
+        private PressedState digital_state = PressedState.Released;
+        public PressedState DigitalState => digital_state;
+
+        private float analog_state = 0f;
+        public float AnalogState => analog_state;
+        
+        public IInput ActiveInput { get; set; }
         
         public Bind(string name, IInput input) {
             Name = name; 
@@ -232,17 +288,8 @@ public static class InputBinds {
         }
 
         public bool pressed() {
-            foreach (var b in Inputs) {
-                if (b.BindType == BindType.Digital) {
-                    //DIGITAL
-                    var bind = b as DigitalInput;
-                    if (bind.State != PressedState.Released && bind.State != PressedState.JustReleased && bind.State != PressedState.Tapped)
-                        return true;
-                } else {
-                    //ANALOG
-                    //todo implement analog-to-digital here
-                }
-            }
+            if (digital_state != PressedState.Released && digital_state != PressedState.JustReleased && digital_state != PressedState.Tapped)
+                return true;
             return false;
         }
         
@@ -251,44 +298,63 @@ public static class InputBinds {
         }
 
         public bool just_pressed() {
-            foreach (var b in Inputs) {
-                if (b.BindType == BindType.Digital) {
-                    var bind = b as DigitalInput;
-                    if (bind.State == PressedState.JustPressed)
-                        return true;
-                } else {
-                    
-                }
-            }
+            if (digital_state == PressedState.JustPressed)
+                return true;
             return false;
         }
 
         public bool just_released() {
-            foreach (var b in Inputs) {
-                if (b.BindType == BindType.Digital) {
-                    var bind = b as DigitalInput;
-                    if (bind.State == PressedState.JustReleased)
-                        return true;
-                } else {
-                    
-                }
-            }
+            if (digital_state == PressedState.JustReleased)
+                return true;
             return false;
         }
 
         public float analog_value() {
-            foreach (var b in Inputs) {
-                if (b.BindType == BindType.Analog) {
-                    //ANALOG
-                    
-                } else {
-                    
-                }
-            }
-
             return 0f;
         }
         
+        private double pressed_at = 0;
+        public double PressedAt => pressed_at;
+        
+        public double PressedForMs => digital_state != PressedState.Released ? Clock.game_run_time_ms - pressed_at : 0;
+        
+        internal void press() {
+            pressed_at = Clock.game_run_time_ms;
+            digital_state = PressedState.JustPressed;
+            analog_state = 1f;
+        }
+        
+        internal void release() {
+            digital_state = PressedState.JustReleased;
+            analog_state = 0f;
+        }
+
+        internal void update() {
+            //analog_state = highest value from an analog input ig
+        }
+        
+        internal void end_of_update() {
+            if (digital_state == PressedState.Tapped) {
+                digital_state = PressedState.Released;
+            }
+            
+            if (digital_state == PressedState.Pressed) {
+                if (PressedForMs > gvars.get_int("bind_tap_time")) {
+                    digital_state = PressedState.Held;
+                }
+            } else if (digital_state == PressedState.JustReleased) {
+                if (PressedForMs < gvars.get_int("bind_tap_time")) {
+                    digital_state = PressedState.Tapped;
+                }
+                pressed_at = 0;
+            } else if (digital_state == PressedState.JustPressed) {
+                digital_state = PressedState.Pressed;
+            }
+
+            if (digital_state == PressedState.JustReleased) {
+                digital_state = PressedState.Released;
+            }
+        }
     }
 
     
@@ -301,59 +367,14 @@ public static class InputBinds {
         public InputType InputType { get; }
         public BindType BindType => BindType.Digital;
 
-        private double pressed_at = 0;
-        public double PressedAt => pressed_at;
-        
-        public double PressedForMs => state != PressedState.Released ? Clock.game_run_time_ms - pressed_at : 0;
-
-        private PressedState state = PressedState.Released;
-        public PressedState State => state;
-
         public DigitalInput(InputType input_type) {
             this.InputType = input_type;
-        }
-        
-        internal void press() {
-            pressed_at = Clock.game_run_time_ms;
-            state = PressedState.JustPressed;
-        }
-        
-        internal void release() {
-            state = PressedState.JustReleased;
-        }
-
-        public void end_of_update() {
-            if (state == PressedState.Tapped) {
-                state = PressedState.Released;
-            }
-            
-            if (state == PressedState.Pressed) {
-                if (PressedForMs > gvars.get_int("bind_tap_time")) {
-                    state = PressedState.Held;
-                }
-            } else if (state == PressedState.JustReleased) {
-                if (PressedForMs < gvars.get_int("bind_tap_time")) {
-                    state = PressedState.Tapped;
-                }
-                pressed_at = 0;
-            } else if (state == PressedState.JustPressed) {
-                state = PressedState.Pressed;
-            }
-
-            if (state == PressedState.JustReleased) {
-                state = PressedState.Released;
-            }
         }
     }
     
     public abstract class AnalogInput : IInput {
-        public InputType InputType { get; }
+        public InputType InputType => InputType.XInput;
         public BindType BindType => BindType.Analog;
-
-        private float value = 0f;
-        public float Value => value;
-        
-        internal void SetValue(float v) => value = v;
     }
     
     
@@ -367,8 +388,6 @@ public static class InputBinds {
         public KeyInput(Keys key) : base(InputType.Keyboard) {
             this.key = key;
         }
-        
-        
     }
 
     public class MouseInput : DigitalInput {
@@ -385,10 +404,10 @@ public static class InputBinds {
     public class XInputInput : DigitalInput {
         public InputType InputType => InputType.XInput;
 
-        private Input.XInputButtons button;
-        public Input.XInputButtons Button => button;
+        private XInputWatcher.XInputButtons button;
+        public XInputWatcher.XInputButtons Button => button;
         
-        public XInputInput(Input.XInputButtons button): base(InputType.XInput) {
+        public XInputInput(XInputWatcher.XInputButtons button): base(InputType.XInput) {
             this.button = button;
         }
     }
@@ -398,9 +417,10 @@ public static class InputBinds {
     public class XInputAnalogInput : AnalogInput {
         InputType InputType => InputType.XInput;
 
-        private Input.XInputAxis axis;
+        private XInputWatcher.XInputAxis axis;
+        public XInputWatcher.XInputAxis Axis => axis;
         
-        public XInputAnalogInput(Input.XInputAxis axis) {
+        public XInputAnalogInput(XInputWatcher.XInputAxis axis) {
             this.axis = axis;
         }
     }
