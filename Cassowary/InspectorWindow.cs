@@ -1,7 +1,8 @@
 using Raven.Console;
 using Raven.Engine;
+using Raven.UI;
 
-namespace Raven.UI.UniverseInspector;
+namespace Cassowary.UI;
 
 public class InspectorWindow : UIWindow {
     public InspectorWindow(IUIForm parent_form = null) : base(parent_form) {

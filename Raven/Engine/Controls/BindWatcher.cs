@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices.Marshalling;
 using CSScripting;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using Raven.Console;
 using Raven.Engine;
 using Raven.Engine.Controls;
 
@@ -13,6 +15,7 @@ namespace Raven.Engine.Controls;
 public class BindWatcher {
     public KeyboardWatcher Keyboard = new KeyboardWatcher();
     public MouseWatcher Mouse = new MouseWatcher();
+    public XInputWatcher XInput = new XInputWatcher();
     
     //TODO XINPUT WATCHER
     
@@ -127,7 +130,9 @@ public class BindWatcher {
     }
     
     public void Update() {
+        Mouse.UpdateDeltas();
         Keyboard.Update();
+        XInput.Update();
         
         // go through each bind known to this bind watcher
         foreach (var bind in binds.Values) {
@@ -210,7 +215,7 @@ public class BindWatcher {
         foreach (var b in binds.Values) {
             b.end_of_update();
         }
-        Mouse.ResetMouseDelta();
+        
         Keyboard.UpdateEnd();
     }
 
@@ -246,6 +251,40 @@ public class BindWatcher {
             return binds[bind_name].just_released();
         return false;
     }
+
+    public bool held(string bind_name) {
+        if (bind_enabled(bind_name)) return binds[bind_name].DigitalState == InputBinds.PressedState.Held;
+        return false;
+    }
+    
+    public bool double_pressed(string bind_name) {
+        if (bind_enabled(bind_name)) return binds[bind_name].DigitalState == InputBinds.PressedState.DoublePressed;
+        return false;
+    }
+    
+    public bool tapped(string bind_name) {
+        if (bind_enabled(bind_name)) return binds[bind_name].DigitalState == InputBinds.PressedState.Tapped;
+        return false;
+    }
+    
+    public bool double_tapped(string bind_name) {
+        if (bind_enabled(bind_name)) return binds[bind_name].DigitalState == InputBinds.PressedState.DoubleTapped;
+        return false;
+    }
+
+    public Vector2i mouse_delta = Vector2i.Zero; 
+    private static Point mouse_lock_stored_position;
+
+    public bool MouseLocked => MouseWatcher.MouseLocked;
+    public bool MouseLockedPrevious => MouseWatcher.MouseLockedPrevious;
+    
+    private bool center_mouse_at_frame_end = false;
+        
+    private MouseState mouse_state;
+    public MouseState MouseState => mouse_state;
+        
+    private MouseState mouse_state_prev;
+    public MouseState MouseStatePrevious => mouse_state_prev;
     
 }
 
@@ -254,7 +293,7 @@ public static class InputBinds {
     public enum InputType { Keyboard, Mouse, XInput }
     public enum BindType { Digital, Analog, Delta /*, Absolute hehe could be fun to support tablets*/ }
 
-    public enum PressedState { Released, Pressed, Held, Tapped, JustPressed, JustReleased }
+    public enum PressedState { Released, Pressed, Held, Tapped, DoubleTapped, DoublePressed, JustPressed, JustReleased }
     
     //BIND TYPES
     public class Bind {
@@ -315,17 +354,29 @@ public static class InputBinds {
         
         private double pressed_at = 0;
         public double PressedAt => pressed_at;
+
+        private bool double_tap_eligible = false;
+        private double double_tap_timer = 0;
+        private double double_tap_timer_second_press = 0;
+        
         
         public double PressedForMs => digital_state != PressedState.Released ? Clock.game_run_time_ms - pressed_at : 0;
         
         internal void press() {
             pressed_at = Clock.game_run_time_ms;
-            digital_state = PressedState.JustPressed;
+            
+            if (double_tap_eligible && pressed_at - double_tap_timer < gvars.get_int("bind_tap_time")) {
+                double_tap_timer_second_press = Clock.game_run_time_ms;
+                digital_state = PressedState.DoublePressed;
+            } else {
+                digital_state = PressedState.JustPressed;
+            }
+
             analog_state = 1f;
         }
         
         internal void release() {
-            digital_state = PressedState.JustReleased;
+            digital_state = PressedState.JustReleased;                
             analog_state = 0f;
         }
 
@@ -337,6 +388,14 @@ public static class InputBinds {
             if (digital_state == PressedState.Tapped) {
                 digital_state = PressedState.Released;
             }
+
+            if (digital_state == PressedState.DoubleTapped) {
+                digital_state = PressedState.Released;
+            }
+
+            if (pressed_at - double_tap_timer > gvars.get_int("bind_tap_time")) {
+                double_tap_eligible = false;
+            }
             
             if (digital_state == PressedState.Pressed) {
                 if (PressedForMs > gvars.get_int("bind_tap_time")) {
@@ -344,16 +403,29 @@ public static class InputBinds {
                 }
             } else if (digital_state == PressedState.JustReleased) {
                 if (PressedForMs < gvars.get_int("bind_tap_time")) {
-                    digital_state = PressedState.Tapped;
+                    if (!double_tap_eligible) {
+                        double_tap_eligible = true;
+                        double_tap_timer = Clock.game_run_time_ms;
+                     
+                        digital_state = PressedState.Tapped;
+                    } else {
+                        digital_state = PressedState.DoubleTapped;
+                        double_tap_eligible = false;
+                    }
                 }
                 pressed_at = 0;
+                
+            } else if (digital_state == PressedState.DoublePressed) {
+                digital_state = PressedState.JustPressed;
+                
             } else if (digital_state == PressedState.JustPressed) {
                 digital_state = PressedState.Pressed;
             }
-
+            
             if (digital_state == PressedState.JustReleased) {
                 digital_state = PressedState.Released;
             }
+
         }
     }
 

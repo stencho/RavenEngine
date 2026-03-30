@@ -862,8 +862,8 @@ namespace Raven.Console {
             // mouse
 
             // mouse over the text input
-            if (Math2D.AABB_test(MouseWatcher.Manager.Position.X, MouseWatcher.Manager.Position.Y, parent_top_left.X + X, parent_top_left.Y + Y, width, height)) {
-                mouse_over_index = ((MouseWatcher.Manager.Position.X - parent_top_left.X - X)) / font_width;
+            if (Math2D.AABB_test(MouseWatcher.Position.X, MouseWatcher.Position.Y, parent_top_left.X + X, parent_top_left.Y + Y, width, height)) {
+                mouse_over_index = ((MouseWatcher.Position.X - parent_top_left.X - X)) / font_width;
                 mouse_over_index += view_left;
 
             } else {
@@ -998,7 +998,6 @@ namespace Raven.Console {
             // set up state for previous frame comparisons
 
             pks_k = State.engine_binds.Keyboard.pressed_keys_previous;
-            mouse.ResetMouseDelta();
         }
 #endregion
 

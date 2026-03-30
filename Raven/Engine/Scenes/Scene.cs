@@ -12,8 +12,20 @@ using Raven.Graphics.InterpolatedTypes;
 
 namespace Raven.Engine;
 
+public abstract class ScenePositionInfo() {}
+
 [GuidManaged]
-public partial class Scene {
+public abstract partial class Scene {
+    public enum SceneType {
+        Basic,
+        BSP, TilingBSP,
+        ChunkedXZ, ChunkedXYZ,
+        
+        Basic2D, Room2D, Chunk2D
+    }
+    
+    public SceneType scene_type { get; }
+    
     public static partial class Manager {
         private static Guid active_scene_id;
         public static Guid ActiveSceneGuid => active_scene_id;
@@ -39,9 +51,15 @@ public partial class Scene {
                 }
             }
             
-            while (State.using_scene == (int)State.SceneUseState.RENDER) { Thread.SpinWait(1); }
+            while (true) {
+                var current = State.using_scene;
+                if (current == State.SceneUseState.RENDER) continue;
             
-            Interlocked.Exchange(ref State.using_scene, (int)State.SceneUseState.STABILIZING);
+                if (Interlocked.CompareExchange(ref State.using_scene, State.SceneUseState.STABILIZING,current) == current) {
+                    break;
+                } 
+            }
+            
             if (ActiveScene != null) ActiveScene?.Stabilize();
             
             foreach (Scene scene in scenes.Values) {
@@ -51,7 +69,7 @@ public partial class Scene {
             }
             
             IAutoInterpolate.Manager.UpdateInternalLoop(Manager.update_thread.fixed_timestep ? Manager.update_thread.goal_time : Manager.update_thread.delta_ms);
-            Interlocked.Exchange(ref State.using_scene, (int)State.SceneUseState.NONE);
+            Interlocked.Exchange(ref State.using_scene, State.SceneUseState.NONE);
         }
 
         public static void UpdateGraphics() {
@@ -77,26 +95,6 @@ public partial class Scene {
     public bool always_update { get; set; }
     public string VisibilityString { get; set; }
     
-    internal ConcurrentDictionary<Guid, Entity> entities = new();
-    
-    ConcurrentQueue<Entity> spawn_list = new();
-    ConcurrentQueue<Guid> kill_list = new ConcurrentQueue<Guid>();
-    
-    //Lock entity_lock = new Lock();
-    
-    SceneOctree octree;
-
-    public string scene_info() {
-        string s = $"[SCENE]\n[entities]";
-
-        foreach (Entity e in entities.Values) {
-            s += $"     > [{e.name}] -> (pos) {e.position.XYZ.ToXString()} (ipos) {e.position.position_interpolated.ToXString()}\n";
-            s += e.Components.ListAllComponents(8);
-        }
-        
-        return s + "\n\n";
-    }
-    
     public Scene() {
         Manager.Add(this);
     }
@@ -104,61 +102,22 @@ public partial class Scene {
     ~Scene() {
         Manager.Remove(GUID);
     }
-    
-    public void Spawn(Entity entity) {
-        entity.parent_scene = this;
-        spawn_list.Enqueue(entity);
-    }
-    public void Spawn(Entity entity, Vector3 position) {
-        entity.parent_scene = this;
-        entity.SetPosition(position);
-        spawn_list.Enqueue(entity);
-    }
 
-    public void Kill(Entity entity) {
-        kill_list.Enqueue(entity.GUID);
-    }
-    
-    public void Update() {
-        foreach (var ent in entities.Values) {
-            ent.Update();
-        }
-        foreach (var ent in entities.Values) {
-            ent.position.FinalizeMove();
-        }
-    }
-    
-    public void UpdateGraphics() {
-        foreach (var ent in entities.Values) {
-            ent.UpdateInterpolatedPosition();
-            ent.UpdateGraphics();
-        }
-        GBufferCamera.Manager.UpdateLinkedChunkPositions();
-    }
-    
-    public void Stabilize() {
-        foreach (var ent in entities.Values) {
-            ent.StabilizeChunkPosition();
-        }
+    public abstract void Save();
+    public abstract void Load();
 
-        foreach (var g in kill_list) { entities.Remove(g, out _); }
+    public abstract void Spawn(Entity entity);
+    public abstract void Spawn(Entity entity, Vector3 position);
 
-        foreach (var ent in spawn_list) {
-            entities.TryAdd(ent.GUID, ent);
-            ent.Initialize();
-            ent.Initialized();
-        }
-        
-        spawn_list.Clear();
-        kill_list.Clear();
-    }
+    public abstract void Kill(Entity entity);
+
+    public abstract void Update();
+    public abstract void UpdatePhysics();
+    public abstract void PostPhysics();
     
-    public void Render(Camera camera, GBuffer gbuffer) {
-        Draw3D.batch_draw_setup(camera,gbuffer);
-        foreach (var e in entities.Values) {
-            if (e.Components.HasComponentOfType<RenderModelStatic>(out var rm)) {
-                rm.DrawBasic(camera, gbuffer);
-            }
-        }
-    }
+    public abstract void UpdateGraphics();
+    public abstract void Stabilize();
+
+    public abstract void Render(Camera camera, GBuffer gbuffer);
 }
+

@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Raven.Engine;
 using Raven.Console;
-using Raven.Engine.Worlds;
+
 
 namespace Raven.Caching {
     public static class CacheCancellation {

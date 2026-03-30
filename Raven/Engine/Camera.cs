@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Raven.Engine.Worlds;
+
 using Raven.Graphics;
 using Raven.Graphics.Drawing2D;
 using Raven.Graphics.Drawing3D;
@@ -95,7 +95,7 @@ namespace Raven.Engine {
         public Guid ManagedGBufferGuid => gbuffer.ManagedGuid;
 
         public LinkedObjectPosition LinkedObjectPosition;
-        public ObjectPosition current_camera_chunk => LinkedObjectPosition.child;
+        public EntityPosition current_camera_chunk => LinkedObjectPosition.child;
         
         //public Mouse_Picker mouse_picker;
 
@@ -153,7 +153,7 @@ namespace Raven.Engine {
 
         private void update_frustum_projection() {
             frustum_projection = Matrix.CreatePerspectiveFieldOfView(
-                        MathHelper.ToRadians(FOV / (aspect_ratio)), aspect_ratio, near_clip, far_clip);
+                        MathHelper.ToRadians(FOV), aspect_ratio, near_clip, far_clip);
         }
 
         public void update_projection(Vector2i res) {
@@ -163,7 +163,7 @@ namespace Raven.Engine {
             update_frustum_projection();
 
             projection = Matrix.CreatePerspectiveFieldOfView(
-                            MathHelper.ToRadians(FOV / aspect_ratio), aspect_ratio, near_clip, far_clip);
+                            MathHelper.ToRadians(FOV), aspect_ratio, near_clip, far_clip);
 
         }
         public void update_projection_ortho(Vector2i res) {

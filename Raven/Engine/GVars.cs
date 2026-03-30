@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
 using static Raven.Engine.Math2D;
@@ -33,6 +34,7 @@ namespace Raven.Engine {
 
     public class gvar {
         public string name;
+        public string comment;
         
         public gvar_data_type data_type;
         
@@ -42,8 +44,8 @@ namespace Raven.Engine {
 
         public bool save = false;
 
-        public gvar(string name, gvar_data_type data_type, object data, bool save) {
-            this.name = name; this.data_type = data_type; this.data = data; this.save = save;
+        public gvar(string name, gvar_data_type data_type, object data, bool save, string comment = "") {
+            this.name = name; this.data_type = data_type; this.data = data; this.save = save; this.comment = comment;
         }
 
         public string to_string() {
@@ -78,8 +80,8 @@ namespace Raven.Engine {
     public static class gvars {
         static Dictionary<string, gvar> _gvars = new Dictionary<string, gvar>();
 
-        public static void add_gvar(string name, gvar_data_type data_type, object data, bool save) {
-            _gvars.Add(name, new gvar(name, data_type, data, save));            
+        public static void add_gvar(string name, gvar_data_type data_type, object data, bool save, string comment = "") {
+            _gvars.Add(name, new gvar(name, data_type, data, save, comment));            
         }
         public static void remove_gvar(string name) {
             _gvars.Remove(name); 
@@ -248,13 +250,13 @@ namespace Raven.Engine {
                     s = (string)_gvars[name].data;
                     break;
                 case gvar_data_type.VECTOR2I:
-                    s = Vector2i.simple_string_brackets((Vector2i)_gvars[name].data);
+                    s = Vector2i.x_string((Vector2i)_gvars[name].data);
                     break;
                 case gvar_data_type.VECTOR2:
-                    s = ((Vector2)_gvars[name].data).simple_vector2_string_brackets();
+                    s = ((Vector2)_gvars[name].data).simple_vector2_x_string();
                     break;
                 case gvar_data_type.VECTOR3:
-                    s =  ((Vector3)_gvars[name].data).simple_vector3_string_brackets();
+                    s =  ((Vector3)_gvars[name].data).simple_vector3_x_string();
                     break;
             }
             return s;
@@ -325,10 +327,10 @@ namespace Raven.Engine {
         public static string list_all() {
             var s = "";
             int c = 0;
-            foreach (string gvar_key in _gvars.Keys) {
+            foreach (string gvar_key in _gvars.Keys.OrderBy(a => a)) {
                 var gvar = _gvars[gvar_key];
 
-                s += string.Format("{1} :: [{0}] {2}{3}", gvar.data_type.ToString(), gvar.name, get_string(gvar_key), c < _gvars.Count - 1 ? "\n" : "");
+                s += $"{gvar.name} :: [{gvar.data_type.ToString()}] {get_string(gvar_key)} {(c < _gvars.Count - 1 ? "\n" : "")}";
                 c++;
             }
 
@@ -416,8 +418,15 @@ namespace Raven.Engine {
 
             foreach (string gvar_key in _gvars.Keys) {                
                 var gvar = _gvars[gvar_key];
-                if (gvar.save) 
+                if (gvar.save) {
+                    if (gvar.comment != String.Empty) {
+                        using (StringReader comment_sr = new StringReader(gvar.comment)) {
+                            while (comment_sr.Peek() > -1)
+                                sb.Append($"# {comment_sr.ReadLine()}\n");
+                        } 
+                    }
                     sb.AppendLine($"{gvar.name} = {get_string_for_disk(gvar_key)}");
+                }
             }
 
             using (FileStream fs = new FileStream("gvars", FileMode.Create)) {

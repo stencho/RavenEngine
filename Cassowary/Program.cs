@@ -1,2 +1,2 @@
-﻿using var game = new Cassowary.Game1();
+﻿using var game = new Cassowary.CassowaryGame();
 game.Run();

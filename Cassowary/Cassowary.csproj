@@ -24,6 +24,7 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.5-preview.3" />
+        <PackageReference Include="SoundFlow" Version="1.4.0" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\Raven\Raven.csproj" />

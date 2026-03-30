@@ -54,6 +54,9 @@ public static class Extensions {
     public static string simple_vector3_string_brackets(this Vector3 input) {
         return string.Format("[{0:F2}, {1:F2}, {2:F2}]", input.X, input.Y, input.Z);
     }
+    public static string simple_vector3_x_string(this Vector3 input) {
+        return string.Format("{0:F2}x{1:F2}x{2:F2}", input.X, input.Y, input.Z);
+    }
     public static string simple_vector2_string_brackets(this Vector2 input) {
         return string.Format("[{0:F2}, {1:F2}]", input.X, input.Y);
     }

@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Raven.Console;
-using Raven.Engine.Worlds;
 using Raven.Engine;
 using Raven.Engine.Components;
 using Raven.Engine.Controls;
@@ -21,6 +22,7 @@ public partial class FreeCamEntity : Entity {
     private static double camera_y_rot = 0.0;
     
     private BindWatcher binds;
+    private MouseWatcher mouse;
 
     internal static (string bind, object[] bind_data)[]
         bind_list = [
@@ -43,9 +45,18 @@ public partial class FreeCamEntity : Entity {
         Components.AddComponent(this, gbuffer_camera);
         
         binds = new BindWatcher(bind_list);
+        mouse = new MouseWatcher();
     }
 
-    public void Initialized() {}
+    public void Initialized() {
+        var cam = Components.GetFirst<GBufferCamera>().camera;
+        cam.gbuffer.Draw2DLayerOverUI = () => {
+            if (!binds.MouseLocked && !binds.MouseLockedPrevious) {
+                Draw2D.fill_circle(MouseWatcher.Position, 3f, Color.White);
+                Draw2D.circle(MouseWatcher.Position, 3f, 2f, Color.Black);
+            }
+        };
+    }
 
     private Vector3 velocity = Vector3.Zero;
     private float accel = 20f;
@@ -89,25 +100,35 @@ public partial class FreeCamEntity : Entity {
     public void AfterCollision() {
     }
 
+    private bool toggle_mouse_lock = true;
+    private bool mouse_locked = false;
+    
     public void UpdateGraphics() {
+        mouse.UpdateDeltas();
+        
         var camera = Components.GetFirst<GBufferCamera>().camera;
-        if (binds.Mouse.is_pressed(MouseWatcher.MouseButtons.Right)) {
-            MouseWatcher.Manager.MouseLock = true;
-            float ar_h = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height /
-                         (float)GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-            float ar_w = (float)GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width /
-                         (float)GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
 
-            camera_y_rot += ((binds.Mouse.MouseDeltaF.X / (GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width)) * ar_w);
-            camera_x_rot += ((binds.Mouse.MouseDeltaF.Y / (GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height)));
+        if (toggle_mouse_lock) {
+            if (!mouse_locked && mouse.just_pressed(MouseWatcher.MouseButtons.Right) && !State.UI.mouse_over_UI()) {
+                mouse_locked = true;
+            } else if (mouse_locked && mouse.just_pressed(MouseWatcher.MouseButtons.Right)) {
+                mouse_locked = false;
+            }
+        } else {
+            mouse_locked = mouse.is_pressed(MouseWatcher.MouseButtons.Right);
+        }
+
+        if (mouse_locked) {
+            mouse.LockMouse();
+            
+            camera_y_rot += mouse.MouseDeltaSensitivityAspectRatioCorrection.X;
+            camera_x_rot += mouse.MouseDeltaSensitivityAspectRatioCorrection.Y;
+            
             if (camera_x_rot > 1f)  camera_x_rot = 1f; if (camera_x_rot < -1f) camera_x_rot = -1f;
             camera_y_rot = WrapSymmetric(camera_y_rot, Math.PI);
             
             camera.orientation = Matrix.CreateRotationY((float)camera_y_rot);
             camera.orientation *= Matrix.CreateFromAxisAngle(camera.orientation.Right, (float)camera_x_rot);
-        } else {
-            MouseWatcher.Manager.MouseLock = false;
         }
-        
     }
 }

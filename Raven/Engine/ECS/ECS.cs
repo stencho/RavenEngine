@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Xna.Framework;
 using Raven.Graphics;
 using Raven.Graphics.Drawing3D;
-using Raven.Engine.Worlds;
 
 namespace Raven.Engine;
 
@@ -17,7 +16,7 @@ public interface Entity {
     public string name { get; set; }
     public Guid GUID { get; }
     
-    public ObjectPosition position { get; }
+    public EntityPosition position { get; }
     public void SetPosition(Vector3 position);
     
     public ComponentManager Components { get; set; }
@@ -27,7 +26,7 @@ public interface Entity {
     public void Initialize();
     public void Initialized();
     public void Update();
-    public void StabilizeChunkPosition();
+    public void StabilizePosition();
     public void AfterCollision();
     public void UpdateGraphics();
     public void UpdateInterpolatedPosition();

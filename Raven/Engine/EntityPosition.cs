@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework;
 using Raven.Console;
 
 namespace Raven.Engine;
-public class ObjectPosition {
+public class EntityPosition {
     public Vector3 XYZ = Vector3.Zero;
 
     public float X {
@@ -44,9 +44,9 @@ public class ObjectPosition {
 
     public Entity parent { get; private set; }
     
-    public ObjectPosition(Entity parent) => this.parent = parent; 
+    public EntityPosition(Entity parent) => this.parent = parent; 
 
-    public ObjectPosition(Entity parent, Vector3 position) {
+    public EntityPosition(Entity parent, Vector3 position) {
         this.parent = parent;
         this.Set(position);
     }
@@ -58,10 +58,8 @@ public class ObjectPosition {
         this.position_interpolated = position;
     }
     
-    public static bool EnableInterpolation = true;
-    
     public void interpolate(double step_milliseconds) {
-        if (!EnableInterpolation) {
+        if (!State.EnableInterpolation) {
             position_interpolated = position_stable;
             return;
         }
@@ -151,9 +149,9 @@ public class ObjectPosition {
 public class LinkedObjectPosition {
     public Vector3 child_offset_from_parent = Vector3.Zero;
     
-    public ObjectPosition parent;
-    ObjectPosition _child;
-    public ObjectPosition child => _child;
+    public EntityPosition parent;
+    EntityPosition _child;
+    public EntityPosition child => _child;
 
     public LinkedObjectPosition() { }
     

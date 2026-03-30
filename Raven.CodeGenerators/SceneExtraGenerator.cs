@@ -73,7 +73,7 @@ public sealed class SceneExtraGenerator : ISourceGenerator {
         }
         sb.AppendLine("using System;");
         sb.AppendLine("using Raven.Engine;");
-        sb.AppendLine("using Raven.Engine.Worlds;");
+        sb.AppendLine("");
         sb.AppendLine("using Microsoft.Xna.Framework;");
         sb.AppendLine($"partial class {symbol.Name}");
         sb.AppendLine("{");

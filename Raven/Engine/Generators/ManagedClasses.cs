@@ -10,4 +10,4 @@ public sealed class GuidManaged : Attribute {}
 public sealed class HashSetManaged : Attribute {}
 
 [AttributeUsage(AttributeTargets.Class)]
-public sealed class InputWatcher : Attribute {}
+public sealed class ManagedPollingLoop : Attribute {}

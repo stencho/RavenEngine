@@ -12,85 +12,9 @@ using Raven.Engine.Collision.Shapes3D;
 
 namespace Raven.Engine.Controls;
 
-[InputWatcher]
 public partial class MouseWatcher {
-    public static partial class Manager {
-        private static MouseState mouse_state;
-        public static MouseState MouseState => mouse_state;
-        
-        private static MouseState mouse_state_prev;
-        public static MouseState MouseStatePrevious => mouse_state_prev;
-        
-        private static Vector2i mouse_delta = Vector2i.Zero;
-        public static Vector2i MouseDelta => mouse_delta;
-        public static Vector2 MouseDeltaF => mouse_delta.ToVector2();
-        
-        public static Vector2i Position => new Vector2i(mouse_state.X, mouse_state.Y);
-        public static bool mouse_in_bounds => Math2D.point_within_square(Vector2i.Zero, State.window.ClientBounds.Size.ToVector2i(), Position);
-        
-        public static bool show_mouse_cursor { get; set; } = false;
-        
-        static bool mouse_locked = false;
-        static bool mouse_locked_p = false;
-        public static bool MouseLock{ get; set; } = false;
-    
-        private static Point mouse_lock_stored_position;
-
-        public static Collision2D.Shape2D MouseCollisionObject => _mouse_coll_obj;
-        static Collision2D.Shape2D _mouse_coll_obj;
-
-        public static void StartPolling() {
-            TickRateWatcher.poll_rate = gvars.get_int("input_polling_rate");
-            StartControlPollingThread("MouseWatcher", UpdateDeltas);
-            _mouse_coll_obj = new Circle2D(Position.ToVector2(), 1f);
-        }
-        
-        private static void UpdateDeltas() {
-            mouse_state_prev = mouse_state;
-            mouse_state = Mouse.GetState();
-            
-            State.game.IsMouseVisible = show_mouse_cursor;
-            
-            mouse_locked_p = mouse_locked;
-            mouse_locked = MouseLock;
-            
-            mouse_delta = Vector2i.Zero;
-
-            var window_center = new Vector2i(
-                (State.window.ClientBounds.Width / 2),
-                (State.window.ClientBounds.Height / 2)
-            );
-
-            if (mouse_locked && !mouse_locked_p) {
-                mouse_lock_stored_position = Manager.MouseState.Position;
-            
-                Mouse.SetPosition(window_center.X, window_center.Y);        
-            
-                mouse_delta = Vector2i.Zero;
-            
-            } else if (mouse_locked) {    
-                mouse_delta = window_center
-                              - (Vector2i.UnitX * Manager.MouseState.X)
-                              - (Vector2i.UnitY * Manager.MouseState.Y);
-
-                Mouse.SetPosition(window_center.X, window_center.Y);
-            } else if (!mouse_locked) {
-                if (mouse_locked_p) {
-                    Mouse.SetPosition(mouse_lock_stored_position.X, mouse_lock_stored_position.Y);
-                
-                    mouse_delta = Vector2i.Zero;
-                } else {
-                    mouse_delta = ((Vector2i.UnitX * -(Manager.MouseStatePrevious.X - Manager.MouseState.X)) +
-                                   (Vector2i.UnitY * -(Manager.MouseStatePrevious.Y - Manager.MouseState.Y)));
-                }
-            }
-
-            mousewatchers.ForEach(mf => 
-                mf.UpdateDeltas(mouse_delta, mouse_state.ScrollWheelValue - mouse_state_prev.ScrollWheelValue));
-            
-            _mouse_coll_obj.SetPosition(Position.ToVector2());
-        }
-    }
+    public static Collision2D.Shape2D MouseCollisionObject => _mouse_coll_obj;
+    static Collision2D.Shape2D _mouse_coll_obj = new Point2D(Vector2.Zero);
     
     public enum MouseButtons {
         Left,
@@ -106,36 +30,126 @@ public partial class MouseWatcher {
     public Vector2i MouseDelta => mouse_delta;
     public Vector2 MouseDeltaF => mouse_delta.ToVector2();
     
+    public Vector2 MouseDeltaSensitivityAspectRatioCorrection => mouse_delta_aspect_ratio_and_sensitivity();
+    
+    private Vector2 mouse_delta_sensitivity = Vector2.Zero;
+    public Vector2 MouseDeltaSensitivity => mouse_delta_sensitivity;
+    
     private int mouse_wheel_delta = 0;
-    private int mouse_wheel_delta_previous = 0;
-    
+    private int mouse_wheel_horizontal_delta = 0;
+   
     public int MouseWheelDelta => mouse_wheel_delta;
-    
-    public MouseWatcher() => Manager.Add(this);
-    ~MouseWatcher() => Manager.Remove(this);
+    public int MouseWheelHorizontalDelta => mouse_wheel_horizontal_delta;
+
+    public static Vector2 MouseSensitivity => gvars.get_vector2("mouse_sensitivity");
     
     private MouseState mouse_state_current;
     private MouseState mouse_state_previous;
 
-    public Vector2i MouseDeltaLastUpdate = Vector2i.Zero;
+    public static Vector2i Position => global_pos;
+    private static Vector2i global_pos = Vector2i.Zero; 
     
-    internal void UpdateDeltas(Vector2i delta, int mouse_wheel_delta) {
-        mouse_state_current = Manager.MouseState;
+    public static bool show_mouse_cursor { get; set; } = false;
+        
+    bool mouse_locked = false;
+    bool mouse_locked_p = false;
 
-        mouse_delta += delta;
-        this.mouse_wheel_delta += mouse_wheel_delta;
+    private static bool mouse_locked_global_status = false;
+    public static bool MouseLocked => mouse_locked_global_status;
+    
+    private static bool mouse_locked_global_status_previous = false;
+    public static bool MouseLockedPrevious => mouse_locked_global_status_previous;
+    
+    private static Vector2i mouse_lock_stored_position;
+    
+    public static bool mouse_in_bounds => Math2D.point_within_square(Vector2i.Zero, State.window.ClientBounds.Size.ToVector2i(), Position);
+
+    Vector2 mouse_delta_aspect_ratio_and_sensitivity() {
+        
+        Vector2 res = State.resolution.ToVector2();
+        var mouse_delta_final = mouse_delta.ToVector2();
+        mouse_delta_final /= res;
+            
+        if (res.X < res.Y) {
+            float ar = res.Y / res.X;
+            mouse_delta_final.Y *= ar;
+        } else {
+            float ar = res.X / res.Y;
+            mouse_delta_final.X *= ar;
+        }
+
+        return mouse_delta_final * MouseSensitivity;
     }
 
-    public void ResetMouseDelta() {
-        MouseDeltaLastUpdate = mouse_delta;
-        mouse_wheel_delta_previous = mouse_wheel_delta;
-        mouse_wheel_delta = 0;
-        mouse_delta = Vector2i.Zero;
+    public bool leave_mouse_centered_after_mouse_lock_released { get; set; } = false;
+    
+    public void UpdateDeltas() {
+        if (!mouse_locked && mouse_locked_p) {
+            Interlocked.Exchange(ref mouse_locked_global_status, false);
+        } else if (!mouse_locked && !mouse_locked_p && !mouse_locked_global_status ) {
+            Interlocked.Exchange(ref mouse_locked_global_status_previous, false);
+        }
+        
         mouse_state_previous = mouse_state_current;
+        mouse_state_current = Mouse.GetState();
+        
+        mouse_delta = mouse_state_current.Position.ToVector2i() - mouse_state_previous.Position.ToVector2i();
+        mouse_wheel_delta = mouse_state_current.ScrollWheelValue - mouse_state_previous.ScrollWheelValue;
+        
+        
+        mouse_wheel_horizontal_delta = mouse_state_current.HorizontalScrollWheelValue -
+                                       mouse_state_previous.HorizontalScrollWheelValue;
+        
+        global_pos = mouse_state_current.Position.ToVector2i();
+        _mouse_coll_obj.SetPosition(mouse_state_current.Position.ToVector2());
+        
+        State.game.IsMouseVisible = show_mouse_cursor;
+        
+        var window_center = new Vector2i(
+            (State.window.ClientBounds.Width / 2),
+            (State.window.ClientBounds.Height / 2)
+        );
+        
+        if (mouse_locked && !mouse_locked_p) {
+            mouse_lock_stored_position = Position;
+            
+            Mouse.SetPosition(window_center.X, window_center.Y);        
+            
+            mouse_delta = Vector2i.Zero;
+            
+        } else if (mouse_locked) {    
+            mouse_delta = window_center
+                          - (Vector2i.UnitX * Position.X)
+                          - (Vector2i.UnitY * Position.Y);
+
+            Mouse.SetPosition(window_center.X, window_center.Y);
+        } else if (!mouse_locked) {
+            if (mouse_locked_p) {
+                if (leave_mouse_centered_after_mouse_lock_released) 
+                    Mouse.SetPosition(mouse_lock_stored_position.X, mouse_lock_stored_position.Y);
+                else
+                    Mouse.SetPosition(window_center.X, window_center.Y);
+                
+                mouse_delta = Vector2i.Zero;
+            } 
+        }
+
+        mouse_locked_p = mouse_locked;
+        mouse_locked = false;
     }
+    
+    
+    public void LockMouse() {
+        if (Interlocked.CompareExchange(ref mouse_locked_global_status, true, false)) {
+            mouse_locked = true;
+        } else {
+            Interlocked.Exchange(ref mouse_locked_global_status_previous, true);
+        }
+    }
+
     
     public bool is_pressed(MouseButtons mb) {
-        if (!State.is_active || !Manager.mouse_in_bounds) return false;
+        if (!State.is_active || !mouse_in_bounds) return false;
         switch (mb) {
             case MouseButtons.Left:
                 return mouse_state_current.LeftButton == ButtonState.Pressed;
@@ -180,10 +194,10 @@ public partial class MouseWatcher {
                 return mouse_state_previous.XButton2 == ButtonState.Pressed;
 
             case MouseButtons.ScrollUp:
-                return mouse_wheel_delta_previous > 0;
+                return mouse_wheel_delta > 0;
 
             case MouseButtons.ScrollDown:
-                return mouse_wheel_delta_previous < 0;
+                return mouse_wheel_delta < 0;
 
             default: return false;
         }
@@ -196,7 +210,13 @@ public partial class MouseWatcher {
     }
     
     public string state_info() {
-        string s = $"[MOUSE]\nbuttons :: ";
+        string s = $"[MOUSE]\n";
+        s += $"position :: {MouseWatcher.Position.ToXString()}\n";
+        s += $"locked :: {MouseWatcher.mouse_locked_global_status}\n";
+        s += $"locked prev :: {MouseWatcher.mouse_locked_global_status_previous}\n";
+        
+        s += $"in bounds :: {mouse_in_bounds} \n";
+        s += $"buttons :: ";
         var c = false;
         foreach (var mb in Enum.GetValues(typeof(MouseButtons))) {
             if (is_pressed((MouseButtons)mb)) {
@@ -205,7 +225,7 @@ public partial class MouseWatcher {
             }
         }
 
-        s += $"\ndelta :: {MouseDeltaLastUpdate.ToXString()}";
+        s += $"\ndelta :: {mouse_delta.ToXString()}";
         return s + "\n\n";
     }
 }

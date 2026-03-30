@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Principal;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Raven.Engine;
@@ -49,16 +50,23 @@ namespace Raven.Graphics {
             public static void DrawAllScreenBuffers() {
                 State.graphics_device.SetRenderTarget(null);
                 Draw2D.end();
+                    
+                var window_size = State.window.ClientBounds.Size.ToVector2i();
+                
                 
                 //Automatically draw all GBuffers which have draw_to_screen enabled, using their screen_draw_info
                 foreach (var gbuffer in gbuffers.Values
                              .Where(buffer => buffer.draw_to_screen)
                              .OrderBy(buffer => buffer._screen_draw_info.layer)) {
+                
                     
                     if (gbuffer._screen_draw_info.fullscreen) {
                         if (State.super_res_scale <= 1.0f) Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None);
                         else Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearWrap, DepthStencilState.None);
-                        Draw2D.image(gbuffer.rt_composed, Vector2i.Zero, State.resolution);
+                        
+                        Draw2D.image(gbuffer.rt_composed, Vector2i.Zero, window_size);
+                        
+                        
                     } else {
                         Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None);
                         Draw2D.image(gbuffer.rt_composed, gbuffer._screen_draw_info.position,
@@ -219,9 +227,6 @@ namespace Raven.Graphics {
             camera.update();
             
             
-            
-            Renderer.create_visibility_lists(camera);
-        
             Renderer.build_lighting(camera, this);
         
             Renderer.clear_to_skybox(camera, this);

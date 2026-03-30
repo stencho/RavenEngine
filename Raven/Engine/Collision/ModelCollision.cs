@@ -11,7 +11,6 @@ namespace Raven.Engine.Collision
         Triangle[] tris;
         Vector3[] points;
 
-
         BoundingBox bounds;
 
         public MCOctree octree;

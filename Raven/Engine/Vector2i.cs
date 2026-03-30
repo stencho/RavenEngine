@@ -143,6 +143,9 @@ namespace Raven.Engine {
         public static string simple_string_brackets(Vector2i input) {
             return string.Format("[{0}, {1}]", input.X, input.Y);
         }
+        public static string x_string(Vector2i input) {
+            return string.Format("{0}x{1}", input.X, input.Y);
+        }
         public static bool TryParse(string input, out Vector2i result) {
             result = Zero;
 

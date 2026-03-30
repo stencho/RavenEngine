@@ -285,7 +285,7 @@ public sealed class HashSetManagedGenerator : ISourceGenerator
 
 
 [Generator]
-public sealed class InputWatcherGenerator : ISourceGenerator
+public sealed class ManagedPollingLoopGenerator : ISourceGenerator
 {
     public void Initialize(GeneratorInitializationContext context)
     {
@@ -299,7 +299,7 @@ public sealed class InputWatcherGenerator : ISourceGenerator
             return;
 
         var attrSymbol =compilation.GetTypeByMetadataName(
-            "InputWatcher");
+            "ManagedPollingLoop");
 
         if (attrSymbol == null)
             return;
@@ -353,13 +353,15 @@ public sealed class InputWatcherGenerator : ISourceGenerator
         sb.AppendLine($"    private static Clock.TickRateWatcher TickRateWatcher = new();");
         sb.AppendLine($"    private static Stopwatch loop_stopwatch;");
         sb.AppendLine();
-        sb.AppendLine($"    public static double PollRate => TickRateWatcher.poll_rate;");
+        sb.AppendLine($"    internal static double poll_rate {{ get; set; }} = 1000.0;");
+        sb.AppendLine($"    public static TimeSpan poll_goal_time => new TimeSpan((long)(10000 * (1000.0/poll_rate)));");
+        sb.AppendLine($"    public static double PollRate => poll_rate;");
         sb.AppendLine($"    public static double TicksPerSecond => TickRateWatcher.TicksPerSecond;");
         sb.AppendLine();
         sb.AppendLine("""
                             private static void StartControlPollingThread(string name, Action update_action) {{
                                 UpdateAction = update_action;
-                                Threads.StartTask("MouseInput", TimedUpdateLoop);
+                                Threads.StartTask(name, TimedUpdateLoop);
                             }}
                       """);
         sb.AppendLine("""
@@ -368,7 +370,7 @@ public sealed class InputWatcherGenerator : ISourceGenerator
                                 long frame_start = 0;
                                 
                                 double elapsed_ms() => (loop_stopwatch.ElapsedTicks - frame_start) * 1000.0 / (double)Stopwatch.Frequency;
-                                double remaining_ms() => (TickRateWatcher.poll_thread_goal_time.TotalMilliseconds - elapsed_ms()) * 1000.0 / Stopwatch.Frequency;
+                                double remaining_ms() => (poll_goal_time.TotalMilliseconds - elapsed_ms());
                         
                                 while (!State.wait_for_init) ;
                                 while (!Threads.IsCancellationRequested) {
@@ -377,7 +379,8 @@ public sealed class InputWatcherGenerator : ISourceGenerator
                                     UpdateAction();
                                     
                                     if (remaining_ms() > 1.0) {
-                                        Thread.Sleep((int)(remaining_ms() - 0.5));    
+                                        var ms = remaining_ms(); 
+                                        Thread.Sleep((int)(ms - 0.5) >= 0 ? (int)(ms - 0.5) : 0);  
                                     }
                                     while (remaining_ms() > 0.0 && !Threads.IsCancellationRequested) {
                                         Thread.SpinWait(1);

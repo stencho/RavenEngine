@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Raven.Engine.Components;
-using Raven.Engine.Worlds;
 using Raven.Graphics.Drawing3D;
 
 namespace Raven.Engine;
@@ -13,9 +12,16 @@ public partial class TestEntity : Entity {
         speed = 2 + RNG.rng_float * 5;
         funny = 10 + RNG.rng_float * 40;
     }
+    public TestEntity(Vector3 position) {
+        Components.AddComponent(this, new RenderModelStatic("cube", "smugdean"));
+        speed = 2 + RNG.rng_float * 5;
+        funny = 10 + RNG.rng_float * 40;
+
+        start = position;
+    }
 
     public void Initialized() {
-        start = position.XYZ;
+        position.XYZ = start;
     }
 
     

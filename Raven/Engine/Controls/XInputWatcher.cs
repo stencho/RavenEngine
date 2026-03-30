@@ -1,17 +1,22 @@
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
 namespace Raven.Engine.Controls;
 
-[InputWatcher]
-public partial class XInputWatcher {
-    public static partial class Manager {
-        private static GamePadState gamepad_state;
-        public static GamePadState GamePadState => gamepad_state;
-        
-        private static GamePadState gamepad_state_prev;
-        public static GamePadState GamePadStatePrevious => gamepad_state_prev;
 
+public partial class XInputWatcher {
+    private GamePadState gamepad_state;
+    public GamePadState GamePadState => gamepad_state;
         
+    private GamePadState gamepad_state_previous;
+    public GamePadState GamePadStatePrevious => gamepad_state_previous;
+
+    private PlayerIndex player_index; 
+    public PlayerIndex PlayerIndex => player_index;
+    
+    public void Update() {
+        gamepad_state_previous = gamepad_state; 
+        gamepad_state = GamePad.GetState(player_index);
     }
     
     #region enums

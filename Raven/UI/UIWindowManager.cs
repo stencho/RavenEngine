@@ -9,7 +9,6 @@ using Raven.Engine;
 using Raven.Engine.Collision;
 using Raven.Engine.Controls;
 using Raven.Graphics.Drawing2D;
-using Raven.UI.UniverseInspector;
 
 namespace Raven.UI  {
     public enum ui_layer_state {
@@ -21,18 +20,16 @@ namespace Raven.UI  {
     public class UIWindowManager {
         public List<IUIForm> windows = new List<IUIForm>();
         ConsoleWindow console;
-        InspectorWindow  inspector;
 
-        private MouseWatcher mouse = new MouseWatcher();
+        public bool focus_follows_mouse = true;
+        
+        internal MouseWatcher mouse = new MouseWatcher();
         
         public UIWindowManager() {
             console = new ConsoleWindow(new Vector2i(200, 200), new Vector2i(400, 230));
             console.hide();
             add_window(console);
             
-            inspector = new InspectorWindow(new Vector2i(State.resolution.X - 400, State.resolution.Y - 700), new Vector2i(400, 700));
-            inspector.hide();
-            add_window(inspector);
         }
 
         public string list_windows() {
@@ -50,8 +47,9 @@ namespace Raven.UI  {
         }
 
         bool exists = false;
-        public void add_window(IUIForm window) {
+        public void add_window(UIWindow window) {
             exists = false;
+            
             foreach (IUIForm w in windows) {
                 if (w == window) {
                     exists = true;
@@ -60,6 +58,7 @@ namespace Raven.UI  {
             }
 
             if (!exists) {
+                window.window_manager = this;
                 windows.Add(window);
                 windows.BringToFront(window);
                 focus_last_added();
@@ -128,10 +127,26 @@ namespace Raven.UI  {
                 windows[o].has_focus = false;
             }
         }
+
+        public void toggle_window(UIWindow window) {
+            window.toggle_visibility();
+
+            if (window.visible) {
+                if (MouseWatcher.MouseLocked) return;
+                windows.BringToFront(window);
+                force_focus(window);
+                BindWatcher.global_enable = false;
+            } else {
+                BindWatcher.global_enable = true;
+                defocus_all_windows();
+            }
+            
+        }
         
         public void update() {
             //Clock.frame_probe.set("wm_update");
-                        
+            mouse.UpdateDeltas();            
+            
             highest_hit = -1;
             handled = false;
 
@@ -140,7 +155,7 @@ namespace Raven.UI  {
 
             //if (Controls.just_pressed(Keys.OemTilde)) {
             if (State.engine_binds.just_pressed("toggle_console")) {
-                if (console.visible && !console.has_focus) {
+                if (console.visible && !console.has_focus && !focus_follows_mouse) {
                     defocus_all_windows();
                     windows.BringToFront(console);
                     force_focus(console);
@@ -150,7 +165,7 @@ namespace Raven.UI  {
 
                 console.toggle_visibility();
 
-                if (console.visible) {
+                if (console.visible && !MouseWatcher.MouseLocked) {
                     windows.BringToFront(console);
                     force_focus(console);
                     BindWatcher.global_enable = false;
@@ -160,27 +175,11 @@ namespace Raven.UI  {
                 }
             }
 
-            if (State.engine_binds.just_pressed("toggle_inspector")) {
-                if (inspector.visible && !inspector.has_focus) {
-                    defocus_all_windows();
-                    windows.BringToFront(inspector);
-                    force_focus(inspector);
-                    BindWatcher.global_enable = false;
-                }
+            if (MouseWatcher.MouseLocked && !MouseWatcher.MouseLockedPrevious) {
                 
-                inspector.toggle_visibility();
-
-                if (inspector.visible) {
-                    windows.BringToFront(inspector);
-                    force_focus(inspector);
-                    BindWatcher.global_enable = false;
-                } else {
-                    BindWatcher.global_enable = true;
-                    defocus_all_windows();
-                }
             }
             
-            if (!State.is_active || MouseWatcher.Manager.MouseLock) return;
+            if (!State.is_active || MouseWatcher.MouseLocked) return;
 
             for (int i = windows.Count-1; i >= 0; i--) {
                 windows[i].update();
@@ -233,8 +232,22 @@ namespace Raven.UI  {
                 windows[i].subforms.SortWindows();
             }
 
-            if (mouse_button_just_pressed) {
-                if (!mouse_over_UI()) {
+            if (focus_follows_mouse) {
+                if (mouse_over_UI()) {
+                    BindWatcher.global_enable = false;
+
+                    for (int i = windows.Count - 1; i >= 0; i--) {
+                        windows[i].has_focus = windows[i].mouse_over && windows[i].top_of_mouse_stack;
+                    }
+
+                    for (int i = windows.Count - 1; i >= 0; i--) {
+
+                        for (int i1 = 0; i1 < windows[i].subforms.Count; i1++) {
+                            windows[i].subforms[i1].has_focus = false;
+                            windows[i].subforms[i1].top_of_mouse_stack = false;
+                        }
+                    }
+                } else {
                     for (int i = windows.Count - 1; i >= 0; i--) {
                         windows[i].has_focus = false;
                         windows[i].top_of_mouse_stack = false;
@@ -245,12 +258,27 @@ namespace Raven.UI  {
                         }
                     }
                     BindWatcher.global_enable = true;
-                } else {
-                    BindWatcher.global_enable = false;
+                }
+            } else {
+                if (mouse_button_just_pressed) {
+                    if (!mouse_over_UI()) {
+                        for (int i = windows.Count - 1; i >= 0; i--) {
+                            windows[i].has_focus = false;
+                            windows[i].top_of_mouse_stack = false;
+
+                            for (int i1 = 0; i1 < windows[i].subforms.Count; i1++) {
+                                windows[i].subforms[i1].has_focus = false;
+                                windows[i].subforms[i1].top_of_mouse_stack = false;
+                            }
+                        }
+
+                        BindWatcher.global_enable = true;
+                    } else {
+                        BindWatcher.global_enable = false;
+                    }
                 }
             }
-
-            mouse.ResetMouseDelta();
+            
         }
         
         public void render_window_internals() {
@@ -309,7 +337,7 @@ namespace Raven.UI  {
             bool t = false;
 
             foreach (string is2d in collision.Keys) {
-                if (Collision2D.GJK2D.test_shapes_simple(collision[is2d], MouseWatcher.Manager.MouseCollisionObject, out _)) {
+                if (Collision2D.GJK2D.test_shapes_simple(collision[is2d], MouseWatcher.MouseCollisionObject, out _)) {
                     t = true;
 
                     mouse_interactions.Add(is2d);

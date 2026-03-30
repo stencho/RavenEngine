@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Raven.Engine;
 using Raven.Engine.Collision;
 using Raven.Engine.Collision.Shapes3D;
-using Raven.Engine.Worlds;
+
 using Color = Microsoft.Xna.Framework.Color;
 using static Raven.Engine.State;
 
@@ -24,16 +24,6 @@ namespace Raven.Graphics.Drawing3D {
             public Matrix world;
 
             public Texture2D texture;
-        }
-
-        public static void create_visibility_lists(Camera camera) {
-            visible_lights.Clear();
-            visible_entities.Clear();
-            VisibilityString = "";
-
-            foreach (var e in State.CurrentScene.entities.Values) {
-                visible_entities.Add(e);
-            }
         }
 
         public static void clear_to_skybox(Camera camera, GBuffer gbuffer) {                

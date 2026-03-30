@@ -78,8 +78,8 @@ public sealed class EntityUpdatePacketGenerator : ISourceGenerator
         sb.AppendLine("{");
         sb.AppendLine($"public string name {{ get; set; }} = \"{symbol.Name}\";");
         sb.AppendLine("""
-            public ObjectPosition _position;
-            public ObjectPosition position => _position;
+            public EntityPosition _position;
+            public EntityPosition position => _position;
             public void SetPosition(Vector3 position) { _position?.Set(position); }
             
             public Guid GUID { get; } = Guid.NewGuid();
@@ -93,10 +93,10 @@ public sealed class EntityUpdatePacketGenerator : ISourceGenerator
             
             public void Initialize() {
                 Components.set_parent(this);
-                _position = new ObjectPosition(this);
+                _position = new EntityPosition(this);
             }
             
-            public void StabilizeChunkPosition() {
+            public void StabilizePosition() {
                 position.stabilize(DELTA_MS);                
             }
             
