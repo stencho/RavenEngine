@@ -12,6 +12,7 @@ using Raven.Engine.Collision;
 using Raven.Engine.Collision.Shapes2D;
 using Raven.Engine.Controls;
 using Raven.Graphics.Drawing2D;
+using Raven.Graphics.InterpolatedTypes;
 
 namespace Raven.UI {
     public class UIWindow : IUIForm {
@@ -316,14 +317,6 @@ namespace Raven.UI {
             }
         }
 
-        public Color color_borders = Color.HotPink;
-        public Color color_bg = Color.FromNonPremultiplied(25,25,25,255);
-        public Color color_header = Color.FromNonPremultiplied(25,25,25,255);
-        public Color color_header_selected = Color.HotPink;
-        public Color color_header_text = Color.HotPink;
-        public Color color_header_text_selected = Color.FromNonPremultiplied(25,25,25,255);
-        public Color color_drag_border = Color.DeepPink;
-
         public Action internal_draw_action;
         public Action draw_action;
 
@@ -332,17 +325,14 @@ namespace Raven.UI {
 
             State.graphics_device.SetRenderTarget(top_bar_render_target);
 
-            if (has_focus)
-                State.graphics_device.Clear(color_header_selected);
-            else
-                State.graphics_device.Clear(color_header);
-
+            State.graphics_device.Clear(Draw2D.ColorInterpolate(UIColors.BackgroundLight, UIColors.ForegroundDark, focus_lerp.Value));
+            
             Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None);
 
             if (has_focus)
-                Draw2D.text("profont", text, (Vector2i.Right * 4f), color_header_text_selected);
+                Draw2D.text("profont", text, (Vector2i.Right * 4f), UIColors.BackgroundLight);
             else
-                Draw2D.text("profont", text, (Vector2i.Right * 4f), color_header_text);
+                Draw2D.text("profont", text, (Vector2i.Right * 4f), UIColors.ForegroundDark);
 
             //Draw2D.line(size.X - 45, 0, size.X - 45, size.Y, 1f, Color.Black);
             //Draw2D.line(size.X - 30, 0, size.X - 30, size.Y, 1f, Color.Black);
@@ -355,7 +345,7 @@ namespace Raven.UI {
             }
 
             State.graphics_device.SetRenderTarget(client_render_target);
-            State.graphics_device.Clear(color_bg);
+            State.graphics_device.Clear(UIColors.Background);
 
             Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None);
 
@@ -369,21 +359,30 @@ namespace Raven.UI {
             Draw2D.end();
         }
 
+        private FloatLerperManual focus_lerp = new FloatLerperManual(0f, 1f, 200);
+        
         public void draw() {
             if (!_visible) return;
-            Draw2D.fill_rect(top_left, top_left + top_bar_size, Color.FromNonPremultiplied(color_header.R, color_header.G, color_header.B, 128));
-            Draw2D.fill_rect(client_top_left, client_top_left + client_size, Color.FromNonPremultiplied(color_bg.R, color_bg.G, color_bg.B, 128));
+            
+            if (has_focus) focus_lerp.Lerp();
+            else focus_lerp.LerpReverse();
+            
+            Draw2D.fill_rect(top_left, top_left + top_bar_size,
+                UIColors.Foreground
+                );
+            Draw2D.fill_rect(client_top_left, client_top_left + client_size, 
+                UIColors.BackgroundLight);
 
             if (_draw_render_targets) {
                 Draw2D.image(top_bar_render_target, top_left, top_bar_size, Color.White);
                 Draw2D.image(client_render_target, client_top_left, Color.White);
             }
 
-            Draw2D.rect(top_left, bottom_right, color_borders, 1f);
-            Draw2D.rect(top_left, top_left + top_bar_size, color_borders, 1f);
+            Draw2D.rect(top_left, bottom_right, UIColors.ForegroundDark, 1f);
+            Draw2D.rect(top_left, top_left + top_bar_size, UIColors.ForegroundDark, 1f);
 
-            if ((_resize_handle_R_mo || _resize_handle_R_grabbed) && top_of_mouse_stack) { Draw2D.line(top_right, bottom_right, color_drag_border, 3f); }
-            if ((_resize_handle_B_mo || _resize_handle_B_grabbed) && top_of_mouse_stack) { Draw2D.line(bottom_left, bottom_right, color_drag_border, 3f); }
+            if ((_resize_handle_R_mo || _resize_handle_R_grabbed) && top_of_mouse_stack) { Draw2D.line(top_right, bottom_right, UIColors.ForegroundDark, 3f); }
+            if ((_resize_handle_B_mo || _resize_handle_B_grabbed) && top_of_mouse_stack) { Draw2D.line(bottom_left, bottom_right, UIColors.ForegroundDark, 3f); }
 
             draw_action?.Invoke();
 

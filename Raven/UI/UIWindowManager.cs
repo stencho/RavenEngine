@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Raven.Console;
 using Raven.Engine;
@@ -17,6 +18,22 @@ namespace Raven.UI  {
         on_bottom
     }
 
+    //TODO make this instantiated so that different UIWindowManagers can be themed differently
+    public static class UIColors {
+        public static Color ForegroundDark { get; set; } = Color.FromNonPremultiplied(242, 124, 248, 255);
+        public static Color Foreground { get; set; } = Color.FromNonPremultiplied(255, 204, 250, 255);
+        public static Color ForegroundLight {get;set;} = Color.FromNonPremultiplied(230,230,230,255);
+        
+        public static Color BackgroundDark { get; set; } = Color.Black;
+        public static Color Background {get;set;} = Color.FromNonPremultiplied(20,20,20,255);
+        public static Color BackgroundLight { get; set; } = Color.FromNonPremultiplied(35,35,35,255);
+
+        public static Color BackgroundForegroundMix { get; set; } = Color.FromNonPremultiplied(80, 27, 75, 255);
+        
+        public static Color QuarterGrey => Color.FromNonPremultiplied(63, 63, 63, 255);
+        public static Color MiddleGrey => Color.FromNonPremultiplied(127, 127, 127, 255);
+    }
+    
     public class UIWindowManager {
         public List<IUIForm> windows = new List<IUIForm>();
         ConsoleWindow console;
@@ -47,7 +64,7 @@ namespace Raven.UI  {
         }
 
         bool exists = false;
-        public void add_window(UIWindow window) {
+        public void add_window(IUIForm window) {
             exists = false;
             
             foreach (IUIForm w in windows) {
@@ -58,7 +75,8 @@ namespace Raven.UI  {
             }
 
             if (!exists) {
-                window.window_manager = this;
+                if (window is UIWindow) (window as UIWindow).window_manager = this;
+                
                 windows.Add(window);
                 windows.BringToFront(window);
                 focus_last_added();

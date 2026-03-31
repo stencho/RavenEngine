@@ -16,6 +16,7 @@ using Raven.Graphics;
 using Raven.Graphics.Drawing2D;
 using Raven.Graphics.Drawing3D;
 using Raven.Graphics.InterpolatedTypes;
+using Raven.UI.Forms;
 using SoundFlow.Components;
 
 namespace Cassowary;
@@ -166,10 +167,16 @@ public class CassowaryGame : Game {
         //Oscillator test = new Oscillator(SoundFlowState.Engine, SoundFlowState.PlaybackDevice.Format) { Frequency = 220, Type = Oscillator.WaveformType.Sine};
         
         
-        inspector = new InspectorWindow(new Vector2i(State.resolution.X - 400, State.resolution.Y - 700), new Vector2i(400, 700));
+        inspector = new InspectorWindow(new Vector2i(0, State.resolution.Y - 700), new Vector2i(400, 700));
         inspector.hide();
         State.UI.add_window(inspector);
 
+        var b = new UIButton(5, 5, "fart really hard");
+        b.set_action(() => Log.log("ye"));
+        
+        inspector.add_subform(b);
+        //State.UI.add_window(b);
+        
         //SoundFlowState.Master.AddComponent(test);
         //test.Enabled = true;
         State.LoadFinished();
