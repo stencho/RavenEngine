@@ -19,9 +19,12 @@ float4 color_b = float4(0.5,0.5,0.5,1);
 
 float2 top_left; float2 bottom_right;
 
+int pattern_size = 2;
+
 float4x4 world; 
 
 bool clip_b = false;
+
 
 struct VertexShaderOutput
 {
@@ -38,9 +41,11 @@ float4 MainPS(VertexShaderOutput input) : COLOR
 	int2 px_i = int2(px);
 
 	float4 color = input.Color;
+    int psize = pattern_size;
+    if (psize % 2 != 0) psize -= 1;
 
-	bool x = px_i.x % 2 == 0;
-	bool y = px_i.y % 2 == 0;
+	bool x = px_i.x % psize >= (psize / 2);
+	bool y = px_i.y % psize >= (psize / 2);
 
 	if ((x && y) || (!x && !y)) {
 		color *= color_a;
