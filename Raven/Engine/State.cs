@@ -129,7 +129,7 @@ public static class State {
 
         public void configure_dlight_shader(Camera camera, GBuffer gbuffer, Effect e_directionallight) {
 
-            //e_directionallight.Parameters["fog"].SetValue(true);
+            //e_directionallight.Parameters["fog"].SetValue(true);z
             //e_directionallight.Parameters["fog_start"].SetValue(0.5f);
 
             //e_directionallight.Parameters["camera_pos"].SetValue(State.camera.position);
@@ -248,7 +248,15 @@ public static class State {
     };
     internal static int[] ib_data = { 0, 1, 2, 1, 3, 2 };
 
+    //TODO add SoundFlow state information & audio adapters to debug display
     
+    //TODO add system to attach context menus to UIForms
+    
+    //TODO fix the FUCKIN console add scrolling make it render not everything holy shit limit the fucking scrollback
+    
+    //TODO add a TabbedPanel UI form then use it to start building the inspector
+    // also re-add frame probes and add some cool frame profiling stats to it 
+
     //TODO finish implementing display mode toggle hotkeys (F10,11,12)
     
     //TODO clean up gvar names and add categorization prefixes to default engine gvars
@@ -433,6 +441,7 @@ public static class State {
     
     public static void LoadFinished() {
         window.ClientSizeChanged += (sender, args) => {
+            /*
             var g = false;
             
             if (window.ClientBounds.Size.X < 640) {
@@ -448,7 +457,7 @@ public static class State {
             if (g) {
                 graphics.ApplyChanges();
             }
-            
+            */
             changing_window_size = true;
             time_of_last_window_size_change = Clock.game_time.TotalGameTime.TotalMilliseconds;
         };
@@ -497,7 +506,7 @@ public static class State {
     }
 
     private static void ChangeWindowMode() {
-        var wm = gvars.get_string("window_mode");
+        var wm = gvars.get_string("display_mode");
         switch (wm) {
             case "fullscreen":
                 gvars.set("resolution", FindCurrentResolution());
@@ -656,6 +665,7 @@ public static class Clock {
     
     public static double delta_time => game_time.ElapsedGameTime.TotalSeconds;
     public static double delta_time_ms => game_time.ElapsedGameTime.TotalMilliseconds;
+    public static float delta_time_ms_f => (float)game_time.ElapsedGameTime.TotalMilliseconds;
 
     public static double total_tick_ms_last_update = 0;
     
