@@ -125,7 +125,7 @@ public partial class MouseWatcher {
             Mouse.SetPosition(window_center.X, window_center.Y);
         } else if (!mouse_locked) {
             if (mouse_locked_p) {
-                if (leave_mouse_centered_after_mouse_lock_released) 
+                if (!leave_mouse_centered_after_mouse_lock_released) 
                     Mouse.SetPosition(mouse_lock_stored_position.X, mouse_lock_stored_position.Y);
                 else
                     Mouse.SetPosition(window_center.X, window_center.Y);
