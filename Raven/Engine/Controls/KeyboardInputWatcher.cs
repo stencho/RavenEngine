@@ -27,9 +27,14 @@ public partial class KeyboardWatcher {
 
     public KeyboardWatcher() { }
 
+    private static volatile bool GETTING_STATE = false; 
+    
     public void Update() {
+        do { } while (!Interlocked.CompareExchange(ref GETTING_STATE, true, false));
         keyboard_state_prev = keyboard_state;
         keyboard_state = Keyboard.GetState();
+        Interlocked.Exchange(ref GETTING_STATE, false);
+        
         pressed_keys_previous = pressed_keys;
         pressed_keys = keyboard_state.GetPressedKeys();
     }

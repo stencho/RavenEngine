@@ -1,3 +1,4 @@
+using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
@@ -14,9 +15,13 @@ public partial class XInputWatcher {
     private PlayerIndex player_index; 
     public PlayerIndex PlayerIndex => player_index;
     
+    private static volatile bool GETTING_STATE = false; 
+    
     public void Update() {
+        do { } while (!Interlocked.CompareExchange(ref GETTING_STATE, true, false));
         gamepad_state_previous = gamepad_state; 
         gamepad_state = GamePad.GetState(player_index);
+        Interlocked.Exchange(ref GETTING_STATE, false);
     }
     
     #region enums

@@ -23,7 +23,9 @@ public partial class MouseWatcher {
         Mouse4,
         Mouse5,
         ScrollUp,
-        ScrollDown
+        ScrollDown,
+        ScrollLeft,
+        ScrollRight
     }
 
     private Vector2i mouse_delta = Vector2i.Zero;
@@ -36,7 +38,10 @@ public partial class MouseWatcher {
     public Vector2 MouseDeltaSensitivity => mouse_delta_sensitivity;
     
     private int mouse_wheel_delta = 0;
+    private int mouse_wheel_delta_previous = 0;
+    
     private int mouse_wheel_horizontal_delta = 0;
+    private int mouse_wheel_horizontal_delta_previous = 0;
    
     public int MouseWheelDelta => mouse_wheel_delta;
     public int MouseWheelHorizontalDelta => mouse_wheel_horizontal_delta;
@@ -63,7 +68,9 @@ public partial class MouseWatcher {
     private static Vector2i mouse_lock_stored_position;
     
     public static bool mouse_in_bounds => Math2D.point_within_square(Vector2i.Zero, State.window.ClientBounds.Size.ToVector2i(), Position);
-
+    
+    private static volatile bool GETTING_STATE = false; 
+    
     Vector2 mouse_delta_aspect_ratio_and_sensitivity() {
         
         Vector2 res = State.resolution.ToVector2();
@@ -90,13 +97,16 @@ public partial class MouseWatcher {
             Interlocked.Exchange(ref mouse_locked_global_status_previous, false);
         }
         
+        do { } while (!Interlocked.CompareExchange(ref GETTING_STATE, true, false));
         mouse_state_previous = mouse_state_current;
         mouse_state_current = Mouse.GetState();
+        Interlocked.Exchange(ref GETTING_STATE, false);
         
         mouse_delta = mouse_state_current.Position.ToVector2i() - mouse_state_previous.Position.ToVector2i();
+        mouse_wheel_delta_previous = mouse_wheel_delta;
         mouse_wheel_delta = mouse_state_current.ScrollWheelValue - mouse_state_previous.ScrollWheelValue;
-        
-        
+
+        mouse_wheel_horizontal_delta_previous = mouse_wheel_horizontal_delta;
         mouse_wheel_horizontal_delta = mouse_state_current.HorizontalScrollWheelValue -
                                        mouse_state_previous.HorizontalScrollWheelValue;
         
@@ -171,6 +181,12 @@ public partial class MouseWatcher {
 
             case MouseButtons.ScrollDown:
                 return mouse_wheel_delta < 0;
+            
+            case MouseButtons.ScrollLeft:
+                return mouse_wheel_horizontal_delta > 0;
+
+            case MouseButtons.ScrollRight:
+                return mouse_wheel_horizontal_delta < 0;
 
             default: return false;
         }
@@ -194,10 +210,16 @@ public partial class MouseWatcher {
                 return mouse_state_previous.XButton2 == ButtonState.Pressed;
 
             case MouseButtons.ScrollUp:
-                return mouse_wheel_delta > 0;
+                return mouse_wheel_delta_previous > 0;
 
             case MouseButtons.ScrollDown:
-                return mouse_wheel_delta < 0;
+                return mouse_wheel_delta_previous < 0;
+
+            case MouseButtons.ScrollLeft:
+                return mouse_wheel_horizontal_delta_previous > 0;
+
+            case MouseButtons.ScrollRight:
+                return mouse_wheel_horizontal_delta_previous < 0;
 
             default: return false;
         }
