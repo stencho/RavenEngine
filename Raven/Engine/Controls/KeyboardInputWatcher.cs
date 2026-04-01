@@ -16,9 +16,8 @@ public partial class KeyboardWatcher {
     private KeyboardState keyboard_state_prev;
     public KeyboardState KeyboardStatePrevious => keyboard_state_prev;
         
-    public Keys[] pressed_keys;
-    public Keys[] pressed_keys_previous;
-
+    public Keys[] pressed_keys = [];
+    public Keys[] pressed_keys_previous = [];
     
     public bool is_pressed(Keys k) { return pressed_keys.Contains(k); }
     public bool was_pressed(Keys k) { return pressed_keys_previous.Contains(k); }
