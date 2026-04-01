@@ -20,25 +20,26 @@ namespace Raven.UI  {
 
     //TODO make this instantiated so that different UIWindowManagers can be themed differently
     public static class UIColors {
-        public static Color ForegroundDark { get; set; } = Color.FromNonPremultiplied(242, 124, 248, 255);
-        public static Color Foreground { get; set; } = Color.FromNonPremultiplied(255, 204, 250, 255);
-        public static Color ForegroundLight {get;set;} = Color.FromNonPremultiplied(230,230,230,255);
-        
-        public static Color BackgroundDark { get; set; } = Color.Black;
-        public static Color Background {get;set;} = Color.FromNonPremultiplied(20,20,20,255);
-        public static Color BackgroundLight { get; set; } = Color.FromNonPremultiplied(35,35,35,255);
-
-        public static Color BackgroundForegroundMix { get; set; } = Color.FromNonPremultiplied(80, 27, 75, 255);
+        public static Color Foreground { get; set; } = Color.FromNonPremultiplied(242, 124, 248, 255);
+        public static Color Background { get; set; } = Color.FromNonPremultiplied(20,20,20,255);
         
         public static Color QuarterGrey => Color.FromNonPremultiplied(63, 63, 63, 255);
         public static Color MiddleGrey => Color.FromNonPremultiplied(127, 127, 127, 255);
+
+        public static Color MultAlpha(Color color, float multi) {
+            return Color.FromNonPremultiplied(color.R, color.G, color.B, (int)(color.A * multi));
+        }
+
+        public static float focus_fade => 0.7f;
     }
     
     public class UIWindowManager {
         public List<IUIForm> windows = new List<IUIForm>();
         ConsoleWindow console;
 
-        public bool focus_follows_mouse = true;
+        public bool focus_follows_mouse = gvars.get_bool("ui_focus_follows_mouse");
+        public bool window_shadows => gvars.get_bool("ui_window_shadows");
+        private Vector2i shadow_offset = (Vector2i.One * 2) + Vector2i.Down;
         
         internal MouseWatcher mouse = new MouseWatcher();
         
@@ -46,7 +47,6 @@ namespace Raven.UI  {
             console = new ConsoleWindow(new Vector2i(200, 200), new Vector2i(400, 230));
             console.hide();
             add_window(console);
-            
         }
 
         public string list_windows() {
@@ -253,16 +253,22 @@ namespace Raven.UI  {
             if (focus_follows_mouse) {
                 if (mouse_over_UI()) {
                     BindWatcher.global_enable = false;
+                    bool moving_or_resizing_window = false;
 
                     for (int i = windows.Count - 1; i >= 0; i--) {
-                        windows[i].has_focus = windows[i].mouse_over && windows[i].top_of_mouse_stack;
+                        if (windows[i] is UIWindow) {
+                            if ((windows[i] as UIWindow).BeingMoved || (windows[i] as UIWindow).BeingResized) {
+                                windows[i].has_focus = true;
+                                windows[i].top_of_mouse_stack = true;
+                                moving_or_resizing_window = true;
+                                break;
+                            }
+                        }
                     }
 
-                    for (int i = windows.Count - 1; i >= 0; i--) {
-
-                        for (int i1 = 0; i1 < windows[i].subforms.Count; i1++) {
-                            windows[i].subforms[i1].has_focus = false;
-                            windows[i].subforms[i1].top_of_mouse_stack = false;
+                    if (!moving_or_resizing_window) {
+                        for (int i = windows.Count - 1; i >= 0; i--) {
+                            windows[i].has_focus = (windows[i].mouse_over && windows[i].top_of_mouse_stack);
                         }
                     }
                 } else {
@@ -274,7 +280,15 @@ namespace Raven.UI  {
                             windows[i].subforms[i1].has_focus = false;
                             windows[i].subforms[i1].top_of_mouse_stack = false;
                         }
+                        
+                        if (windows[i] is UIWindow) {
+                            if ((windows[i] as UIWindow).BeingMoved || (windows[i] as UIWindow).BeingResized) {
+                                windows[i].has_focus = true;
+                                windows[i].top_of_mouse_stack = true;
+                            }
+                        }
                     }
+                    
                     BindWatcher.global_enable = true;
                 }
             } else {
@@ -312,6 +326,14 @@ namespace Raven.UI  {
         public void draw() {
             //Clock.frame_probe.set("draw_window_manager");
             Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.Default);
+            if (window_shadows) {
+                foreach (IUIForm window in windows) {
+                    if (window is UIWindow && window.visible && !((window as UIWindow).RenderTargetsHidden)) {
+                        Draw2D.fill_rect(window.position + shadow_offset, window.position + window.size + shadow_offset, UIColors.Background.multiply_alpha(.5f));
+                    }
+                }
+            }
+
             
             foreach (IUIForm window in windows) {
                 if (window.visible)
@@ -321,7 +343,7 @@ namespace Raven.UI  {
     }
 
     public static class UIStandard {
-
+        
         public const string color_string_pattern = "(#c:[a-zA-Z].*?#)";
         public const string color_string_reset_pattern = "(#c#)";
         public const string color_string_RGB_pattern = "(#c:[0-9]{1,3}[,/:;-\\|x][0-9]{1,3}[,/:;-\\|x][0-9]{1,3}#)";

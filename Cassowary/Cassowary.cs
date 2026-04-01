@@ -16,6 +16,7 @@ using Raven.Graphics;
 using Raven.Graphics.Drawing2D;
 using Raven.Graphics.Drawing3D;
 using Raven.Graphics.InterpolatedTypes;
+using Raven.UI;
 using Raven.UI.Forms;
 using SoundFlow.Components;
 
@@ -169,13 +170,25 @@ public class CassowaryGame : Game {
         
         inspector = new InspectorWindow(new Vector2i(0, State.resolution.Y - 700), new Vector2i(400, 700));
         inspector.hide();
-        State.UI.add_window(inspector);
-
+        
         var b = new UIButton(5, 5, "fart really hard");
         b.set_action(() => Log.log("ye"));
         
         inspector.add_subform(b);
-        //State.UI.add_window(b);
+        
+        State.UI.add_window(inspector);
+
+        
+        var tester = new UIWindow(new Vector2i(20,20), new Vector2i(400, 700));
+        tester.internal_draw_action = () => {
+            
+        };
+        
+        State.UI.add_window(tester);
+        
+        var b2 = new UIButton(5, 5, "fart really hard");
+        b2.set_action(() => Log.log("ye"));
+        State.UI.add_window(b2);
         
         //SoundFlowState.Master.AddComponent(test);
         //test.Enabled = true;
@@ -198,20 +211,24 @@ public class CassowaryGame : Game {
             skull_rotate -= MathF.PI * 2;
         }
         
-        if (State.engine_binds.pressed("test")) {
-            var newtime = State.Skybox.sun_moon.current_time_entire_day_percent;
-            if (State.engine_binds.pressed("scroll_up")) {
-                newtime += 0.005;
-                if (newtime > 1.0) newtime -= 1.0;
-                State.Skybox.sun_moon.set_time_of_day(newtime);    
-            }
-            if (State.engine_binds.pressed("scroll_down")) {
-                newtime -= 0.005;
-                if (newtime < 0) newtime += 1.0;
-                State.Skybox.sun_moon.set_time_of_day(newtime);    
-            }
+        var time = State.Skybox.sun_moon.current_time_entire_day_percent;
+        
+        if (State.engine_binds.double_tapped("test")) {
+            State.Skybox.sun_moon.set_time_of_day(0.5f);    
             
+        } else if (State.engine_binds.pressed("test")) {
+            if (State.engine_binds.just_pressed("scroll_up")) {
+                time += 0.005;
+                if (time > 1.0) time -= 1.0;
+                State.Skybox.sun_moon.set_time_of_day(time);    
+            }
+            if (State.engine_binds.just_pressed("scroll_down")) {
+                time -= 0.005;
+                if (time < 0) time += 1.0;
+                State.Skybox.sun_moon.set_time_of_day(time);    
+            }
         }
+        
         
         if (State.engine_binds.just_pressed("toggle_inspector")) {
             State.UI.toggle_window(inspector);

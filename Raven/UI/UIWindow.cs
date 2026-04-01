@@ -22,7 +22,13 @@ namespace Raven.UI {
 
         public string text => _text;
         string _text = "a window";
-        public void change_text(string text) { _text = text; }
+
+        private Vector2 text_size = Vector2.Zero;
+        
+        public void change_text(string text) {
+            _text = text;
+            text_size = Draw2D.measure_string_profont(text);
+        }
 
         public ui_layer_state layer_state => ui_layer_state.floating;
 
@@ -47,7 +53,7 @@ namespace Raven.UI {
         public Vector2i min_window_size = new Vector2i(40, 40);
         public Vector2i max_window_size = new Vector2i(600, 600);
 
-        float top_bar_height = 12f;
+        float top_bar_height = 14f;
 
         public List<IUIForm> subforms { get; set; } = new List<IUIForm>();
 
@@ -68,6 +74,7 @@ namespace Raven.UI {
 
         bool _update_render_targets = true;
         bool _draw_render_targets = true;
+        public bool RenderTargetsHidden => !_draw_render_targets;
         bool _render_targets_need_resize = false;
 
         public int top_hit_subform { get; set; } = -1;
@@ -86,6 +93,9 @@ namespace Raven.UI {
 
         bool _grabbed_bar = false;
         Vector2 _bar_mouse_offset = Vector2.Zero;
+
+        public bool BeingMoved => _grabbed_bar;
+        public bool BeingResized => _resize_handle_B_grabbed || _resize_handle_R_grabbed;
 
         bool mdown = false;
         bool mdown_p = false;
@@ -138,6 +148,8 @@ namespace Raven.UI {
 
             client_render_target = new RenderTarget2D(State.graphics_device, client_size.X, client_size.Y);
             top_bar_render_target = new RenderTarget2D(State.graphics_device, top_bar_size.X, top_bar_size.Y);
+            
+            change_text(text);
         }
 
         public bool test_mouse() {
@@ -150,6 +162,8 @@ namespace Raven.UI {
 
         public virtual void update() {
             test_mouse();
+            
+            //TODO add lower bounds on window size lmao oops
 
             if (is_child) {
                 ((BoundingBox2D)_collision["form"]).position = (position + parent_form.client_top_left).ToVector2();
@@ -320,34 +334,61 @@ namespace Raven.UI {
         public Action internal_draw_action;
         public Action draw_action;
 
+        public FloatLerperManual focus_lerp = new FloatLerperManual(0f, 1f, 200);
+
+        private Color foreground => Draw2D.ColorInterpolate(UIColors.Foreground.multiply_color(UIColors.focus_fade), UIColors.Foreground, focus_lerp.Value);
+        private Color background => Draw2D.ColorInterpolate(UIColors.Background, UIColors.Background, focus_lerp.Value);
+        private Color border => Draw2D.ColorInterpolate(UIColors.Foreground.multiply_color(UIColors.focus_fade), UIColors.Foreground, focus_lerp.Value);
+        private Color title_bar => Draw2D.ColorInterpolate(UIColors.Background, UIColors.Foreground, focus_lerp.Value);
+        private Color title_text => Draw2D.ColorInterpolate(UIColors.Foreground.multiply_color(UIColors.focus_fade), UIColors.Background, focus_lerp.Value);
+
+        private float _text_side_gap = 4f;
+        
         public void render_internal() {
             if (!_update_render_targets || !_visible) return;
 
+            //DRAW TOP BAR
             State.graphics_device.SetRenderTarget(top_bar_render_target);
-
-            State.graphics_device.Clear(Draw2D.ColorInterpolate(UIColors.BackgroundLight, UIColors.ForegroundDark, focus_lerp.Value));
-            
+            State.graphics_device.Clear(title_bar);
             Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None);
 
-            if (has_focus)
-                Draw2D.text("profont", text, (Vector2i.Right * 4f), UIColors.BackgroundLight);
-            else
-                Draw2D.text("profont", text, (Vector2i.Right * 4f), UIColors.ForegroundDark);
+            Draw2D.fill_rect_dither(Vector2i.Zero, top_bar_size, 
+                UIColors.Background, 
+                Draw2D.ColorInterpolate(UIColors.Foreground.multiply_color(UIColors.focus_fade), UIColors.Foreground, focus_lerp.Value), 
+                2);
 
+            var text_background_min = (Vector2i.Right * ((top_bar_size.X / 2f) - (text_size.X / 2f) - (_text_side_gap)));
+            var text_background_max = text_background_min + (text_size.X + (_text_side_gap * 2)).ToV2X() + top_bar_height.ToV2Y();
+            
+            Draw2D.fill_rect(text_background_min, text_background_max, Draw2D.ColorInterpolate(UIColors.Background, UIColors.Foreground, focus_lerp.Value));
+            
+            Draw2D.text("profont", text, (Vector2i.Right * ((top_bar_size.X / 2f) - (text_size.X / 2f))) + (Vector2.UnitY * ((top_bar_height / 2f) - (text_size.Y / 2f))), title_text);
+            
             //Draw2D.line(size.X - 45, 0, size.X - 45, size.Y, 1f, Color.Black);
             //Draw2D.line(size.X - 30, 0, size.X - 30, size.Y, 1f, Color.Black);
             //Draw2D.line(size.X - 15, 0, size.X - 15, size.Y, 1f, Color.Black);
             
             Draw2D.end();
 
+            //PRE-DRAW SUBFORMS
             foreach (IUIForm subform in subforms) {
                 subform.render_internal();
             }
 
+            //RENDER MAIN CLIENT AREA
             State.graphics_device.SetRenderTarget(client_render_target);
             State.graphics_device.Clear(UIColors.Background);
-
-            Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None);
+            
+            /*
+            Draw2D.fill_rect_dither(Vector2i.Zero, client_size, 
+                UIColors.Background, 
+                Draw2D.ColorInterpolate(
+                    UIColors.ChangeAlpha(UIColors.Foreground, UIColors.focus_fade), 
+                    UIColors.Foreground, 
+                    focus_lerp.Value), 16);
+            */
+            
+            Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None);
 
             foreach (IUIForm subform in subforms) {
                 lock(subform)
@@ -359,30 +400,44 @@ namespace Raven.UI {
             Draw2D.end();
         }
 
-        private FloatLerperManual focus_lerp = new FloatLerperManual(0f, 1f, 200);
         
         public void draw() {
             if (!_visible) return;
             
             if (has_focus) focus_lerp.Lerp();
             else focus_lerp.LerpReverse();
-            
-            Draw2D.fill_rect(top_left, top_left + top_bar_size,
-                UIColors.Foreground
-                );
-            Draw2D.fill_rect(client_top_left, client_top_left + client_size, 
-                UIColors.BackgroundLight);
 
+            //Draw the window contents if _draw_render_targets is on (this is used alongside resizing windows to prevent issues w/ resizing render targets a bunch)
             if (_draw_render_targets) {
+                //Draw title bar
                 Draw2D.image(top_bar_render_target, top_left, top_bar_size, Color.White);
+                
+                //draw client area contents
                 Draw2D.image(client_render_target, client_top_left, Color.White);
+                
+                //draw window border
+                Draw2D.rect(top_left, bottom_right, border, 1f);
+                Draw2D.rect(top_left, top_left + top_bar_size, border, 1f);
+                
+            //Draw a transparent basic version of the window while resizing (to avoid stretching contents)                
+            } else {
+                Draw2D.fill_rect(top_left, top_left + top_bar_size,
+                    UIColors.Foreground.multiply_alpha(0.5f));
+                Draw2D.fill_rect(client_top_left, client_top_left + client_size, 
+                    UIColors.Background.multiply_alpha(0.5f));
+                
+                //draw window border
+                Draw2D.rect(top_left, bottom_right, UIColors.Foreground.multiply_color(0.5f), 1f);
+                Draw2D.rect(top_left, top_left + top_bar_size, UIColors.Foreground.multiply_color(0.5f), 1f);
+            }
+            
+            if ((_resize_handle_R_mo || _resize_handle_R_grabbed) && (!_resize_handle_B_grabbed || _resize_handle_both_grabbed) && top_of_mouse_stack) {
+                Draw2D.line(top_right - Vector2i.One, bottom_right - Vector2i.UnitX, UIColors.Foreground, 2f);
             }
 
-            Draw2D.rect(top_left, bottom_right, UIColors.ForegroundDark, 1f);
-            Draw2D.rect(top_left, top_left + top_bar_size, UIColors.ForegroundDark, 1f);
-
-            if ((_resize_handle_R_mo || _resize_handle_R_grabbed) && top_of_mouse_stack) { Draw2D.line(top_right, bottom_right, UIColors.ForegroundDark, 3f); }
-            if ((_resize_handle_B_mo || _resize_handle_B_grabbed) && top_of_mouse_stack) { Draw2D.line(bottom_left, bottom_right, UIColors.ForegroundDark, 3f); }
+            if ((_resize_handle_B_mo || _resize_handle_B_grabbed) && (!_resize_handle_R_grabbed || _resize_handle_both_grabbed) && top_of_mouse_stack) {
+                Draw2D.line(bottom_left - Vector2i.One, bottom_right - Vector2i.UnitY, UIColors.Foreground, 2f);
+            }
 
             draw_action?.Invoke();
 

@@ -6,8 +6,16 @@ using Raven.UI;
 
 namespace Raven.Engine;
 public static class Extensions {
-    
+    public static Vector2 OnlyX(this Vector2 v) => new Vector2(v.X, 0);
+    public static Vector2 OnlyY(this Vector2 v) => new Vector2(0, v.Y);
 
+    public static Vector2i OnlyX(this Vector2i v) => new Vector2i(v.X, 0);
+    public static Vector2i OnlyY(this Vector2i v) => new Vector2i(0, v.Y);
+
+    public static Vector3 OnlyX(this Vector3 v) => new Vector3(v.X, 0, 0);
+    public static Vector3 OnlyY(this Vector3 v) => new Vector3(0, v.Y, 0);
+    public static Vector3 OnlyZ(this Vector3 v) => new Vector3(0, 0, v.Y);
+    
     public static Vector2 XY(this Vector3 vec) => new Vector2(vec.X, vec.Y);
     public static Vector2 XZ(this Vector3 vec) => new Vector2(vec.X, vec.Z);
     public static Vector2 YZ(this Vector3 vec) => new Vector2(vec.Y, vec.Z);
@@ -15,6 +23,22 @@ public static class Extensions {
     public static Vector2 ZX(this Vector3 vec) => new Vector2(vec.Z, vec.X);
     public static Vector2 ZY(this Vector3 vec) => new Vector2(vec.Z, vec.Y);
 
+    public static Vector2 ToV2X(this float f) => new Vector2(f, 0);
+    public static Vector2 ToV2Y(this float f) => new Vector2(0, f);
+    
+    public static Vector2i ToV2iX(this float f) => new Vector2i(f, 0);
+    public static Vector2i ToV2iY(this float f) => new Vector2i(0, f);
+    
+    public static Vector2 ToV2X(this int f) => new Vector2(f, 0);
+    public static Vector2 ToV2Y(this int f) => new Vector2(0, f);
+    
+    public static Vector2i ToV2iX(this int f) => new Vector2i(f, 0);
+    public static Vector2i ToV2iY(this int f) => new Vector2i(0, f);
+    
+    public static Color multiply_color(this Color c, float multiplier) => Color.FromNonPremultiplied((int)(c.R * multiplier), (int)(c.G * multiplier), (int)(c.B * multiplier), c.A);
+    public static Color multiply_all(this Color c, float multiplier) => new Color(c.R * multiplier, c.G * multiplier, c.B * multiplier, c.A * multiplier);
+    public static Color multiply_alpha(this Color c, float multiplier) => Color.FromNonPremultiplied(c.R, c.G, c.B, (int)(c.A * multiplier));
+    
     public static void forEach(this Vector3 vec, Action<float> action) {
         action(vec.X);
         action(vec.Y);

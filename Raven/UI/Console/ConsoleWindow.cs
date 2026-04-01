@@ -151,7 +151,7 @@ namespace Raven.Console {
 
             bool skipdraw = false;
 
-            Draw2D.fill_rect(0, 0, size.X, size.Y, Color.FromNonPremultiplied(25, 25, 25, 255));
+            //Draw2D.fill_rect(0, 0, size.X, size.Y, Color.FromNonPremultiplied(25, 25, 25, 255));
 
             for (int d = 0; d < Log.data.Count; d++) {
                 x = Log.data.Count - 1 - c;

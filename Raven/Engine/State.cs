@@ -302,6 +302,9 @@ public static class State {
         
         gvars.add_gvar("bind_tap_time", gvar_data_type.INT, 150, true, "Sets the tap time for digital inputs, in milliseconds.\nThis is how long it takes for a key to go from Pressed to Held,\nand if it is released before then, it will become Tapped for one frame.");
         gvars.add_gvar("mouse_sensitivity", gvar_data_type.VECTOR2, Vector2.One, true, "Sets the mouse sensitivity individually for each axis.");
+
+        gvars.add_gvar("ui_focus_follows_mouse", gvar_data_type.BOOL, false, true, "Forces UI window focus to always be on the window under the mouse\n(as opposed to standard click-to-focus)");
+        gvars.add_gvar("ui_window_shadows", gvar_data_type.BOOL, false, true, "Adds a small drop shadow to UI windows");
         
         bool read_gvars = gvars.read_gvars_from_disk();
         Debug.WriteLine($"{read_gvars} GVARS:\n{gvars.list_all()}");
@@ -326,6 +329,7 @@ public static class State {
         engine_binds.force_enable("toggle_inspector");
         engine_binds.force_enable("toggle_full_info");
         engine_binds.force_enable("screenshot");
+        engine_binds.force_enable("exit");
         
         SoundFlowState.Initialize();
     }
@@ -601,7 +605,12 @@ public static class State {
                 break;
         }
 
-        return $"[Render] {Clock.frame_rate} FPS{buffer_text}\n[Update] {Clock.tick_rate} TPS{(EnableInterpolation ? " (interpolated)," : ",")} ~{scene_update_thread.delta_ms_before_sleep:0.000}ms non-sleep ({Clock.total_tick_ms_last_update:0.000}/{scene_update_thread.goal_time:0.000}ms)\n[Audio] ~{SoundFlowState.update_loop.last_ticks} Ticks per loop (always slightly over)/{SoundFlowState.update_loop.TPS} TPS ({Stopwatch.Frequency / 1000.0} Stopwatch ticks/ms)\n[Threads] {Threads.TaskCount}/{Threads.MaxTasks}\n";
+        return $"[Render] {Clock.frame_rate} FPS{buffer_text}\n[Update] {Clock.tick_rate} TPS" +
+               $"{(EnableInterpolation ? " (interpolated)," : ",")} ~{scene_update_thread.delta_ms_before_sleep:0.000}ms non-sleep" +
+               $" ({Clock.total_tick_ms_last_update:0.000}/{scene_update_thread.goal_time:0.000}ms)\n" +
+               $"[Audio] ~{SoundFlowState.update_loop.last_ticks} Ticks per loop (always slightly over)/{SoundFlowState.update_loop.TPS} TPS ({Stopwatch.Frequency / 1000.0} Stopwatch ticks/ms)\n" +
+               $"[Threads] {Threads.TaskCount}/{Threads.MaxTasks}\n" +
+               $"[Draw Calls] {graphics_device.Metrics.DrawCount}\n[Sprites] {graphics_device.Metrics.SpriteCount}";
     }
 }
 
