@@ -64,12 +64,12 @@ namespace Raven.Graphics {
                         if (State.super_res_scale <= 1.0f) Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None);
                         else Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearWrap, DepthStencilState.None);
                         
-                        Draw2D.image(gbuffer.rt_composed, Vector2i.Zero, window_size);
+                        Draw2D.image(gbuffer.rt_final, Vector2i.Zero, window_size);
                         
                         
                     } else {
                         Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None);
-                        Draw2D.image(gbuffer.rt_composed, gbuffer._screen_draw_info.position,
+                        Draw2D.image(gbuffer.rt_final, gbuffer._screen_draw_info.position,
                             gbuffer._screen_draw_info.size);
                     }
 
@@ -127,10 +127,10 @@ namespace Raven.Graphics {
         public RenderTarget2D rt_normal;
         public RenderTarget2D rt_depth;
         public RenderTarget2D rt_lighting;
-        public RenderTarget2D rt_composed;
-
-        public RenderTarget2D rt_final_half;
         public RenderTarget2D rt_final;
+
+        public RenderTarget2D rt_composed_half;
+        public RenderTarget2D rt_composed;
         public RenderTarget2D rt_2D;
 
         //public RenderTarget2D rt_fxaa;
@@ -248,7 +248,7 @@ namespace Raven.Graphics {
             if (!Directory.Exists("scr")) Directory.CreateDirectory("scr");
 
             using (FileStream fs = new FileStream("scr/scr" + DateTime.Now.ToFileTime() + ".png", FileMode.Create)) {
-                rt_composed.SaveAsPng(fs, rt_composed.Width, rt_composed.Height);
+                rt_final.SaveAsPng(fs, rt_final.Width, rt_final.Height);
             }
 
             screenshot = false;
@@ -257,7 +257,7 @@ namespace Raven.Graphics {
         public void Compose(Camera camera) {
             flip_diffuse();
             
-            State.graphics_device.SetRenderTarget(rt_final);
+            State.graphics_device.SetRenderTarget(rt_composed);
             
             State.graphics_device.Clear(Color.Transparent);
         
@@ -277,11 +277,11 @@ namespace Raven.Graphics {
             State.e_compositor.Techniques["draw"].Passes[0].Apply();
             State.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
 
-            State.graphics_device.SetRenderTarget(rt_composed);
+            State.graphics_device.SetRenderTarget(rt_final);
             Draw2D.end();
         
             Draw2D.begin(SpriteSortMode.Immediate, BlendState.Opaque, SamplerState.PointClamp, DepthStencilState.None);
-            Draw2D.image(rt_final, Vector2i.Zero, resolution);
+            Draw2D.image(rt_composed, Vector2i.Zero, resolution);
             Draw2D.end();
             
             Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None);
@@ -316,10 +316,10 @@ namespace Raven.Graphics {
             rt_normal = new RenderTarget2D(State.graphics_device, (int)(width * res_scale), (int)(height * res_scale), false, SurfaceFormat.Vector4, DepthFormat.None, 0, RenderTargetUsage.PlatformContents);
             rt_depth = new RenderTarget2D(State.graphics_device, (int)(width * res_scale), (int)(height * res_scale), false, SurfaceFormat.Single, DepthFormat.Depth24Stencil8, 0, RenderTargetUsage.PlatformContents);
             rt_lighting = new RenderTarget2D(State.graphics_device, (int)(width * res_scale), (int)(height * res_scale), false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PlatformContents);
-            rt_final = new RenderTarget2D(State.graphics_device, (int)(width * res_scale), (int)(height * res_scale), false, SurfaceFormat.Color, DepthFormat.None);
-            rt_final_half = new RenderTarget2D(State.graphics_device, (int)(width / 2), (int)(height / 2), false, SurfaceFormat.Color, DepthFormat.None);
+            rt_composed = new RenderTarget2D(State.graphics_device, (int)(width * res_scale), (int)(height * res_scale), false, SurfaceFormat.Color, DepthFormat.None);
+            rt_composed_half = new RenderTarget2D(State.graphics_device, (int)(width / 2), (int)(height / 2), false, SurfaceFormat.Color, DepthFormat.None);
             rt_2D = new RenderTarget2D(State.graphics_device, (int)(width), (int)(height), false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
-            rt_composed = new RenderTarget2D(State.graphics_device, (int)(width), (int)(height), false, SurfaceFormat.Color, DepthFormat.None);
+            rt_final = new RenderTarget2D(State.graphics_device, (int)(width), (int)(height), false, SurfaceFormat.Color, DepthFormat.None);
             
             target_bindings[0] = !rt_diffuse.FlipFlop || !rt_diffuse.DoubleBuffered ? rt_diffuse.flip : rt_diffuse.flop;
             target_bindings[1] = rt_normal;
