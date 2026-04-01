@@ -47,11 +47,14 @@
     <ItemGroup>
       <ProjectReference Include="..\Raven.CodeGenerators\Raven.CodeGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"  />
     </ItemGroup>
+    <ItemGroup>
+      <None Include="Content\Shaders\no_overdraw.fx" />
+    </ItemGroup>
     <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
         <Message Text="Restoring dotnet tools" Importance="High" />
         <Exec Command="dotnet tool restore" />
     </Target>
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="cd ..&#xA;./CopyContent.sh" />
+      <Exec Command="./post_build_linux.sh" />
     </Target>
 </Project>
