@@ -17,7 +17,7 @@ public static class SoundFlowState {
 
     public static Mixer Master => playback_device.MasterMixer;
     
-    public static HighFrequencyUpdateLoop update_loop = new HighFrequencyUpdateLoop("AudioHighFrequencyLoop", 10000, HighFrequencyUpdate);
+    //public static HighFrequencyUpdateLoop update_loop = new HighFrequencyUpdateLoop("AudioHighFrequencyLoop", 10000, HighFrequencyUpdate);
     
     
     public static void Initialize() {

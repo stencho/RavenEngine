@@ -608,9 +608,9 @@ public static class State {
         return $"[Render] {Clock.frame_rate} FPS{buffer_text}\n[Update] {Clock.tick_rate} TPS" +
                $"{(EnableInterpolation ? " (interpolated)," : ",")} ~{scene_update_thread.delta_ms_before_sleep:0.000}ms non-sleep" +
                $" ({Clock.total_tick_ms_last_update:0.000}/{scene_update_thread.goal_time:0.000}ms)\n" +
-               $"[Audio] ~{SoundFlowState.update_loop.last_ticks} Ticks per loop (always slightly over)/{SoundFlowState.update_loop.TPS} TPS ({Stopwatch.Frequency / 1000.0} Stopwatch ticks/ms)\n" +
-               $"[Threads] {Threads.TaskCount}/{Threads.MaxTasks}\n" +
-               $"[Draw Calls] {graphics_device.Metrics.DrawCount}\n[Sprites] {graphics_device.Metrics.SpriteCount}";
+               //$"[Audio] ~{SoundFlowState.update_loop.last_ticks} Ticks per loop (always slightly over)/{SoundFlowState.update_loop.TPS} TPS ({Stopwatch.Frequency / 1000.0} Stopwatch ticks/ms)\n" +
+               $"[Threads] {Threads.TaskCount}/{Threads.MaxTasks}\n";// +
+              // $"[Draw Calls] {graphics_device.Metrics.DrawCount}\n[Sprites] {graphics_device.Metrics.SpriteCount}\n";
     }
 }
 
@@ -736,7 +736,7 @@ public static class Clock {
                     Thread.Sleep((int)(remaining_ms() - 0.2));    
                 }
                 while (remaining_ms() > 0.0 && !Threads.IsCancellationRequested) {
-                    Thread.SpinWait(1);
+                    //Thread.SpinWait(1);
                 }
                 
                 Clock.total_tick_ms_last_update = elapsed_ms();
