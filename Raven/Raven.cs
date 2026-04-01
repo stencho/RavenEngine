@@ -6,23 +6,29 @@ using Raven.Engine.Controls;
 using Raven.Engine;
 using Raven.Graphics.Drawing2D;
 
+//TODO finish no overdraw shader, should be a cake walk. use it to make shadows not overlap. idk why spritebatch opaque raster mode ain't work tho 
 
-//TODO make focused window render area display a checkerboard or something to make sure the player is aware of the current focused window at all times
+//TODO should only block binds when a SUBform has focus, and subform focus should be removed on clicking the empty space in a window
+// still also need to add tab selection/indexing hehe 
 
-//TODO change window edge drag handle color + add alt click move/resize
+//TODO add window size lower bounds, prolly like 64x64
+
+//TODO add alt tab in click focus mode??
+
+//TODO add alt+click move/resize
+
+//TODO fix the FUCKIN console add scrolling make it render not everything holy shit limit the fucking scrollback
 
 //TODO try SDL_ttf for font rendering
 
 //TODO add stripe shader and ManagedEffect/Draw2D code for it
-// also add polkadot shader
+// also add polkadot shader and dithered gradient shader
 // could be fun to allow the user to theme elements that use checkerboards to use stripes/dots instead
 // already want to allow full color selection so
     
 //TODO add SoundFlow state information & audio adapters to debug display
 
 //TODO add system to attach context menus to UIForms
-
-//TODO fix the FUCKIN console add scrolling make it render not everything holy shit limit the fucking scrollback
 
 //TODO add a TabbedPanel UI form then use it to start building the inspector
 // also re-add frame probes and add some cool frame profiling stats to it 
@@ -70,6 +76,7 @@ using Raven.Graphics.Drawing2D;
 // not like a spring is particularly hard to understand, but making 4 of them work on the same mass at the same time is uhhhh spooky
 // least I got a fixed deterministic timestep, but still like how da fuck does babby integrate
      
+//TODO idk maybe implement video playback? could be useful for japes at least
 
 namespace Raven;
 

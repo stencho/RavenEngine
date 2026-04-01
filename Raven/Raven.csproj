@@ -17,7 +17,7 @@
         <None Remove="Icon.ico" />
         <None Remove="Icon.bmp" />
         <None Remove="Content\Effects\**" />
-        <None Remove="Engine\Collision\Solver\**" />
+        <None Remove="Engine\Collision\Solver\**" />        
     </ItemGroup>
     <ItemGroup>
         <EmbeddedResource Include="Icon.ico">
@@ -54,7 +54,13 @@
         <Message Text="Restoring dotnet tools" Importance="High" />
         <Exec Command="dotnet tool restore" />
     </Target>
-    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="./post_build_linux.sh" />
+    
+    <PropertyGroup>
+        <IsLinux Condition="$([MSBuild]::IsOSPlatform('Linux'))">true</IsLinux>
+    </PropertyGroup>
+    
+    <Target Name="PostBuild" AfterTargets="Build">
+        <Exec Condition="'$(IsLinux)' == 'true'" Command="./post_build_linux.sh Cassowary" />
     </Target>
+    
 </Project>
