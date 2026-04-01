@@ -18,6 +18,8 @@
         <None Remove="Icon.bmp" />
         <None Remove="Content\Effects\**" />
         <None Remove="Engine\Collision\Solver\**" />        
+        <None Remove="Content\bin\**" />        
+        <None Remove="Content\obj\**" />        
     </ItemGroup>
     <ItemGroup>
         <EmbeddedResource Include="Icon.ico">
@@ -28,6 +30,8 @@
         </EmbeddedResource>
         <EmbeddedResource Remove="Content\Effects\**" />
         <EmbeddedResource Remove="Engine\Collision\Solver\**" />
+        <EmbeddedResource Remove="Content\bin\**" />
+        <EmbeddedResource Remove="Content\obj\**" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="CS-Script" Version="4.13.1" />
@@ -43,6 +47,8 @@
     </ItemGroup>
     <ItemGroup>
       <Compile Remove="Content\Effects\**" />
+      <Compile Remove="Content\bin\**" />
+      <Compile Remove="Content\obj\**" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\Raven.CodeGenerators\Raven.CodeGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"  />
