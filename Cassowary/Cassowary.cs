@@ -168,7 +168,7 @@ public class CassowaryGame : Game {
         //Oscillator test = new Oscillator(SoundFlowState.Engine, SoundFlowState.PlaybackDevice.Format) { Frequency = 220, Type = Oscillator.WaveformType.Sine};
         
         
-        inspector = new InspectorWindow(new Vector2i(0, State.resolution.Y - 700), new Vector2i(400, 700));
+        inspector = new InspectorWindow(new Vector2i(0, State.resolution.Y - 700), new Vector2i(400, 320));
         inspector.hide();
         
         var b = new UIButton(5, 5, "fart really hard");
@@ -179,7 +179,7 @@ public class CassowaryGame : Game {
         State.UI.add_window(inspector);
 
         
-        var tester = new UIWindow(new Vector2i(20,20), new Vector2i(400, 700));
+        var tester = new UIWindow(new Vector2i(20,20), new Vector2i(400, 320));
         tester.internal_draw_action = () => {
             
         };

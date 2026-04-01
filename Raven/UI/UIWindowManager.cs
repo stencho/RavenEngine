@@ -147,14 +147,27 @@ namespace Raven.UI  {
         }
 
         public void toggle_window(UIWindow window) {
+            if (window.visible && !window.has_focus && !focus_follows_mouse) {
+                if (!MouseWatcher.MouseLocked) {
+                    defocus_all_windows();
+                    windows.BringToFront(window);
+                    force_focus(window);
+                    BindWatcher.global_enable = false;
+                    return;
+                }
+            }
+            
             window.toggle_visibility();
 
-            if (window.visible) {
+            if (window.visible && !MouseWatcher.MouseLocked) {
                 if (MouseWatcher.MouseLocked) return;
                 windows.BringToFront(window);
                 force_focus(window);
                 BindWatcher.global_enable = false;
             } else {
+                if (window.visible) {
+                    windows.BringToFront(window);
+                }
                 BindWatcher.global_enable = true;
                 defocus_all_windows();
             }
@@ -171,26 +184,13 @@ namespace Raven.UI  {
             top_hit_subform = -1;
             bool hit_any = false;
 
-            //if (Controls.just_pressed(Keys.OemTilde)) {
-            if (State.engine_binds.just_pressed("toggle_console")) {
-                if (console.visible && !console.has_focus && !focus_follows_mouse) {
-                    defocus_all_windows();
-                    windows.BringToFront(console);
-                    force_focus(console);
-                    BindWatcher.global_enable = false;
-                    return;
-                }
-
-                console.toggle_visibility();
-
-                if (console.visible && !MouseWatcher.MouseLocked) {
-                    windows.BringToFront(console);
-                    force_focus(console);
-                    BindWatcher.global_enable = false;
-                } else {
-                    BindWatcher.global_enable = true;
-                    defocus_all_windows();
-                }
+            //just locked mouse
+            if (MouseWatcher.MouseLocked && !MouseWatcher.MouseLockedPrevious) {
+                defocus_all_windows();
+            }
+            
+            if (State.engine_binds.just_pressed("toggle_console") ) {
+                toggle_window(console);
             }
 
             if (MouseWatcher.MouseLocked && !MouseWatcher.MouseLockedPrevious) {

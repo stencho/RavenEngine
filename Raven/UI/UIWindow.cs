@@ -163,8 +163,6 @@ namespace Raven.UI {
         public virtual void update() {
             test_mouse();
             
-            //TODO add lower bounds on window size lmao oops
-
             if (is_child) {
                 ((BoundingBox2D)_collision["form"]).position = (position + parent_form.client_top_left).ToVector2();
                 ((BoundingBox2D)_collision["form"]).SetSize(size.ToVector2());
