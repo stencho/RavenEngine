@@ -186,9 +186,6 @@ public class CassowaryGame : Game {
         
         State.UI.add_window(tester);
         
-        var b2 = new UIButton(5, 5, "fart really hard");
-        b2.set_action(() => Log.log("ye"));
-        State.UI.add_window(b2);
         
         //SoundFlowState.Master.AddComponent(test);
         //test.Enabled = true;
