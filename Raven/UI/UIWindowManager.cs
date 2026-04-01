@@ -21,7 +21,7 @@ namespace Raven.UI  {
     //TODO make this instantiated so that different UIWindowManagers can be themed differently
     public static class UIColors {
         public static Color Foreground { get; set; } = Color.FromNonPremultiplied(242, 124, 248, 255);
-        public static Color Background { get; set; } = Color.FromNonPremultiplied(20,20,20,255);
+        public static Color Background { get; set; } = Color.FromNonPremultiplied(45,30,45,255);
         
         public static Color QuarterGrey => Color.FromNonPremultiplied(63, 63, 63, 255);
         public static Color MiddleGrey => Color.FromNonPremultiplied(127, 127, 127, 255);
@@ -171,7 +171,6 @@ namespace Raven.UI  {
                 BindWatcher.global_enable = true;
                 defocus_all_windows();
             }
-            
         }
         
         public void update() {

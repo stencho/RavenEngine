@@ -53,7 +53,7 @@ namespace Raven.UI {
         public Vector2i min_window_size = new Vector2i(40, 40);
         public Vector2i max_window_size = new Vector2i(600, 600);
 
-        float top_bar_height = 14f;
+        float top_bar_height = 13f;
 
         public List<IUIForm> subforms { get; set; } = new List<IUIForm>();
 
@@ -335,9 +335,9 @@ namespace Raven.UI {
         public FloatLerperManual focus_lerp = new FloatLerperManual(0f, 1f, 200);
 
         private Color foreground => Draw2D.ColorInterpolate(UIColors.Foreground.multiply_color(UIColors.focus_fade), UIColors.Foreground, focus_lerp.Value);
-        private Color background => Draw2D.ColorInterpolate(UIColors.Background, UIColors.Background, focus_lerp.Value);
+        private Color background => Draw2D.ColorInterpolate(UIColors.Background.multiply_color(UIColors.focus_fade), UIColors.Background, focus_lerp.Value);
         private Color border => Draw2D.ColorInterpolate(UIColors.Foreground.multiply_color(UIColors.focus_fade), UIColors.Foreground, focus_lerp.Value);
-        private Color title_bar => Draw2D.ColorInterpolate(UIColors.Background, UIColors.Foreground, focus_lerp.Value);
+        private Color title_bar => Draw2D.ColorInterpolate(UIColors.Background.multiply_color(UIColors.focus_fade), UIColors.Foreground, focus_lerp.Value);
         private Color title_text => Draw2D.ColorInterpolate(UIColors.Foreground.multiply_color(UIColors.focus_fade), UIColors.Background, focus_lerp.Value);
 
         private float _text_side_gap = 4f;
@@ -350,10 +350,10 @@ namespace Raven.UI {
             State.graphics_device.Clear(title_bar);
             Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None);
 
-            Draw2D.fill_rect_dither(Vector2i.Zero, top_bar_size, 
-                UIColors.Background, 
+            Draw2D.fill_rect_dither(Vector2i.Zero , top_bar_size - Vector2i.UnitY, 
+                UIColors.Foreground.multiply_color(0.9f).multiply_color(UIColors.focus_fade), 
                 Draw2D.ColorInterpolate(UIColors.Foreground.multiply_color(UIColors.focus_fade), UIColors.Foreground, focus_lerp.Value), 
-                2);
+                (int)(top_bar_height / 3f));
 
             var text_background_min = (Vector2i.Right * ((top_bar_size.X / 2f) - (text_size.X / 2f) - (_text_side_gap)));
             var text_background_max = text_background_min + (text_size.X + (_text_side_gap * 2)).ToV2X() + top_bar_height.ToV2Y();
@@ -377,14 +377,19 @@ namespace Raven.UI {
             State.graphics_device.SetRenderTarget(client_render_target);
             State.graphics_device.Clear(UIColors.Background);
             
-            /*
+            
             Draw2D.fill_rect_dither(Vector2i.Zero, client_size, 
-                UIColors.Background, 
                 Draw2D.ColorInterpolate(
-                    UIColors.ChangeAlpha(UIColors.Foreground, UIColors.focus_fade), 
-                    UIColors.Foreground, 
-                    focus_lerp.Value), 16);
-            */
+                    UIColors.Background.multiply_color(0.8f).multiply_color(UIColors.focus_fade), //unfocused
+                    UIColors.Background.multiply_color(0.95f), //focused
+                    focus_lerp.Value), 
+                Draw2D.ColorInterpolate(
+                    UIColors.Background.multiply_color(UIColors.focus_fade), //unfocused
+                    UIColors.Background, //focused
+                    focus_lerp.Value), 
+                16);
+            
+            //Draw2D.rect();
             
             Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None);
 
@@ -424,9 +429,14 @@ namespace Raven.UI {
                 Draw2D.fill_rect(client_top_left, client_top_left + client_size, 
                     UIColors.Background.multiply_alpha(0.5f));
                 
+                //draw subform outlines
+                foreach (IUIForm subform in subforms) {
+                    Draw2D.rect(client_top_left + subform.position, client_top_left + subform.position + subform.size, UIColors.Foreground.multiply_alpha(0.5f), 1f);    
+                }
+                
                 //draw window border
-                Draw2D.rect(top_left, bottom_right, UIColors.Foreground.multiply_color(0.5f), 1f);
-                Draw2D.rect(top_left, top_left + top_bar_size, UIColors.Foreground.multiply_color(0.5f), 1f);
+                Draw2D.rect(top_left, bottom_right, UIColors.Foreground.multiply_alpha(0.5f), 1f);
+                Draw2D.rect(top_left, top_left + top_bar_size, UIColors.Foreground.multiply_alpha(0.5f), 1f);
             }
             
             if ((_resize_handle_R_mo || _resize_handle_R_grabbed) && (!_resize_handle_B_grabbed || _resize_handle_both_grabbed) && top_of_mouse_stack) {
