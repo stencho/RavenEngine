@@ -1,5 +1,18 @@
 namespace Raven;
 internal class TODO {
+//TODO extra colors in UIColors, 50% versions and such
+    
+//TODO add a TabbedPanel UI form then use it to start building the inspector
+// also re-add frame probes and add some cool frame profiling stats to it 
+
+//TODO drop down selection menu
+//TODO right click system where a menu can be connected to a collision
+
+//fuck I'm doing it again aren't I
+//oh well at least this is shaping up to be my best pointless UI toolkit
+
+//TODO Brush entity which can take different basic shapes
+
 //TODO change IUIForm position to work as an offset from an anchor    
     
 //TODO move sun/moon based lighting into its own file why is that still in State fuckin nuts
@@ -16,6 +29,11 @@ internal class TODO {
 //TODO REMOVE ALL OLD BAD NAUGHTLY LOCKS 
 
 //TODO finish no-overdraw shader, should be a cake walk. use it to make shadows not overlap. idk why spritebatch opaque raster mode ain't work tho 
+//TODO finish animated texture code + shader
+//TODO add stripe shader and ManagedEffect/Draw2D code for it
+// also add polkadot shader and dithered gradient shader
+// could be fun to allow the user to theme elements that use checkerboards to use stripes/dots instead
+// already want to allow full color selection so
 
 //TODO should only block binds when a SUBform has focus, and subform focus should be removed on clicking the empty space in a window
 // still also need to add tab selection/indexing hehe 
@@ -29,20 +47,15 @@ internal class TODO {
 //TODO try SDL_ttf for font rendering
 
 //TODO make a better tool for managing a TODO list
-
-//TODO add stripe shader and ManagedEffect/Draw2D code for it
-// also add polkadot shader and dithered gradient shader
-// could be fun to allow the user to theme elements that use checkerboards to use stripes/dots instead
-// already want to allow full color selection so
     
 //TODO add SoundFlow state information & audio adapters to debug display
 
 //TODO add system to attach context menus to UIForms
 
-//TODO add a TabbedPanel UI form then use it to start building the inspector
-// also re-add frame probes and add some cool frame profiling stats to it 
-
 //TODO finish implementing display mode toggle hotkeys (F10,11,12)
+
+//TODO add the rest of the XInput support
+// make sure that binds work as both digital and analog regardless of the type of input 
 
 //TODO clean up gvar names and add categorization prefixes to default engine gvars
 // e_ for engine, g_ for graphics, i_ for input? 
