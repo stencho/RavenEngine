@@ -228,7 +228,7 @@ namespace Raven.UI {
             }
 
             //mouse released, release bar
-            if (!mdown && mdown_p) {
+            if ((!mdown && mdown_p) || !visible) {
                 _grabbed_bar = false;
 
                 var tmp = this.position;
