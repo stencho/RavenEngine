@@ -1,7 +1,17 @@
 namespace Raven;
 internal class TODO {
-//TODO add auto-generated code for IUIForms since a lot of stuff is always going to be the same (looking at you, mouse_over)
-// or at least I can auto-generate defaults in a useful way
+//TODO change IUIForm position to work as an offset from an anchor    
+    
+//TODO move sun/moon based lighting into its own file why is that still in State fuckin nuts
+// also still need to add a sun/moon
+
+//TODO attempt to render a scene within a scene, and if that works, attempt to set up and then automate HL2 3D skyboxen
+
+//TODO add the ability to make a bindwatcher simply ignore all bind disabling efforts, to allow for a set of global utility hotkeys
+
+//TODO start separating out the funny test textures into Cassowary to make sure that the two mgcbs won't fuck each other big style
+// basically keep Raven just having normal Raven engine stuff, so that once it becomes an editor, Cass can be excluded from versioning
+// and only used locally for short scale testing bullshit
 
 //TODO REMOVE ALL OLD BAD NAUGHTLY LOCKS 
 
@@ -17,6 +27,8 @@ internal class TODO {
 //TODO fix the FUCKIN console add scrolling make it render not everything holy shit limit the fucking scrollback
 
 //TODO try SDL_ttf for font rendering
+
+//TODO make a better tool for managing a TODO list
 
 //TODO add stripe shader and ManagedEffect/Draw2D code for it
 // also add polkadot shader and dithered gradient shader

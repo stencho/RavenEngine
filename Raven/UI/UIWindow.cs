@@ -15,36 +15,12 @@ using Raven.Graphics.Drawing2D;
 using Raven.Graphics.InterpolatedTypes;
 
 namespace Raven.UI {
-    public class UIWindow : IUIForm {
-        public string name => _name; 
-        string _name = "window";
-        public void change_name(string name) { _name = name; }
-
-        public string text => _text;
-        string _text = "a window";
-
-        private Vector2 text_size = Vector2.Zero;
-        
-        public void change_text(string text) {
-            _text = text;
-            text_size = Draw2D.measure_string_profont(text);
-        }
-
-        public ui_layer_state layer_state => ui_layer_state.floating;
-
-        public Vector2i position { get; set; } = Vector2i.Zero;
-        public Vector2i size { get; set; } = Vector2i.One * 250;
-
+    public partial class UIWindow : IUIForm {
         public UIWindowManager window_manager;
 
         private MouseWatcher mouse => window_manager.mouse;
         
-        public Vector2i top_left => position;
-        public Vector2i bottom_right => position + size;
-        public Vector2i top_right => position + (Vector2i.UnitX * size.X);
-        public Vector2i bottom_left => position + (Vector2i.UnitY * size.Y);
-
-        public Vector2i client_top_left => position + (Vector2i.UnitY * top_bar_height);
+        public Vector2i client_top_left => (Vector2i.UnitY * top_bar_height);
         public Vector2i client_size => size - (Vector2i.UnitY * top_bar_height);
         public Vector2i client_bottom_right => client_top_left + client_size;
 
@@ -53,35 +29,17 @@ namespace Raven.UI {
         public Vector2i min_window_size = new Vector2i(40, 40);
         public Vector2i max_window_size = new Vector2i(600, 600);
 
-        float top_bar_height = 13f;
+        int top_bar_height = 13;
 
-        public List<IUIForm> subforms { get; set; } = new List<IUIForm>();
-
-        public Dictionary<string, Collision2D.Shape2D> collision => _collision;
-        Dictionary<string, Collision2D.Shape2D> _collision = new Dictionary<string, Collision2D.Shape2D>();
-
-        RenderTarget2D client_render_target;
         RenderTarget2D top_bar_render_target;
 
-        public bool mouse_over => (mouse_interactions.Count > 0);
-
-        public bool has_focus { get; set; } = true;
 
         bool _draw_collision = false;
-
-        public bool visible => _visible;
-        bool _visible = true;
 
         bool _update_render_targets = true;
         bool _draw_render_targets = true;
         public bool RenderTargetsHidden => !_draw_render_targets;
         bool _render_targets_need_resize = false;
-
-        public int top_hit_subform { get; set; } = -1;
-        public bool top_of_mouse_stack { get; set; } = false;
-
-        public List<string> mouse_interactions => _mouse_interactions;
-        List<string> _mouse_interactions = new List<string>();
 
         bool _resize_handle_R_mo = false;
         bool _resize_handle_B_mo = false;
@@ -103,19 +61,6 @@ namespace Raven.UI {
 
         int resize_handle_thickness = 10;
 
-        public IUIForm parent_form { get; set; }
-
-        bool is_child => parent_form != null;
-
-        public string list_subforms() {
-            return UIStandard.list_subforms(subforms);
-        }
-
-        public void add_subform(IUIForm subform) {
-            subform.parent_form = this;
-            
-            subforms.Add(subform);
-        }
 
         public UIWindow(IUIForm parent_form = null) {
             parent_form = parent_form;
@@ -130,14 +75,9 @@ namespace Raven.UI {
             setup();
         }
 
-        public void hide() { _visible = false; }
-        public void show() { _visible = true; }
-        public void toggle_visibility() { _visible = !_visible; }
-        public void toggle_visibility(bool toggle) { _visible = toggle; }
-
         public void setup() {
             _collision.Add("form", new BoundingBox2D(Vector2i.Zero, size));
-            _collision.Add("top_bar", new BoundingBox2D(position, position + (Vector2i.UnitX * size.X) + (Vector2i.UnitY * top_bar_height)));
+            _collision.Add("top_bar", new BoundingBox2D(position, position + (Vector2i.UnitX * size.X) + (Vector2i.UnitY * (top_bar_height+1))));
 
             _collision.Add("resize_handle_R", new BoundingBox2D(
                 position + (size - (Vector2i.UnitX * 6)) - (Vector2i.UnitY * size.Y) + (Vector2i.UnitX * 3),
@@ -146,16 +86,11 @@ namespace Raven.UI {
                 position + (size - (Vector2i.UnitY * 6)) - (Vector2i.UnitX * size.X) + (Vector2i.UnitY * 3),
                 bottom_right + (Vector2i.One * 3)));
 
-            client_render_target = new RenderTarget2D(State.graphics_device, client_size.X, client_size.Y);
+            _client_area = new RenderTarget2D(State.graphics_device, client_size.X, client_size.Y);
             top_bar_render_target = new RenderTarget2D(State.graphics_device, top_bar_size.X, top_bar_size.Y);
             
             change_text(text);
         }
-
-        public bool test_mouse() {
-            return UIStandard.test_mouse(ref _collision, ref _mouse_interactions);
-        }
-
 
         static Collision2D.Shape2D _mouse_coll_obj_child;
         Vector2i parent_pos => parent_form.position;
@@ -324,7 +259,7 @@ namespace Raven.UI {
 
             if (_render_targets_need_resize) {
                 top_bar_render_target = new RenderTarget2D(State.graphics_device, top_bar_size.X, top_bar_size.Y);
-                client_render_target = new RenderTarget2D(State.graphics_device, client_size.X, client_size.Y);
+                _client_area = new RenderTarget2D(State.graphics_device, client_size.X, client_size.Y);
                 _render_targets_need_resize = false;
             }
         }
@@ -370,11 +305,12 @@ namespace Raven.UI {
 
             //PRE-DRAW SUBFORMS
             foreach (IUIForm subform in subforms) {
+                State.graphics_device.SetRenderTarget(subform.client_area);
                 subform.render_internal();
             }
 
             //RENDER MAIN CLIENT AREA
-            State.graphics_device.SetRenderTarget(client_render_target);
+            State.graphics_device.SetRenderTarget(client_area);
             State.graphics_device.Clear(UIColors.Background);
             
             
@@ -394,8 +330,7 @@ namespace Raven.UI {
             Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None);
 
             foreach (IUIForm subform in subforms) {
-                lock(subform)
-                    subform.draw();
+                subform.draw();
             }
 
             internal_draw_action?.Invoke();
@@ -416,7 +351,7 @@ namespace Raven.UI {
                 Draw2D.image(top_bar_render_target, top_left, top_bar_size, Color.White);
                 
                 //draw client area contents
-                Draw2D.image(client_render_target, client_top_left, Color.White);
+                Draw2D.image(client_area, absolute_position + client_top_left, Color.White);
                 
                 //draw window border
                 Draw2D.rect(top_left, bottom_right, border, 1f);

@@ -180,9 +180,15 @@ public class CassowaryGame : Game {
 
         
         var tester = new UIWindow(new Vector2i(20,20), new Vector2i(400, 320));
-        tester.internal_draw_action = () => {
-            
-        };
+
+        var subtest = new UIButton(5, 5, "mmm im a subby lil button :3c");
+        subtest.set_action(() => Log.log("ahn!!"));
+        var panel = new TabbedPanel(Vector2i.Zero, tester.client_size);
+        panel.add_subform(subtest);
+        tester.add_subform(panel);
+        
+        //tester.internal_draw_action = () => {
+        //};
         
         State.UI.add_window(tester);
         

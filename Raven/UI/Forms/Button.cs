@@ -11,92 +11,25 @@ using Raven.Graphics.InterpolatedTypes;
 
 namespace Raven.UI.Forms;
 
-    public class UIButton : IUIForm {
-        public string name => "button";
-        public string text => _text;
-
-        public ui_layer_state layer_state => ui_layer_state.on_top;
-
-        public void change_text(string text) {
-            this._text = text;
-        }
-
-        public bool has_focus { get; set; } = false;
-        public bool visible => _visible;
-        bool _visible = true;
-
-        public Vector2i position { get; set; } = Vector2i.Zero;
-        public Vector2i size { get; set; } = Vector2i.One * 10;
-
-        public Vector2i top_left => position;
-        public Vector2i bottom_right => position + size;
-
+    public partial class UIButton : IUIForm {
         public Vector2i client_top_left => top_left;
         public Vector2i client_size => size;
         public Vector2i client_bottom_right => bottom_right;
 
-        public bool mouse_over => (mouse_interactions.Count > 0) && top_of_mouse_stack;
-
-        public int top_hit_subform { get; set; } = -1;
-        public bool top_of_mouse_stack { get; set; } = false;
-
-        public List<string> mouse_interactions => _mouse_interactions;
-        List<string> _mouse_interactions = new List<string>();
-
-        public List<IUIForm> subforms { get; set; } = new List<IUIForm>();
-
-        public Dictionary<string, Collision2D.Shape2D> collision => _collision;
-        Dictionary<string, Collision2D.Shape2D> _collision = new Dictionary<string, Collision2D.Shape2D>();
-        
-        string _text = "";
-
-        public string list_subforms() {
-            return UIStandard.list_subforms(subforms);
-        }
-
         FloatLerperManual molerp = new FloatLerperManual(0, 1, 200);
         FloatLerperManual mdlerp = new FloatLerperManual(0, 1, 50);
         
-        public IUIForm parent_form { get; set; }
-
         private bool mouse_down_and_over = false;
         
         public UIButton(int X, int Y, int width, int height, string text) {
-            position = new Vector2i(X, Y);
-            size = new Vector2i(width, height);
-            _text = text;
-            
-            _collision.Add("button", new BoundingBox2D(top_left, bottom_right));
-        }
-
-        public UIButton(int X, int Y, int width, int height, string text, IUIForm parent_form) {
-            position = new Vector2i(X, Y);
-            size = new Vector2i(width, height);
-            _text = text;
-
-            this.parent_form = parent_form;
-
-            _collision.Add("button", new BoundingBox2D(top_left,bottom_right));            
+            change_text(text);
+            setup(X,Y,width,height);
         }
         
-        public UIButton(int X, int Y, string text, IUIForm parent_form = null) {
-            position = new Vector2i(X, Y);
-            _text = text;
-
-            var ms = Draw2D.measure_string_profont(text);
-            var ms_ol = Draw2D.measure_string_profont("one line");
-            
-            size = ms.ToVector2i() + (ms_ol.Y * Vector2i.UnitX) + (ms_ol.Y * Vector2i.UnitY);
-
-            this.parent_form = parent_form;
-
-            _collision.Add("button", new BoundingBox2D(top_left,bottom_right));            
+        public UIButton(int X, int Y, string text) {
+            change_text(text);
+            setup(X,Y,text_size.X + 4, text_size.Y + 4);
         }
-
-        public bool test_mouse() {
-            return UIStandard.test_mouse(ref _collision, ref _mouse_interactions);
-        }
-
 
         [Flags]
         public enum button_mouse_status {
@@ -118,14 +51,10 @@ namespace Raven.UI.Forms;
         bool _clicked = false;
         public bool clicked => _clicked;
         bool mdown = false;
-        bool is_child => parent_form != null;
+        
         
         public void update() {
-            if (is_child) {
-                ((BoundingBox2D)_collision["button"]).set(top_left + parent_form.client_top_left, parent_form.client_top_left + bottom_right);
-            } else {
-                ((BoundingBox2D)_collision["button"]).set(top_left, bottom_right);
-            }
+            update_collision();
 
             var mo = test_mouse();
 

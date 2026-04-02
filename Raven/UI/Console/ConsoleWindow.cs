@@ -1,8 +1,10 @@
 ﻿
 
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Raven.Engine;
 using Raven.Engine.Collision;
 using Raven.Graphics.Drawing2D;
@@ -41,6 +43,7 @@ namespace Raven.Console {
         bool _visible = true;
 
         public Vector2i position { get; set; } = Vector2i.Zero;
+        public Vector2i absolute_position => parent_form.absolute_position + position;
         public Vector2i size { get; set; } = Vector2i.One * 10;
 
         public Vector2i top_left => position;
@@ -51,6 +54,8 @@ namespace Raven.Console {
         public Vector2i client_top_left => top_left;
         public Vector2i client_size => size;
         public Vector2i client_bottom_right => bottom_right;
+        public bool use_internal_rendering => false;
+        public RenderTarget2D client_area { get; }
 
         public bool mouse_over => (mouse_interactions.Count > 0);
 
@@ -65,6 +70,7 @@ namespace Raven.Console {
         public Dictionary<string, Collision2D.Shape2D> collision => _collision;
 
         public ui_layer_state layer_state => ui_layer_state.floating;
+        public FormAnchor anchor { get; set; }
 
         Dictionary<string, Collision2D.Shape2D> _collision = new Dictionary<string, Collision2D.Shape2D>();
 
@@ -119,6 +125,10 @@ namespace Raven.Console {
 
             //_text = Logging.last_n_messages(200);
 
+        }
+
+        public void update_collision() {
+            
         }
 
         public void render_internal() {
@@ -292,8 +302,16 @@ namespace Raven.Console {
             //Draw2D.line(0, client_size.Y - bottom_scroll_pos, client_size.X, client_size.Y - bottom_scroll_pos, 1f, (msy_overall > client_size.Y - bottom_scroll_pos) ? Color.HotPink : Color.Purple);
         }
 
+        public void recurse_all_subforms(Action<IUIForm> run_on_all_subforms) {
+            
+        }
+
         public string list_subforms() {
             return UIStandard.list_subforms(subforms);
+        }
+
+        public int get_form_depth() {
+            return 0;
         }
     }
 

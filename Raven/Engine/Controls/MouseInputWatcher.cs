@@ -183,10 +183,10 @@ public partial class MouseWatcher {
                 return mouse_wheel_delta < 0;
             
             case MouseButtons.ScrollLeft:
-                return mouse_wheel_horizontal_delta > 0;
+                return mouse_wheel_horizontal_delta < 0;
 
             case MouseButtons.ScrollRight:
-                return mouse_wheel_horizontal_delta < 0;
+                return mouse_wheel_horizontal_delta > 0;
 
             default: return false;
         }
@@ -216,10 +216,10 @@ public partial class MouseWatcher {
                 return mouse_wheel_delta_previous < 0;
 
             case MouseButtons.ScrollLeft:
-                return mouse_wheel_horizontal_delta_previous > 0;
+                return mouse_wheel_horizontal_delta_previous < 0;
 
             case MouseButtons.ScrollRight:
-                return mouse_wheel_horizontal_delta_previous < 0;
+                return mouse_wheel_horizontal_delta_previous > 0;
 
             default: return false;
         }
