@@ -102,7 +102,7 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
                         
                         public Vector2i absolute_position => is_child ? parent_form.absolute_position + parent_form.client_top_left + position : position;
                         
-                        public ui_layer_state layer_state { get; set; } = ui_layer_state.floating;
+                        public ui_layer_state layer_state { get; set; } = ui_layer_state.normal;
                         public FormAnchor anchor { get; set; } = FormAnchor.TopLeft;
                         
                         public bool has_focus { get; set; } = false;

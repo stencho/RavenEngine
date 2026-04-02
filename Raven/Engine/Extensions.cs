@@ -201,18 +201,16 @@ public static class Extensions {
 
         for (int i = 0; i < tmp_list.Count; i++) {
 
-            if (tmp_list[i].layer_state == ui_layer_state.on_bottom) {
+            if (tmp_list[i].layer_state == ui_layer_state.normal) {
                 list.Add(tmp_list[i]);
             }
             
         }
 
         for (int i = 0; i < tmp_list.Count; i++) {
-
             if (tmp_list[i].layer_state == ui_layer_state.floating && !(tmp_list[i].has_focus || tmp_list[i].top_of_mouse_stack)) {
                 list.Add(tmp_list[i]);
             }
-
         }
         for (int i = 0; i < tmp_list.Count; i++) {
             if (tmp_list[i].layer_state == ui_layer_state.floating && tmp_list[i].top_of_mouse_stack && !tmp_list[i].has_focus) {

@@ -17,7 +17,7 @@ namespace Raven.UI  {
     public enum ui_layer_state {
         floating,
         on_top,
-        on_bottom
+        normal
     }
 
     //TODO make this instantiated so that different UIWindowManagers can be themed differently
@@ -197,11 +197,6 @@ namespace Raven.UI  {
 
             return current_leaf;
         }
-
-        void run_on_all_subforms_deepest_out(Action<IUIForm> root) {
-            //List<IUIForm>
-        }
-        
         
         public void update() {
             //Clock.frame_probe.set("wm_update");
@@ -251,10 +246,6 @@ namespace Raven.UI  {
                     highest_hit = i;
                 }
 
-                for (int o = 0; o < windows[i].subforms.Count; o++) {
-                    windows[i].subforms[o].top_of_mouse_stack = false;
-                }
-
                 windows[i].top_of_mouse_stack = false;
 
                 if (windows[i].mouse_interactions.Count > 0) {
@@ -272,11 +263,9 @@ namespace Raven.UI  {
 
                             if (top_subform_under_mouse != null && top_subform_under_mouse.parent_form != null) {
                                 top_subform_under_mouse.top_of_mouse_stack = true;
-                                //if (mouse_button_just_pressed) top_subform_under_mouse.parent_form.subforms.BringToFront(top_subform_under_mouse);
                             }
                         }
-
-
+                        
                     } else {
                         windows[i].recurse_all_subforms(f => {
                             f.has_focus = false;
@@ -289,6 +278,7 @@ namespace Raven.UI  {
                 }
 
                 windows[i].subforms.SortWindows();
+                windows[i].recurse_all_subforms(f => { f.subforms.SortWindows(); });
             }
             
             for (int i = windows.Count - 1; i >= 0; i--) {
@@ -414,7 +404,7 @@ namespace Raven.UI  {
             }
             
             foreach (IUIForm subform in subforms) {
-                s += (subform.has_focus ? "[f]" : "   ") + $" [subform] {subform.name} \"{subform.text}\" mo: {subform.mouse_over} {(subform.top_of_mouse_stack ? " <-" : "")}\n";
+                s += (subform.has_focus ? "[f]" : "   ") + $" [subform] {subform.name} \"{subform.text}\" [layer state] {subform.layer_state} [mouse over] {subform.mouse_over} {(subform.top_of_mouse_stack ? " <-" : "")}\n";
                 foreach (var collision in subform.collision) {
                     s += $"      [coll] {collision.Key} {collision.Value.origin}\n";
                 }
