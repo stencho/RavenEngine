@@ -16,7 +16,7 @@ namespace Raven.UI.Forms;
         public Vector2i client_size => size;
         public Vector2i client_bottom_right => bottom_right;
 
-        FloatLerperManual molerp = new FloatLerperManual(0, 1, 200);
+        FloatLerperManual molerp = new FloatLerperManual(0, 1, 50);
         FloatLerperManual mdlerp = new FloatLerperManual(0, 1, 50);
         
         private bool mouse_down_and_over = false;
@@ -116,29 +116,17 @@ namespace Raven.UI.Forms;
                 mdlerp.LerpReverse();
             }
 
-            var mo_offset = mouse_over ? Vector2i.One : Vector2i.Zero;
-            /*var foreground = ((is_child && parent_form.has_focus) || !is_child
-                ? UIColors.ForegroundDark
-                : UIColors.ChangeAlpha(UIColors.ForegroundDark, .5f));
-            */
-            Color foreground = UIColors.Foreground;
-            
-            if (is_child && parent_form is UIWindow) {
-                var pf = (parent_form as UIWindow);
-                var lerp = pf.focus_lerp.Value;
-                
-                foreground = Draw2D.ColorInterpolate(UIColors.Foreground.multiply_color(UIColors.focus_fade), UIColors.Foreground, lerp);
-            } 
+            var mo_offset = (Vector2.One * 2) * (molerp.Value - mdlerp.Value);
             
             //shadow
-            Draw2D.fill_rect(top_left + mo_offset, bottom_right + mo_offset, Draw2D.ColorInterpolate(Color.Transparent, UIColors.Background.multiply_color(.75f), float.Clamp(molerp.Value * 2f, 0.5f, 1f)));
+            Draw2D.fill_rect(top_left + mo_offset/2, bottom_right + mo_offset/2, Draw2D.ColorInterpolate(Color.Transparent, UIColors.Background.multiply_color(.75f), float.Clamp(molerp.Value * 2f, 0.5f, 1f)));
             //background
-            Draw2D.fill_rect(top_left - mo_offset, bottom_right - mo_offset, Draw2D.ColorInterpolate(Draw2D.ColorInterpolate(UIColors.Background, UIColors.Background, molerp.Value), UIColors.Foreground, mdlerp.Value));
+            Draw2D.fill_rect(top_left - mo_offset, bottom_right - mo_offset, Draw2D.ColorInterpolate(color_background, UIColors.Foreground, mdlerp.Value));
             //text
-            Draw2D.text("profont", text, position - mo_offset + (size / 2) - (ms / 2), Draw2D.ColorInterpolate(foreground, UIColors.Background, mdlerp.Value));
+            Draw2D.text("profont", text, position - mo_offset + (size / 2) - (ms / 2), Draw2D.ColorInterpolate(color_foreground, UIColors.Background, mdlerp.Value));
             //border
             Draw2D.rect(top_left - mo_offset, bottom_right - mo_offset, 
-                Draw2D.ColorInterpolate(foreground, UIColors.Background, mdlerp.Value), 
+                Draw2D.ColorInterpolate(color_foreground, UIColors.Background, mdlerp.Value), 
                 1);
         }
 

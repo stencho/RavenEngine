@@ -42,6 +42,8 @@ public interface IUIForm {
     bool top_of_mouse_stack { get; set; }
     bool visible { get; }
 
+    float window_focus_lerp { get; }
+    
     List<IUIForm> subforms { get; set; }
     Dictionary<string, Collision2D.Shape2D> collision { get; }
 
@@ -58,4 +60,5 @@ public interface IUIForm {
     void recurse_all_subforms(Action<IUIForm> run_on_all_subforms);
     string list_subforms();
     int get_form_depth();
+    void defocus_all_subforms();
 }

@@ -32,8 +32,7 @@ namespace Raven.UI {
         int top_bar_height = 13;
 
         RenderTarget2D top_bar_render_target;
-
-
+        
         bool _draw_collision = false;
 
         bool _update_render_targets = true;
@@ -269,8 +268,6 @@ namespace Raven.UI {
 
         public FloatLerperManual focus_lerp = new FloatLerperManual(0f, 1f, 200);
 
-        private Color foreground => Draw2D.ColorInterpolate(UIColors.Foreground.multiply_color(UIColors.focus_fade), UIColors.Foreground, focus_lerp.Value);
-        private Color background => Draw2D.ColorInterpolate(UIColors.Background.multiply_color(UIColors.focus_fade), UIColors.Background, focus_lerp.Value);
         private Color border => Draw2D.ColorInterpolate(UIColors.Foreground.multiply_color(UIColors.focus_fade), UIColors.Foreground, focus_lerp.Value);
         private Color title_bar => Draw2D.ColorInterpolate(UIColors.Background.multiply_color(UIColors.focus_fade), UIColors.Foreground, focus_lerp.Value);
         private Color title_text => Draw2D.ColorInterpolate(UIColors.Foreground.multiply_color(UIColors.focus_fade), UIColors.Background, focus_lerp.Value);
@@ -344,6 +341,8 @@ namespace Raven.UI {
             
             if (has_focus) focus_lerp.Lerp();
             else focus_lerp.LerpReverse();
+            
+            _focus_lerp =  focus_lerp.Value;
 
             //Draw the window contents if _draw_render_targets is on (this is used alongside resizing windows to prevent issues w/ resizing render targets a bunch)
             if (_draw_render_targets) {
@@ -361,12 +360,12 @@ namespace Raven.UI {
             } else {
                 Draw2D.fill_rect(top_left, top_left + top_bar_size,
                     UIColors.Foreground.multiply_alpha(0.5f));
-                Draw2D.fill_rect(client_top_left, client_top_left + client_size, 
+                Draw2D.fill_rect(absolute_position + client_top_left, absolute_position + client_top_left + client_size, 
                     UIColors.Background.multiply_alpha(0.5f));
                 
                 //draw subform outlines
                 foreach (IUIForm subform in subforms) {
-                    Draw2D.rect(client_top_left + subform.position, client_top_left + subform.position + subform.size, UIColors.Foreground.multiply_alpha(0.5f), 1f);    
+                    Draw2D.rect(absolute_position + client_top_left + subform.position,absolute_position +  client_top_left + subform.position + subform.size, UIColors.Foreground.multiply_alpha(0.5f), 1f);    
                 }
                 
                 //draw window border

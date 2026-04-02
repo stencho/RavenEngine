@@ -40,6 +40,7 @@ namespace Raven.Console {
 
         public bool has_focus { get; set; } = false;
         public bool visible => _visible;
+        public float window_focus_lerp => 1f;
         bool _visible = true;
 
         public Vector2i position { get; set; } = Vector2i.Zero;
@@ -312,6 +313,10 @@ namespace Raven.Console {
 
         public int get_form_depth() {
             return 0;
+        }
+
+        public void defocus_all_subforms() {
+            
         }
     }
 

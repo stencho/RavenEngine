@@ -174,97 +174,73 @@ namespace Raven.UI  {
             }
         }
 
-
-        
-        IUIForm find_top_subform(IUIForm form) {
-            List<IUIForm> forms_under_mouse = new();
-            int deepest = 0;
-            IUIForm deepest_form = null;
-            
-            form.recurse_all_subforms(sf => {
-                if (sf.mouse_over) {
-                    forms_under_mouse.Add(sf);
-                }    
-            });
-
-            foreach (IUIForm subform in forms_under_mouse) {
-                var depth = subform.get_form_depth();
-                if (depth > deepest) {
-                    deepest = depth;
-                    deepest_form = subform;
+        IUIForm find_top_subform(List<IUIForm> subforms) {
+            for (int i = subforms.Count - 1; i >= 0; i--) {
+                subforms[i].test_mouse();
+                if (subforms[i].mouse_interactions.Count > 0) {
+                    return subforms[i];
                 }
             }
 
-            IUIForm top = null;
-            
-            if (deepest_form != null) {
-                for (int i = deepest_form.parent_form.subforms.Count - 1; i >= 0; i++) {
-                    if (forms_under_mouse.Contains(deepest_form.parent_form.subforms[i])) {
-                        top = deepest_form.parent_form.subforms[i];
-                    }
-                }
-            }
-
-            return top;
+            return null;
         }
-
-        void find_top_hit() {
-            for (int i = windows.Count - 1; i >= 0; i--) {
-                if (windows[i].mouse_interactions.Count > 0) {
-                }
-            }
-        }
-
         
         IUIForm subform_find_highest(IUIForm form) {
+            if (form.subforms.Count == 0) return form;
             IUIForm current_leaf = form;
             
-            if (current_leaf.subforms.Count == 0) return form;
-
             while (current_leaf.subforms.Count > 0) {
-                for (int i = current_leaf.subforms.Count - 1; i >= 0; i--) {
-                    if (current_leaf.subforms[i].mouse_interactions.Count > 0) {
-                        current_leaf = current_leaf.subforms[i];
-                        break;
-                    } else {
-                        return current_leaf;
-                    }
-                }
+                var sf = find_top_subform(current_leaf.subforms);
+                if (sf == null) return current_leaf;
+                current_leaf = sf;
             }
 
             return current_leaf;
         }
+
+        void run_on_all_subforms_deepest_out(Action<IUIForm> root) {
+            //List<IUIForm>
+        }
         
-        int top_hit_subform = 0;
+        
         public void update() {
             //Clock.frame_probe.set("wm_update");
-            mouse.UpdateDeltas();            
-            
+            mouse.UpdateDeltas();
+
             highest_hit = -1;
             handled = false;
 
-            top_hit_subform = -1;
             bool hit_any = false;
 
             //just locked mouse
             if (MouseWatcher.MouseLocked && !MouseWatcher.MouseLockedPrevious) {
                 defocus_all_windows();
             }
-            
-            if (State.engine_binds.just_pressed("toggle_console") ) {
+
+            if (State.engine_binds.just_pressed("toggle_console")) {
                 toggle_window(console);
             }
 
-            if (MouseWatcher.MouseLocked && !MouseWatcher.MouseLockedPrevious) {
-                
+
+            if (!State.is_active || MouseWatcher.MouseLocked) return;
+
+            int window_on_mouse = -1;
+            
+            for (int i = windows.Count - 1; i >= 0; i--) {
+                if (windows[i] is UIWindow) {
+                    if ((windows[i] as UIWindow).BeingMoved || (windows[i] as UIWindow).BeingResized) {
+                        window_on_mouse = i;
+                        break;
+                    }
+                }
             }
             
-            if (!State.is_active || MouseWatcher.MouseLocked) return;
+            bool mouse_holding_window = window_on_mouse > -1;
+            IUIForm top_subform_under_mouse = null;
             
             //initial mouse stack and bring-to-front-on-click handling and such
-            for (int i = windows.Count-1; i >= 0; i--) {
-                windows[i].update();
-                
+            for (int i = windows.Count - 1; i >= 0; i--) {
+
                 if (windows[i].visible == false) {
                     windows[i].has_focus = false;
                     continue;
@@ -283,37 +259,22 @@ namespace Raven.UI  {
 
                 if (windows[i].mouse_interactions.Count > 0) {
                     if (!handled) {
+
+                        windows[i].recurse_all_subforms(f => {
+                            f.has_focus = false;
+                            f.top_of_mouse_stack = false;
+                        });
+
                         windows[i].top_of_mouse_stack = true;
-                        
-                        
-                        /*
-                        for (int o = windows[i].subforms.Count - 1; o >= 0; o--) {
-                            IUIForm sub = (IUIForm)windows[i].subforms[o];
 
-                            if (sub.mouse_interactions.Count > 0) {
-                                if (top_hit_subform == -1) {
-                                    windows[i].subforms[o].top_of_mouse_stack = true;
+                        if (!mouse_holding_window) {
+                            top_subform_under_mouse = subform_find_highest(windows[i]);
 
-                                    if (mouse_button_just_pressed) {
-                                        windows[i].subforms.BringToFront(windows[i].subforms[o]);
-                                    }
-
-                                    top_hit_subform = o;
-                                } else {
-                                    windows[i].subforms[o].top_of_mouse_stack = false;
-                                }
+                            if (top_subform_under_mouse != null && top_subform_under_mouse.parent_form != null) {
+                                top_subform_under_mouse.top_of_mouse_stack = true;
+                                //if (mouse_button_just_pressed) top_subform_under_mouse.parent_form.subforms.BringToFront(top_subform_under_mouse);
                             }
                         }
-                        */
-
-                        var top = subform_find_highest(windows[i]);
-
-                        if (top != null && top.parent_form != null) {
-                            top.top_of_mouse_stack = true;
-                            if (mouse_button_just_pressed ) 
-                                top.parent_form.subforms.BringToFront(top);
-                        }
-                        
 
 
                     } else {
@@ -326,87 +287,84 @@ namespace Raven.UI  {
 
                     handled = true;
                 }
+
                 windows[i].subforms.SortWindows();
             }
-
-            if (focus_follows_mouse) {
-                if (mouse_over_UI()) {
-                    BindWatcher.global_enable = false;
-                    int moving_or_resizing_window = -1;
-
-                    //check if any window is being moved or resized, and if one is, give it focus,
-                    //force to be top stacked, and keep track of it
-                    for (int i = windows.Count - 1; i >= 0; i--) {
-                        if (windows[i] is UIWindow) {
-                            if ((windows[i] as UIWindow).BeingMoved || (windows[i] as UIWindow).BeingResized) {
-                                windows[i].has_focus = true;
-                                windows[i].top_of_mouse_stack = true;
-                                moving_or_resizing_window = i;
-                                break;
-                            } 
-                        }
-                    }
-
-                    //we're moving a window, so defocus every form 
-                    if (moving_or_resizing_window != -1) {
-                        for (int i = windows.Count - 1; i >= 0; i--) {
-                            if (i != moving_or_resizing_window) {
-                                windows[i].has_focus = false;
-                                windows[i].top_of_mouse_stack = false;
-                                
-                            }
-                        }
-                    //not moving a window, set     
-                    } else {
-                        for (int i = windows.Count - 1; i >= 0; i--) {
-                            windows[i].has_focus = (windows[i].mouse_over && windows[i].top_of_mouse_stack);
-                            
-                            windows[i].recurse_all_subforms(sf => {
-                                sf.has_focus = sf.top_of_mouse_stack && sf.mouse_over;
-                            });
-                        }
-                    }
-                } else {
-                    for (int i = windows.Count - 1; i >= 0; i--) {
+            
+            for (int i = windows.Count - 1; i >= 0; i--) {
+                windows[i].update();
+            }
+            // handle window dragging
+            // a window is being held by the mouse, so regardless of focus mode, we should force
+            // it to be focused, and defocus all subforms to prevent highlighting them while
+            // dragging a window with the mouse close to its edge
+            if (mouse_holding_window) {
+                for (int i = windows.Count - 1; i >= 0; i--) {
+                    if (i != window_on_mouse) {
                         windows[i].has_focus = false;
                         windows[i].top_of_mouse_stack = false;
-
-                        for (int i1 = 0; i1 < windows[i].subforms.Count; i1++) {
-                            windows[i].subforms[i1].has_focus = false;
-                            windows[i].subforms[i1].top_of_mouse_stack = false;
-                        }
-                        
-                        if (windows[i] is UIWindow) {
-                            if ((windows[i] as UIWindow).BeingMoved || (windows[i] as UIWindow).BeingResized) {
-                                windows[i].has_focus = true;
-                                windows[i].top_of_mouse_stack = true;
-                            }
-                        }
+                        windows[i].mouse_interactions.Clear();
+                    } else {
+                        windows[i].has_focus = true;
+                        windows[i].top_of_mouse_stack = true;
                     }
                     
-                    BindWatcher.global_enable = true;
+                    windows[i].defocus_all_subforms();
+                    break;
                 }
+                
+                    
             } else {
-                if (mouse_button_just_pressed) {
-                    if (!mouse_over_UI()) {
+                // handle focus modes
+                //focus follows mouse
+                if (focus_follows_mouse) {
+                    // mouse is over the UI so all we really need to do is focus the window and subform under it
+                    if (mouse_over_UI()) {
+                        BindWatcher.global_enable = false;
+                        
+                        for (int i = windows.Count - 1; i >= 0; i--) {
+                            windows[i].has_focus = (windows[i].mouse_over && windows[i].top_of_mouse_stack);
+                        }
+
+                        if (top_subform_under_mouse != null) {
+                            if (mouse_button_just_pressed)
+                                top_subform_under_mouse.has_focus = true;
+                            top_subform_under_mouse.top_of_mouse_stack = true;
+                        }
+                    } else {
+                        
+                        //mouse not over UI so just disable it all
                         for (int i = windows.Count - 1; i >= 0; i--) {
                             windows[i].has_focus = false;
                             windows[i].top_of_mouse_stack = false;
-
-                            for (int i1 = 0; i1 < windows[i].subforms.Count; i1++) {
-                                windows[i].subforms[i1].has_focus = false;
-                                windows[i].subforms[i1].top_of_mouse_stack = false;
+                            windows[i].defocus_all_subforms();
+                        }
+                        
+                        BindWatcher.global_enable = true;
+                    }
+                    
+                } else {
+                    //click to focus, and we just clicked
+                    if (mouse_button_just_pressed) {
+                        if (mouse_over_UI()) {
+                            //more or less all of this is handled above
+                            BindWatcher.global_enable = false;
+                        } else {
+                            
+                            //mouse not over UI, and we clicked, so defocus all
+                            BindWatcher.global_enable = true;
+                            for (int i = windows.Count - 1; i >= 0; i--) {
+                                windows[i].has_focus = false;
+                                windows[i].top_of_mouse_stack = false;
+                                windows[i].defocus_all_subforms();
                             }
                         }
-
-                        BindWatcher.global_enable = true;
-                    } else {
-                        BindWatcher.global_enable = false;
                     }
                 }
             }
-            
         }
+
+    
         
         public void render_window_internals() {
             //Clock.frame_probe.set("draw_wm_internals");
@@ -416,6 +374,7 @@ namespace Raven.UI  {
                 if (window.visible && window.use_internal_rendering) {
                     State.graphics_device.SetRenderTarget(window.client_area);
                     window.render_internal();
+                    
                 }
             }
         }
@@ -498,8 +457,7 @@ namespace Raven.UI  {
 
             foreach (string is2d in collision.Keys) {
                 if (Collision2D.GJK2D.test_shapes_simple(collision[is2d], MouseWatcher.MouseCollisionObject, out _)) {
-                    t = true;
-
+                    if (t == false) t = true;
                     mouse_interactions.Add(is2d);
                 }
             }

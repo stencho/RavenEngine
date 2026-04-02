@@ -82,7 +82,7 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
         sb.AppendLine("using Raven.Graphics.Drawing2D;");
         sb.AppendLine("using Raven.Engine.Collision.Shapes2D;");
         sb.AppendLine("using Raven.UI;");
-        sb.AppendLine("using Raven.UI;");
+        sb.AppendLine("using Raven.UI.Forms;");
         sb.AppendLine($"partial class {symbol.Name}");
         sb.AppendLine("{");
         sb.AppendLine($$"""
@@ -133,6 +133,12 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
                         public Dictionary<string, Collision2D.Shape2D> collision => _collision;
                         Dictionary<string, Collision2D.Shape2D> _collision = new Dictionary<string, Collision2D.Shape2D>();
                         
+                        public float window_focus_lerp => parent_form != null ? parent_form.window_focus_lerp : _focus_lerp;
+                        float _focus_lerp = 1f;
+                        
+                        private Color color_foreground => Draw2D.ColorInterpolate(UIColors.Foreground.multiply_color(UIColors.focus_fade), UIColors.Foreground, window_focus_lerp);
+                        private Color color_background => Draw2D.ColorInterpolate(UIColors.Background.multiply_color(UIColors.focus_fade), UIColors.Background, window_focus_lerp);
+                        
                         public void change_text(string text) {
                             this._text = text;
                             text_size = Draw2D.measure_string_profont_int(text);
@@ -174,6 +180,14 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
                         
                         public string list_subforms() {
                             return UIStandard.list_subforms(subforms);
+                        }
+                        
+                        public void defocus_all_subforms() {
+                            recurse_all_subforms(sf => {
+                                sf.has_focus = false;
+                                sf.top_of_mouse_stack = false;
+                                sf.mouse_interactions.Clear();
+                            });
                         }
                         
                         void setup(int X, int Y, int width, int height) {

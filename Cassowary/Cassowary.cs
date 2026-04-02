@@ -174,17 +174,40 @@ public class CassowaryGame : Game {
         var b = new UIButton(5, 5, "fart really hard");
         b.set_action(() => Log.log("ye"));
         
+        var c = new UIButton(55, 15, "fart really hard");
+        c.set_action(() => Log.log("yee"));
+        inspector.add_subform(c);
         inspector.add_subform(b);
+
+        var d = new UIButton(5, 15, "kabuki be like");
+        d.set_action(() => Log.log("yooooo *klonk*"));
+        
+        var e = new UIButton(5, 5, "if this works im baffled tho");
+        e.set_action(() => Log.log("huh"));
+
+        var test_panel = new Panel(Vector2i.One * 25, Vector2i.One * 350);
+        var test_panel_2 = new Panel(Vector2i.One * 25, Vector2i.One * 250);
+        var test_panel_3 = new Panel(Vector2i.One * 25, Vector2i.One * 200);
+        test_panel_3.add_subform(e);
+        test_panel.add_subform(d);
+        test_panel.add_subform(test_panel_2);
+        test_panel_2.add_subform(test_panel_3);
+        inspector.add_subform(test_panel);
         
         State.UI.add_window(inspector);
 
+        
+        
         
         var tester = new UIWindow(new Vector2i(20,20), new Vector2i(400, 320));
 
         var subtest = new UIButton(5, 5, "mmm im a subby lil button :3c");
         subtest.set_action(() => Log.log("ahn!!"));
+        var subtest2 = new UIButton(5, 55, "im a subby lil button too hehe");
+        subtest2.set_action(() => Log.log("uhnghn!!"));
         var panel = new TabbedPanel(Vector2i.Zero, tester.client_size);
         panel.add_subform(subtest);
+        panel.add_subform(subtest2);
         tester.add_subform(panel);
         
         //tester.internal_draw_action = () => {
