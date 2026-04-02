@@ -90,30 +90,30 @@ namespace Raven.Engine.Collision
 
             tris = new Triangle[ib.IndexCount/3];
 
-            lock (vb) {
-                points = new Vector3[vb.VertexCount];
-                
-                
-                vb.GetData<Vector3>(0, points, 0, vb.VertexCount, vb.VertexDeclaration.VertexStride);
+            
+            points = new Vector3[vb.VertexCount];
+            
+            
+            vb.GetData<Vector3>(0, points, 0, vb.VertexCount, vb.VertexDeclaration.VertexStride);
 
-                ushort[] idata = new ushort[ib.IndexCount];
-                ib.GetData(idata);
+            ushort[] idata = new ushort[ib.IndexCount];
+            ib.GetData(idata);
 
-                int v = 0;
+            int v = 0;
 
-                for (int i = 0; i < ib.IndexCount; i+=3) {
-                    tris[v] = new Triangle(
-                        points[idata[i]], 
-                        points[idata[i + 1]],
-                        points[idata[i + 2]]);
-                
-                    v++;
-                }
-
-                bounds = get_bounds(Matrix.Identity);
-                octree = new MCOctree(bounds.Min, bounds.Max);
-                //octree.subdivide_all(2);
+            for (int i = 0; i < ib.IndexCount; i+=3) {
+                tris[v] = new Triangle(
+                    points[idata[i]], 
+                    points[idata[i + 1]],
+                    points[idata[i + 2]]);
+            
+                v++;
             }
+
+            bounds = get_bounds(Matrix.Identity);
+            octree = new MCOctree(bounds.Min, bounds.Max);
+            //octree.subdivide_all(2);
+            
 
 
             int ti = 0;

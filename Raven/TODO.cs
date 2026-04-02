@@ -26,8 +26,6 @@ internal class TODO {
 // basically keep Raven just having normal Raven engine stuff, so that once it becomes an editor, Cass can be excluded from versioning
 // and only used locally for short scale testing bullshit
 
-//TODO REMOVE ALL OLD BAD NAUGHTLY LOCKS 
-
 //TODO finish no-overdraw shader, should be a cake walk. use it to make shadows not overlap. idk why spritebatch opaque raster mode ain't work tho 
 //TODO finish animated texture code + shader
 //TODO add stripe shader and ManagedEffect/Draw2D code for it

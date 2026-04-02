@@ -52,10 +52,8 @@ namespace Raven.Graphics.Lights {
             //gvars.add_change_action("light_spot_resolution", change_depth_buffer_size);
         }
 
-        public void change_depth_buffer_size() {
-            lock (_depth) {
-                _depth = new RenderTarget2D(State.graphics_device, depth_map_resolution, depth_map_resolution, false, SurfaceFormat.Single, DepthFormat.Depth24);
-            }
+        public void change_depth_buffer_size() { 
+            _depth = new RenderTarget2D(State.graphics_device, depth_map_resolution, depth_map_resolution, false, SurfaceFormat.Single, DepthFormat.Depth24);
         }
 
         public void update() {

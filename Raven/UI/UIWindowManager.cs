@@ -368,9 +368,7 @@ namespace Raven.UI  {
         
         public void render_window_internals() {
             //Clock.frame_probe.set("draw_wm_internals");
-            
             foreach (IUIForm window in windows) {
-                //lock (window)
                 if (window.visible && window.use_internal_rendering) {
                     State.graphics_device.SetRenderTarget(window.client_area);
                     window.render_internal();
@@ -394,22 +392,6 @@ namespace Raven.UI  {
             foreach (IUIForm window in windows) {
                 if (window.visible)
                     window.draw();
-            }
-
-            return;
-            foreach (IUIForm window in windows) {
-                foreach (var c in window.collision.Keys) {
-                    var collision = window.collision[c];
-                    //collision.Draw(Draw2D.ColorRandomFromString(window.name + window.text));
-                }
-
-                window.recurse_all_subforms(sf => {
-                    foreach (var c in sf.collision.Keys) {
-                        var collision = sf.collision[c];
-                        collision.Draw(Draw2D.ColorRandomFromString(sf.name + sf.text + c));
-                        Draw2D.text_shadow(sf.name + "." + c, collision.origin.ToVector2i(), Draw2D.ColorRandomFromString(sf.name + sf.text + c), Color.Black);
-                    } 
-                });
             }
         }
     }
