@@ -51,7 +51,7 @@ namespace Raven.UI.Forms;
         bool _clicked = false;
         public bool clicked => _clicked;
         bool mdown = false;
-        
+        private bool mouse_down_on_this = false;
         
         public void update() {
             update_collision();
@@ -68,13 +68,17 @@ namespace Raven.UI.Forms;
                     current_flags = button_mouse_status.mouse_over | button_mouse_status.mouse_down;
                 }
                 
-                if (current_flags.HasFlag(button_mouse_status.mouse_down) && !previous_flags.HasFlag(button_mouse_status.mouse_down)) {
-                    //mouse just clicked
+                if (State.engine_binds.Mouse.just_pressed(MouseWatcher.MouseButtons.Left)) {
+                    mouse_down_on_this = true;
                 }
-
+                
+            //handle moving mouse off and back on    
             } else if (!mo || !(top_of_mouse_stack && is_child)) {
-                if (State.engine_binds.Mouse.is_pressed(MouseWatcher.MouseButtons.Left)) {
+                if (State.engine_binds.Mouse.is_pressed(MouseWatcher.MouseButtons.Left) && mouse_down_on_this) {
                     current_flags = button_mouse_status.mouse_down;
+                } else if (State.engine_binds.Mouse.just_released(MouseWatcher.MouseButtons.Left)) {
+                    mouse_down_on_this = false;
+                    current_flags = button_mouse_status.none;
                 } else {
                     current_flags = button_mouse_status.none;
                 }
@@ -82,12 +86,13 @@ namespace Raven.UI.Forms;
              
             if (!current_flags.HasFlag(button_mouse_status.mouse_down) && previous_flags.HasFlag(button_mouse_status.mouse_down) && !_clicked ) {
                 //mouse just released
-                if (mo && !mdown && previous_flags.HasFlag(button_mouse_status.mouse_down) && (top_of_mouse_stack)) {
+                if (mo && !mdown && previous_flags.HasFlag(button_mouse_status.mouse_down) && (top_of_mouse_stack) && mouse_down_on_this) {
                     //do stuff
                     if (button_click != null )
                         button_click.Invoke();
 
                     _clicked = true;
+                    mouse_down_on_this = false;
                 }
             }
 
@@ -110,7 +115,7 @@ namespace Raven.UI.Forms;
                 molerp.LerpReverse();
             }
             
-            if (mdown && mouse_over) {
+            if (mdown && mouse_over && mouse_down_on_this) {
                 mdlerp.Lerp();
             } else {
                 mdlerp.LerpReverse();
