@@ -19,7 +19,7 @@
 /processorParam:PremultiplyAlpha=True
 /processorParam:TextureFormat=Compressed
 /processorParam:Version=3.8.5.0
-/build:Fonts/profont.spritefont
+/build:Engine/Fonts/profont.spritefont
 
 #begin Models/bigcube.FBX
 /importer:FbxImporter
@@ -39,7 +39,7 @@
 /processorParam:SwapWindingOrder=False
 /processorParam:TextureFormat=Compressed
 /processorParam:Version=3.8.5.0
-/build:Models/bigcube.FBX
+/build:Engine/Models/bigcube.FBX
 
 #begin Models/cone.FBX
 /importer:FbxImporter
@@ -59,7 +59,7 @@
 /processorParam:SwapWindingOrder=False
 /processorParam:TextureFormat=Compressed
 /processorParam:Version=3.8.5.0
-/build:Models/cone.FBX
+/build:Engine/Models/cone.FBX
 
 #begin Models/cube.FBX
 /importer:FbxImporter
@@ -79,7 +79,7 @@
 /processorParam:SwapWindingOrder=False
 /processorParam:TextureFormat=Compressed
 /processorParam:Version=3.8.5.0
-/build:Models/cube.FBX
+/build:Engine/Models/cube.FBX
 
 #begin Models/desk.fbx
 /importer:FbxImporter
@@ -99,7 +99,7 @@
 /processorParam:SwapWindingOrder=False
 /processorParam:TextureFormat=Compressed
 /processorParam:Version=3.8.5.0
-/build:Models/desk.fbx
+/build:Engine/Models/desk.fbx
 
 #begin Models/fourth.fbx
 /importer:FbxImporter
@@ -119,7 +119,7 @@
 /processorParam:SwapWindingOrder=False
 /processorParam:TextureFormat=Compressed
 /processorParam:Version=3.8.5.0
-/build:Models/fourth.fbx
+/build:Engine/Models/fourth.fbx
 
 #begin Models/skull.fbx
 /importer:FbxImporter
@@ -139,7 +139,7 @@
 /processorParam:SwapWindingOrder=False
 /processorParam:TextureFormat=Compressed
 /processorParam:Version=3.8.5.0
-/build:Models/skull.fbx
+/build:Engine/Models/skull.fbx
 
 #begin Models/smoothsphere.FBX
 /importer:FbxImporter
@@ -159,7 +159,7 @@
 /processorParam:SwapWindingOrder=False
 /processorParam:TextureFormat=Compressed
 /processorParam:Version=3.8.5.0
-/build:Models/smoothsphere.FBX
+/build:Engine/Models/smoothsphere.FBX
 
 #begin Models/sphere.FBX
 /importer:FbxImporter
@@ -179,7 +179,7 @@
 /processorParam:SwapWindingOrder=False
 /processorParam:TextureFormat=Compressed
 /processorParam:Version=3.8.5.0
-/build:Models/sphere.FBX
+/build:Engine/Models/sphere.FBX
 
 #begin Shaders/clear.fx
 /importer:EffectImporter
@@ -187,7 +187,7 @@
 /processorParam:DebugMode=Auto
 /processorParam:Defines=
 /processorParam:Version=3.8.5.0
-/build:Shaders/clear.fx
+/build:Engine/Shaders/clear.fx
 
 #begin Shaders/compositor.fx
 /importer:EffectImporter
@@ -195,7 +195,7 @@
 /processorParam:DebugMode=Auto
 /processorParam:Defines=
 /processorParam:Version=3.8.5.0
-/build:Shaders/compositor.fx
+/build:Engine/Shaders/compositor.fx
 
 #begin Shaders/directionallight.fx
 /importer:EffectImporter
@@ -203,7 +203,7 @@
 /processorParam:DebugMode=Auto
 /processorParam:Defines=
 /processorParam:Version=3.8.5.0
-/build:Shaders/directionallight.fx
+/build:Engine/Shaders/directionallight.fx
 
 #begin Shaders/dither.fx
 /importer:EffectImporter
@@ -211,7 +211,7 @@
 /processorParam:DebugMode=Auto
 /processorParam:Defines=
 /processorParam:Version=3.8.5.0
-/build:Shaders/dither.fx
+/build:Engine/Shaders/dither.fx
 
 #begin Shaders/exp_light_depth.fx
 /importer:EffectImporter
@@ -219,7 +219,7 @@
 /processorParam:DebugMode=Auto
 /processorParam:Defines=
 /processorParam:Version=3.8.5.0
-/build:Shaders/exp_light_depth.fx
+/build:Engine/Shaders/exp_light_depth.fx
 
 #begin Shaders/fill_gbuffer.fx
 /importer:EffectImporter
@@ -227,7 +227,7 @@
 /processorParam:DebugMode=Auto
 /processorParam:Defines=
 /processorParam:Version=3.8.5.0
-/build:Shaders/fill_gbuffer.fx
+/build:Engine/Shaders/fill_gbuffer.fx
 
 #begin Shaders/light_depth.fx
 /importer:EffectImporter
@@ -235,7 +235,7 @@
 /processorParam:DebugMode=Auto
 /processorParam:Defines=
 /processorParam:Version=3.8.5.0
-/build:Shaders/light_depth.fx
+/build:Engine/Shaders/light_depth.fx
 
 #begin Shaders/particle.fx
 /importer:EffectImporter
@@ -243,7 +243,7 @@
 /processorParam:DebugMode=Auto
 /processorParam:Defines=
 /processorParam:Version=3.8.5.0
-/build:Shaders/particle.fx
+/build:Engine/Shaders/particle.fx
 
 #begin Shaders/pointlight.fx
 /importer:EffectImporter
@@ -251,7 +251,7 @@
 /processorParam:DebugMode=Auto
 /processorParam:Defines=
 /processorParam:Version=3.8.5.0
-/build:Shaders/pointlight.fx
+/build:Engine/Shaders/pointlight.fx
 
 #begin Shaders/render_target_screen_pos.fx
 /importer:EffectImporter
@@ -259,7 +259,7 @@
 /processorParam:DebugMode=Auto
 /processorParam:Defines=
 /processorParam:Version=3.8.5.0
-/build:Shaders/render_target_screen_pos.fx
+/build:Engine/Shaders/render_target_screen_pos.fx
 
 #begin Shaders/sdf_circle.fx
 /importer:EffectImporter
@@ -267,7 +267,7 @@
 /processorParam:DebugMode=Auto
 /processorParam:Defines=
 /processorParam:Version=3.8.5.0
-/build:Shaders/sdf_circle.fx
+/build:Engine/Shaders/sdf_circle.fx
 
 #begin Shaders/sdf_pixel.fx
 /importer:EffectImporter
@@ -275,7 +275,7 @@
 /processorParam:DebugMode=Auto
 /processorParam:Defines=
 /processorParam:Version=3.8.5.0
-/build:Shaders/sdf_pixel.fx
+/build:Engine/Shaders/sdf_pixel.fx
 
 #begin Shaders/sdf.fx
 /importer:EffectImporter
@@ -283,7 +283,7 @@
 /processorParam:DebugMode=Auto
 /processorParam:Defines=
 /processorParam:Version=3.8.5.0
-/build:Shaders/sdf.fx
+/build:Engine/Shaders/sdf.fx
 
 #begin Shaders/skybox.fx
 /importer:EffectImporter
@@ -291,7 +291,7 @@
 /processorParam:DebugMode=Auto
 /processorParam:Defines=
 /processorParam:Version=3.8.5.0
-/build:Shaders/skybox.fx
+/build:Engine/Shaders/skybox.fx
 
 #begin Shaders/spotlight.fx
 /importer:EffectImporter
@@ -299,7 +299,7 @@
 /processorParam:DebugMode=Auto
 /processorParam:Defines=
 /processorParam:Version=3.8.5.0
-/build:Shaders/spotlight.fx
+/build:Engine/Shaders/spotlight.fx
 
 #begin Shaders/terrain.fx
 /importer:EffectImporter
@@ -307,7 +307,7 @@
 /processorParam:DebugMode=Auto
 /processorParam:Defines=
 /processorParam:Version=3.8.5.0
-/build:Shaders/terrain.fx
+/build:Engine/Shaders/terrain.fx
 
 #begin Shaders/texture_effects.fx
 /importer:EffectImporter
@@ -315,7 +315,7 @@
 /processorParam:DebugMode=Auto
 /processorParam:Defines=
 /processorParam:Version=3.8.5.0
-/build:Shaders/texture_effects.fx
+/build:Engine/Shaders/texture_effects.fx
 
 #begin Textures/ge_orb.png
 /importer:TextureImporter
@@ -328,7 +328,7 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /processorParam:Version=3.8.5.0
-/build:Textures/ge_orb.png
+/build:Engine/Textures/ge_orb.png
 
 #begin Textures/monkeymelon.JPG
 /importer:TextureImporter
@@ -341,7 +341,7 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /processorParam:Version=3.8.5.0
-/build:Textures/monkeymelon.JPG
+/build:Engine/Textures/monkeymelon.JPG
 
 #begin Textures/smugdean.png
 /importer:TextureImporter
@@ -354,7 +354,7 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /processorParam:Version=3.8.5.0
-/build:Textures/smugdean.png
+/build:Engine/Textures/smugdean.png
 
 #begin Textures/society.png
 /importer:TextureImporter
@@ -367,7 +367,7 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /processorParam:Version=3.8.5.0
-/build:Textures/society.png
+/build:Engine/Textures/society.png
 
 #begin Textures/texture_1001.png
 /importer:TextureImporter
@@ -380,7 +380,7 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /processorParam:Version=3.8.5.0
-/build:Textures/texture_1001.png
+/build:Engine/Textures/texture_1001.png
 
 #begin Textures/trumpmap.png
 /importer:TextureImporter
@@ -393,7 +393,7 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /processorParam:Version=3.8.5.0
-/build:Textures/trumpmap.png
+/build:Engine/Textures/trumpmap.png
 
 #begin Textures/XboxenDiffuse.png
 /importer:TextureImporter
@@ -406,7 +406,7 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /processorParam:Version=3.8.5.0
-/build:Textures/XboxenDiffuse.png
+/build:Engine/Textures/XboxenDiffuse.png
 
 #begin Textures/zorker.png
 /importer:TextureImporter
@@ -419,5 +419,5 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /processorParam:Version=3.8.5.0
-/build:Textures/zorker.png
+/build:Engine/Textures/zorker.png
 

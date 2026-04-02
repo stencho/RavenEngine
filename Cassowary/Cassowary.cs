@@ -40,10 +40,6 @@ public class CassowaryGame : Game {
     public static TestEntity test_ent2;
     public static FreeCamEntity free_cam;
     
-    //public static LerpedFloat l_float_loop = new LerpedFloat(0f, 1f, 1000.0, InterpolationType.Loop);
-    //public static LerpedFloat l_float_bounce = new LerpedFloat(0f, 1f, 1000.0, InterpolationType.Bounce);
-    //public static LerpedFloat l_float_once = new LerpedFloat(0f, 1f, 1000.0, InterpolationType.Once);
-
     private static float skull_rotate = 0f;
     private static light skull_lamp;
 
@@ -52,7 +48,6 @@ public class CassowaryGame : Game {
     private Sine sine;
     
     InspectorWindow inspector;
-    
     
     private LerpedMatrix l_mat = new LerpedMatrix(Matrix.Identity * Matrix.CreateFromAxisAngle(Vector3.UnitX, float.DegreesToRadians(-90)),
         Matrix.Identity * Matrix.CreateFromAxisAngle(Vector3.UnitX, float.DegreesToRadians(90)), 2000,
@@ -182,22 +177,20 @@ public class CassowaryGame : Game {
         var d = new UIButton(5, 15, "kabuki be like");
         d.set_action(() => Log.log("yooooo *klonk*"));
         
-        var e = new UIButton(5, 5, "if this works im baffled tho");
-        e.set_action(() => Log.log("huh"));
 
         var test_panel = new Panel(Vector2i.One * 25, Vector2i.One * 350);
         var test_panel_2 = new Panel(Vector2i.One * 25, Vector2i.One * 250);
-        var test_panel_3 = new Panel(Vector2i.One * 25, Vector2i.One * 200);
-        test_panel_3.add_subform(e);
+        
         test_panel.add_subform(d);
         test_panel.add_subform(test_panel_2);
-        test_panel_2.add_subform(test_panel_3);
+
+        test_panel_2.foreground_draw = p => {
+            Draw2D.image(Resources.GetTexture("adam"), Vector2i.Zero, p.client_size);
+        };
+
         inspector.add_subform(test_panel);
         
         State.UI.add_window(inspector);
-
-        
-        
         
         var tester = new UIWindow(new Vector2i(20,20), new Vector2i(400, 320));
 
@@ -206,6 +199,8 @@ public class CassowaryGame : Game {
         var subtest2 = new UIButton(5, 55, "im a subby lil button too hehe");
         subtest2.set_action(() => Log.log("uhnghn!!"));
         var panel = new TabbedPanel(Vector2i.Zero, tester.client_size);
+        
+        
         panel.add_subform(subtest);
         panel.add_subform(subtest2);
         tester.add_subform(panel);

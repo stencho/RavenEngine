@@ -62,7 +62,7 @@ namespace Raven.Graphics.Effects {
         internal virtual void update() { }
 
         internal void load_shader_file(ContentManager content, string effect_name) {
-             _effect = content.Load<Effect>(effect_name);
+            _effect = Resources.GetShaderInstance(effect_name);
         }        
 
         internal bool shader_has_param(string param) {

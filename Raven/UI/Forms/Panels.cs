@@ -12,6 +12,9 @@ public partial class Panel : IUIForm {
     public Vector2i client_size => size;
     public Vector2i client_top_left => Vector2i.Zero;
     public Vector2i client_bottom_right => size;
+
+    public Action<Panel> background_draw = null;
+    public Action<Panel> foreground_draw = null;
     
     public Panel(Vector2i position, Vector2i size) {
         setup(position.X, position.Y, size.X, size.Y);
@@ -27,6 +30,8 @@ public partial class Panel : IUIForm {
     }
 
     public void render_internal() {
+        Draw2D.end();
+        
         foreach (var subform in subforms) {
             if (subform.use_internal_rendering) {
                 State.graphics_device.SetRenderTarget(subform.client_area);
@@ -35,15 +40,20 @@ public partial class Panel : IUIForm {
                 Draw2D.end();
             }
         }
+        
         Draw2D.end();
+        
         State.graphics_device.SetRenderTarget(client_area);
         State.graphics_device.Clear(color_background);
-        
-        //Draw2D.fill_rect_dither(Vector2i.Zero, client_top_left, client_size);
+
+        background_draw?.Invoke(this);
         
         foreach (var subform in subforms) {
             subform.draw();
         }
+        
+        foreground_draw?.Invoke(this);
+        
         Draw2D.rect(Vector2i.One, client_size, color_foreground, 1f);
     }
 

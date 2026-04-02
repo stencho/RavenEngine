@@ -15,6 +15,6 @@ namespace Raven.Graphics.Effects {
             set_param("bottom_right", bottom_right);
         }
 
-        public Dither(ContentManager content) : base(content, "Shaders/dither") {}
+        public Dither(ContentManager content) : base(content, "dither") {}
     }
 }

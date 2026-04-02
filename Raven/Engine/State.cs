@@ -339,6 +339,7 @@ public static class State {
     }
 
     public static void Load(ContentManager content) {
+        Resources.LoadEngineContent(content);
         Resources.LoadContentList(content);
 
         quad_vb = new VertexBuffer(graphics_device, VertexPositionTexture.VertexDeclaration, 4, BufferUsage.None);
