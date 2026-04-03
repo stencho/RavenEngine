@@ -164,6 +164,12 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
                             return d;
                         }
                         
+                        public void iterate_over_subforms(Action<IUIForm> run_on_all_subforms) {
+                            foreach(var sf in subforms) {
+                                run_on_all_subforms(sf);
+                            }
+                        }
+                        
                         public void recurse_all_subforms(Action<IUIForm> run_on_all_subforms) {
                             for (var index = 0; index < subforms.Count; index++) {
                                 run_on_all_subforms(subforms[index]);
@@ -190,6 +196,34 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
                             });
                         }
                         
+                        
+                        void render_all_subform_internals() {
+                            Draw2D.end();
+                            if (!_visible) return;
+                            foreach (var subform in subforms) {
+                                if (subform.use_internal_rendering) {
+                                    State.graphics_device.SetRenderTarget(subform.client_area);
+                                    State.graphics_device.Clear(Color.Transparent);
+                                    subform.render_internal();
+                                    Draw2D.end();
+                                }
+                            }
+                        }
+                        
+                        void draw_all_subforms() {
+                            if (!_visible) return;
+                            foreach (var subform in subforms) {
+                                if (subform.visible)
+                                    subform.draw();
+                            }
+                        }
+                        
+                        void update_all_subforms() {
+                            foreach (var subform in subforms) {
+                                subform.update();
+                            }
+                        }
+                        
                         void setup(int X, int Y, int width, int height) {
                             this.position = new Vector2i(X, Y);
                             this.size = new Vector2i(width, height);
@@ -213,6 +247,11 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
                         }
                         
                         public bool test_mouse() {
+                            if (!_visible) {
+                                mouse_interactions.Clear();
+                                return false;
+                            }
+                            
                             return UIStandard.test_mouse(ref _collision, ref _mouse_interactions);
                         }
                         """);

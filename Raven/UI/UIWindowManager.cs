@@ -25,6 +25,14 @@ namespace Raven.UI  {
         public static Color Foreground { get; set; } = Color.FromNonPremultiplied(242, 124, 248, 255);
         public static Color Background { get; set; } = Color.FromNonPremultiplied(45,30,45,255);
         
+        public static Color Foreground75Percent => Foreground.multiply_color(.75f);
+        public static Color Foreground50Percent => Foreground.multiply_color(.5f);
+        public static Color Foreground25Percent => Foreground.multiply_color(.25f);
+        
+        public static Color Background75Percent => Background.multiply_color(.75f);
+        public static Color Background50Percent => Background.multiply_color(.5f);
+        public static Color Background25Percent => Background.multiply_color(.25f);
+        
         public static Color QuarterGrey => Color.FromNonPremultiplied(63, 63, 63, 255);
         public static Color MiddleGrey => Color.FromNonPremultiplied(127, 127, 127, 255);
 
@@ -198,6 +206,8 @@ namespace Raven.UI  {
             return current_leaf;
         }
         
+        IUIForm top_subform_under_mouse = null;
+        
         public void update() {
             //Clock.frame_probe.set("wm_update");
             mouse.UpdateDeltas();
@@ -231,7 +241,6 @@ namespace Raven.UI  {
             }
             
             bool mouse_holding_window = window_on_mouse > -1;
-            IUIForm top_subform_under_mouse = null;
             
             //initial mouse stack and bring-to-front-on-click handling and such
             for (int i = windows.Count - 1; i >= 0; i--) {
@@ -284,6 +293,7 @@ namespace Raven.UI  {
             for (int i = windows.Count - 1; i >= 0; i--) {
                 windows[i].update();
             }
+            
             // handle window dragging
             // a window is being held by the mouse, so regardless of focus mode, we should force
             // it to be focused, and defocus all subforms to prevent highlighting them while
@@ -321,8 +331,8 @@ namespace Raven.UI  {
                                 top_subform_under_mouse.has_focus = true;
                             top_subform_under_mouse.top_of_mouse_stack = true;
                         }
-                    } else {
                         
+                    } else {
                         //mouse not over UI so just disable it all
                         for (int i = windows.Count - 1; i >= 0; i--) {
                             windows[i].has_focus = false;
@@ -362,7 +372,6 @@ namespace Raven.UI  {
                 if (window.visible && window.use_internal_rendering) {
                     State.graphics_device.SetRenderTarget(window.client_area);
                     window.render_internal();
-                    
                 }
             }
         }
@@ -426,7 +435,6 @@ namespace Raven.UI  {
         public static bool test_mouse(ref Dictionary<string, Collision2D.Shape2D> collision, ref List<string> mouse_interactions) {
             mouse_interactions.Clear();
             bool t = false;
-
             foreach (string is2d in collision.Keys) {
                 if (Collision2D.GJK2D.test_shapes_simple(collision[is2d], MouseWatcher.MouseCollisionObject, out _)) {
                     if (t == false) t = true;

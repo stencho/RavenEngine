@@ -248,9 +248,7 @@ namespace Raven.UI {
 
 
             //subform updates
-            for (int i = 0; i < subforms.Count; i++) {
-                subforms[i].update();
-            }
+            update_all_subforms();
 
             last_mouse_pos = MouseWatcher.Position;
             
@@ -294,17 +292,9 @@ namespace Raven.UI {
             
             Draw2D.text("profont", text, (Vector2i.Right * ((top_bar_size.X / 2f) - (text_size.X / 2f))) + (Vector2.UnitY * ((top_bar_height / 2f) - (text_size.Y / 2f))), title_text);
             
-            //Draw2D.line(size.X - 45, 0, size.X - 45, size.Y, 1f, Color.Black);
-            //Draw2D.line(size.X - 30, 0, size.X - 30, size.Y, 1f, Color.Black);
-            //Draw2D.line(size.X - 15, 0, size.X - 15, size.Y, 1f, Color.Black);
-            
             Draw2D.end();
 
-            //PRE-DRAW SUBFORMS
-            foreach (IUIForm subform in subforms) {
-                State.graphics_device.SetRenderTarget(subform.client_area);
-                subform.render_internal();
-            }
+            render_all_subform_internals();
 
             //RENDER MAIN CLIENT AREA
             State.graphics_device.SetRenderTarget(client_area);
@@ -322,13 +312,9 @@ namespace Raven.UI {
                     focus_lerp.Value), 
                 16);
             
-            //Draw2D.rect();
-            
             Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None);
 
-            foreach (IUIForm subform in subforms) {
-                subform.draw();
-            }
+            draw_all_subforms();
 
             internal_draw_action?.Invoke();
 
@@ -359,9 +345,9 @@ namespace Raven.UI {
             //Draw a transparent basic version of the window while resizing (to avoid stretching contents)                
             } else {
                 Draw2D.fill_rect(top_left, top_left + top_bar_size,
-                    UIColors.Foreground.multiply_alpha(0.5f));
+                    UIColors.Foreground50Percent);
                 Draw2D.fill_rect(absolute_position + client_top_left, absolute_position + client_top_left + client_size, 
-                    UIColors.Background.multiply_alpha(0.5f));
+                    UIColors.Background50Percent);
                 
                 //draw subform outlines
                 foreach (IUIForm subform in subforms) {
@@ -369,8 +355,8 @@ namespace Raven.UI {
                 }
                 
                 //draw window border
-                Draw2D.rect(top_left, bottom_right, UIColors.Foreground.multiply_alpha(0.5f), 1f);
-                Draw2D.rect(top_left, top_left + top_bar_size, UIColors.Foreground.multiply_alpha(0.5f), 1f);
+                Draw2D.rect(top_left, bottom_right, UIColors.Foreground50Percent, 1f);
+                Draw2D.rect(top_left, top_left + top_bar_size, UIColors.Foreground50Percent, 1f);
             }
             
             if ((_resize_handle_R_mo || _resize_handle_R_grabbed) && (!_resize_handle_B_grabbed || _resize_handle_both_grabbed) && top_of_mouse_stack) {
@@ -382,21 +368,6 @@ namespace Raven.UI {
             }
 
             draw_action?.Invoke();
-
-            /*
-            if (_draw_collision) {
-                foreach (string is2d in collision.Keys) {
-                    _collision[is2d].Draw(_mouse_interactions.Contains(is2d) ? Color.MediumVioletRed : Color.MediumPurple);
-                }
-            }
-
-            foreach (IUIForm subform in subforms) {
-
-                foreach (string is2d in subform.collision.Keys) {
-                    subform.collision[is2d].Draw(_mouse_interactions.Contains(is2d) ? Color.MediumVioletRed : Color.MediumPurple);
-                }
-            }
-            */
         }
 
     }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Security;
 using Microsoft.Xna.Framework;
 using Raven.Engine;
 using Raven.Engine.Collision;
@@ -24,40 +25,25 @@ public partial class Panel : IUIForm {
     public void update() {
         update_collision();
         test_mouse();
-        foreach (var subform in subforms) {
-            subform.update();
-        }
+        update_all_subforms();
     }
 
     public void render_internal() {
-        Draw2D.end();
-        
-        foreach (var subform in subforms) {
-            if (subform.use_internal_rendering) {
-                State.graphics_device.SetRenderTarget(subform.client_area);
-                State.graphics_device.Clear(Color.Transparent);
-                subform.render_internal();
-                Draw2D.end();
-            }
-        }
-        
-        Draw2D.end();
+        if (!visible) return; 
+        render_all_subform_internals();
         
         State.graphics_device.SetRenderTarget(client_area);
         State.graphics_device.Clear(color_background);
 
         background_draw?.Invoke(this);
-        
-        foreach (var subform in subforms) {
-            subform.draw();
-        }
-        
+        draw_all_subforms();
         foreground_draw?.Invoke(this);
         
         Draw2D.rect(Vector2i.One, client_size, color_foreground, 1f);
     }
 
     public void draw() {
+        if (!visible) return;
         Draw2D.image(client_area, position + client_top_left, size);
     }
 }
@@ -69,6 +55,9 @@ public partial class TabbedPanel : IUIForm {
     public Vector2i client_size => size - (Vector2i.UnitY * tab_bar_height);
     public Vector2i client_bottom_right => client_top_left + size;
 
+    public Action<TabbedPanel> background_draw = null;
+    public Action<TabbedPanel> foreground_draw = null;
+    
     public TabbedPanel(Vector2i position, Vector2i size) {
         setup(position.X, position.Y, size.X, size.Y);
         reconfigure_client_area();
@@ -77,21 +66,17 @@ public partial class TabbedPanel : IUIForm {
     public void update() {
         update_collision();
         test_mouse();
-        foreach (var subform in subforms) {
-            subform.update();
-        }
+        update_all_subforms();
     }
 
     public void render_internal() {
-        foreach (var subform in subforms) {
-            subform.render_internal();
-            
-        }
-        
+        render_all_subform_internals();
         Draw2D.fill_rect(Vector2i.Zero, client_size, color_background);
-        foreach (var subform in subforms) {
-            subform.draw();
-        }
+        State.graphics_device.SetRenderTarget(client_area);
+        State.graphics_device.Clear(color_background);
+        background_draw?.Invoke(this);
+        draw_all_subforms();
+        foreground_draw?.Invoke(this);
         Draw2D.rect(Vector2i.One, client_size, color_foreground, 1f);
     }
 

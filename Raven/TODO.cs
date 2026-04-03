@@ -1,19 +1,17 @@
 namespace Raven;
 internal class TODO {
-//TODO extra colors in UIColors, 50% versions and such
-    
 //TODO add a TabbedPanel UI form then use it to start building the inspector
 // also re-add frame probes and add some cool frame profiling stats to it 
 
-//TODO drop down selection menu
 //TODO right click system where a menu can be connected to a collision
+//TODO drop down selection menu
 
 //fuck I'm doing it again aren't I
 //oh well at least this is shaping up to be my best pointless UI toolkit
 
 //TODO Brush entity which can take different basic shapes
 
-//TODO change IUIForm position to work as an offset from an anchor    
+//TODO add IUIForm anchor/dock systems (aaaaaaaahhhHHH)
     
 //TODO move sun/moon based lighting into its own file why is that still in State fuckin nuts
 // also still need to add a sun/moon

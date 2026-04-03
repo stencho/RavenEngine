@@ -167,19 +167,20 @@ public class CassowaryGame : Game {
         inspector.hide();
         
         var b = new UIButton(5, 5, "fart really hard");
-        b.set_action(() => Log.log("ye"));
         
-        var c = new UIButton(55, 15, "fart really hard");
+        
+        var c = new UIButton(b.bottom_right.X + 2, 5, "fart even harder");
         c.set_action(() => Log.log("yee"));
         inspector.add_subform(c);
         inspector.add_subform(b);
 
-        var d = new UIButton(5, 15, "kabuki be like");
-        d.set_action(() => Log.log("yooooo *klonk*"));
+        var d = new UIButton(5, 5, "adam sander");
         
-
         var test_panel = new Panel(Vector2i.One * 25, Vector2i.One * 350);
         var test_panel_2 = new Panel(Vector2i.One * 25, Vector2i.One * 250);
+        
+        b.set_action(() => test_panel.toggle_visibility());
+        d.set_action(() => test_panel_2.toggle_visibility());
         
         test_panel.add_subform(d);
         test_panel.add_subform(test_panel_2);
@@ -187,7 +188,10 @@ public class CassowaryGame : Game {
         test_panel_2.foreground_draw = p => {
             Draw2D.image(Resources.GetTexture("adam"), Vector2i.Zero, p.client_size);
         };
-
+        
+        test_panel.hide();
+        test_panel_2.hide();
+        
         inspector.add_subform(test_panel);
         
         State.UI.add_window(inspector);
