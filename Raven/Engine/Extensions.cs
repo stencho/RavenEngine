@@ -234,65 +234,8 @@ public static class Extensions {
                 list.Add(tmp_list[i]);
             }
         }
-
-
-        /*
-        for (int i = 0; i < list.Count; i++) {
-            IUIForm tmp = list[i];
-
-            switch (list[i].layer_state) {
-
-                case ui_layer_state.on_bottom:
-                    list.Remove(list[i]);
-                    if (i < low) 
-                        list.Insert(low-1, tmp);
-                    else
-                        list.Insert(low, tmp);
-                    low++;
-                    break;
-
-                case ui_layer_state.floating:
-                    list.Remove(list[i]);
-                    if (i < low+norm)
-                        list.Insert(low+norm- 1, tmp);
-                    else
-                        list.Insert(low + norm, tmp);
-                    norm++;
-                    break;
-                case ui_layer_state.on_top:
-                    list.Remove(list[i]);
-                    if (i < low + norm + high)
-                        list.Insert(low + norm + high - 1, tmp);
-                    else
-                        list.Insert(low + norm + high, tmp);
-                    high++;
-                    break;
-            }
-
-            c++;
-        }
-        for (int i = list.Count - 1; i >= 0; i--) {
-            IUIForm tmp = list[i];
-            if (list[i].top_of_mouse_stack && list[i].layer_state == ui_layer_state.floating) {
-                list.Remove(list[i]);
-                if (i < low + norm)
-                    list.Insert(low + norm + 1, tmp);
-                else
-                    list.Insert(low + norm, tmp);
-                break;
-            }
-
-        }
-
-        for (int i = list.Count-1; i >=0; i--) {
-            IUIForm tmp = list[i];
-            if (list[i].has_focus && list[i].layer_state == ui_layer_state.floating) {
-                list.Remove(list[i]);
-                list.Insert(low + norm, tmp);
-            }
-
-        }*/
     }
+    
     public static void BringToFront(this List<IUIForm> list, IUIForm window) {
         if (list.Count <= 1) { list[0].has_focus = true;  return; }
         if (window == list[list.Count - 1]) {
@@ -321,16 +264,12 @@ public static class Extensions {
 
                 list[list.Count - 1] = tmp;
                 list[list.Count - 1].has_focus = true;
-                /*
-                for (i = found; i > 0; i--) {
-                    list[i] = list[i-1];
-                }
-                list[0] = tmp;
-                */
+                
                 return;
             }
         }
     }
+    
     private static UInt128 sqrt128(UInt128 n) {
         if (n == 0)
             return 0;

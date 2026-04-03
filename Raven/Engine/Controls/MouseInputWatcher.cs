@@ -46,7 +46,7 @@ public partial class MouseWatcher {
     public int MouseWheelDelta => mouse_wheel_delta;
     public int MouseWheelHorizontalDelta => mouse_wheel_horizontal_delta;
 
-    public static Vector2 MouseSensitivity => gvars.get_vector2("mouse_sensitivity");
+    public static Vector2 MouseSensitivity => gvars.get_vector2("i_mouse_sensitivity");
     
     private MouseState mouse_state_current;
     private MouseState mouse_state_previous;
@@ -88,7 +88,7 @@ public partial class MouseWatcher {
         return mouse_delta_final * MouseSensitivity;
     }
 
-    public bool leave_mouse_centered_after_mouse_lock_released { get; set; } = false;
+    public bool center_mouse_after_lock_released { get; set; } = false;
     
     public void UpdateDeltas() {
         if (!mouse_locked && mouse_locked_p) {
@@ -135,7 +135,7 @@ public partial class MouseWatcher {
             Mouse.SetPosition(window_center.X, window_center.Y);
         } else if (!mouse_locked) {
             if (mouse_locked_p) {
-                if (!leave_mouse_centered_after_mouse_lock_released) 
+                if (!center_mouse_after_lock_released) 
                     Mouse.SetPosition(mouse_lock_stored_position.X, mouse_lock_stored_position.Y);
                 else
                     Mouse.SetPosition(window_center.X, window_center.Y);

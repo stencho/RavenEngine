@@ -50,8 +50,8 @@ namespace Raven.Graphics.Drawing3D {
         public spot_info() {
             depth_map = new RenderTarget2D(
                     State.graphics_device,
-                    gvars.get_int("light_spot_resolution"), 
-                    gvars.get_int("light_spot_resolution"), 
+                    gvars.get_int("r_light_spot_resolution"), 
+                    gvars.get_int("r_light_spot_resolution"), 
                     false, SurfaceFormat.Single, DepthFormat.Depth24);
 
             cookie = Resources.GetTexture("radial_glow");

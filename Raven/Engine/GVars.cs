@@ -416,7 +416,7 @@ namespace Raven.Engine {
         public static void write_gvars_to_disk() {
             StringBuilder sb = new StringBuilder();
 
-            foreach (string gvar_key in _gvars.Keys) {                
+            foreach (string gvar_key in _gvars.Keys.OrderBy(a => a)) {                
                 var gvar = _gvars[gvar_key];
                 if (gvar.save) {
                     if (gvar.comment != String.Empty) {
@@ -425,7 +425,7 @@ namespace Raven.Engine {
                                 sb.Append($"# {comment_sr.ReadLine()}\n");
                         } 
                     }
-                    sb.AppendLine($"{gvar.name} = {get_string_for_disk(gvar_key)}");
+                    sb.AppendLine($"{gvar.name} = {get_string_for_disk(gvar_key)}\n");
                 }
             }
 

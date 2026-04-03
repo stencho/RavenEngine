@@ -150,8 +150,6 @@ public class CassowaryGame : Game {
             Draw2D.line(tl, tl + (Vector2i.UnitY * 11), Color.Red, 1f);
             Draw2D.text_shadow($"[Environment] {(int)hour} O'clock", Vector2i.Down * 4 + (Vector2i.Right * (State.resolution.X - State.Skybox.sun_moon.lerps.debug_band.Bounds.Size.X)), Color.White, Color.Black);
             
-            Draw2D.line(new Vector2(100, 10), new Vector2(150, 10), Color.BurlyWood, 1f);
-            
             //Draw2D.fill_circle(new Vector2(200 + (50 * (sine.Phase / (MathF.PI * 2))), 10), 6f, Color.IndianRed);
             //Draw2D.fill_circle(new Vector2(200 + (50 * ), 18), 6f, Color.DarkOliveGreen);
             //Draw2D.fill_circle(new Vector2(200 + (50 * ), 24), 6f, Color.MediumPurple);

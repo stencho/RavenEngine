@@ -175,7 +175,7 @@ namespace Raven.Graphics.Drawing2D {
 
             Draw2D.begin(screen_pos_effect);
 
-            screen_pos_effect.Parameters["resolution"].SetValue(State.resolution.ToVector2());
+            screen_pos_effect.Parameters["r_resolution"].SetValue(State.resolution.ToVector2());
             screen_pos_effect.Parameters["position"].SetValue(position.ToVector2());
             screen_pos_effect.Parameters["size"].SetValue(size.ToVector2());
             

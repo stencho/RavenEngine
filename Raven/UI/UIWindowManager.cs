@@ -155,17 +155,40 @@ namespace Raven.UI  {
             }
         }
 
+        bool is_top_visible_window(IUIForm window) {
+            for (int i = windows.Count - 1; i >= 0; i--) {
+                if (windows[i] != window && windows[i].visible) {
+                    return false;
+                } else if (!windows[i].visible) {
+                    continue;
+                } else if (windows[i] == window) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        
         public void toggle_window(UIWindow window) {
-            if (window.visible && !window.has_focus && !focus_follows_mouse) {
-                if (!MouseWatcher.MouseLocked) {
+            if (!focus_follows_mouse) {
+                if (window.visible && !window.has_focus) {
+                    if (!MouseWatcher.MouseLocked) {
+                        defocus_all_windows();
+                        windows.BringToFront(window);
+                        force_focus(window);
+                        BindWatcher.global_enable = false;
+                        return;
+                    }
+                }
+            } else {
+                if (window.visible && !is_top_visible_window(window)) {
                     defocus_all_windows();
                     windows.BringToFront(window);
                     force_focus(window);
-                    BindWatcher.global_enable = false;
                     return;
                 }
             }
-            
+
             window.toggle_visibility();
 
             if (window.visible && !MouseWatcher.MouseLocked) {

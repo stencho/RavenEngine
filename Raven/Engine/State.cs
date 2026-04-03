@@ -196,8 +196,8 @@ public static class State {
 
     public static UIWindowManager UI;
     
-    public static Vector2i resolution => gvars.get_Vector2i("resolution");
-    public static float super_res_scale => gvars.get_float("super_resolution_scale");
+    public static Vector2i resolution => gvars.get_Vector2i("r_resolution");
+    public static float super_res_scale => gvars.get_float("r_super_resolution_scale");
     
     public static Viewport viewport => graphics_device.Viewport;
     public static Scene CurrentScene => Scene.Manager.ActiveScene;
@@ -279,29 +279,29 @@ public static class State {
         
         ConsoleInputRunner.build_using_list();
         
-        gvars.add_gvar("c_tick_rate", gvar_data_type.INT, 60, true, "Sets the update thread's tick rate.");
-        gvars.add_gvar("c_timescale", gvar_data_type.FLOAT, 1f, false);
+        gvars.add_gvar("g_tick_rate", gvar_data_type.INT, 60, true, "Sets the update thread's tick rate.");
+        gvars.add_gvar("g_time_scale", gvar_data_type.FLOAT, 1f, false);
         
-        gvars.add_gvar("resolution", gvar_data_type.VECTOR2I, FindCurrentResolution(), true, "Resolution of both the game window and output buffer.");
-        gvars.add_gvar("super_resolution_scale", gvar_data_type.FLOAT, 1f, true, "Set the 3D render output buffer resolution scale.\n0.5 will half the resolution, making things pixelated, 2.0 will double the resolution and enable supersampling\nThis will not affect the 2D layer, which will always be at the main buffer resolution.");
-        gvars.add_gvar("vsync", gvar_data_type.BOOL, true, true, "Sync vertical retrace to display.");
-        gvars.add_gvar("frame_limit", gvar_data_type.INT, 180, true, "Sets the render thread's frame rate limit.");
-        gvars.add_gvar("interpolation", gvar_data_type.BOOL, true, false);
+        gvars.add_gvar("r_resolution", gvar_data_type.VECTOR2I, FindCurrentResolution(), true, "Resolution of both the game window and output buffer.");
+        gvars.add_gvar("r_super_resolution_scale", gvar_data_type.FLOAT, 1f, true, "Set the 3D render output buffer resolution scale.\n0.5 will half the resolution, making things pixelated, 2.0 will double the resolution and enable supersampling\nThis will not affect the 2D layer, which will always be at the main buffer resolution.");
+        gvars.add_gvar("r_vsync", gvar_data_type.BOOL, true, true, "Sync vertical retrace to display.");
+        gvars.add_gvar("r_frame_limit", gvar_data_type.INT, 180, true, "Sets the render thread's frame rate limit.");
+        gvars.add_gvar("r_interpolation", gvar_data_type.BOOL, true, false);
         
-        gvars.add_gvar("light_spot_resolution", gvar_data_type.INT, 1024, false);
+        gvars.add_gvar("r_light_spot_resolution", gvar_data_type.INT, 1024, false);
         
-        gvars.add_gvar("display_mode", gvar_data_type.STRING, "borderless_fullscreen", true, "Sets the window style. Options are:\nfullscreen, borderless_fullscreen [default], window, borderless");
+        gvars.add_gvar("r_display_mode", gvar_data_type.STRING, "borderless_fullscreen", true, "Sets the window style. Options are:\nfullscreen, borderless_fullscreen [default], window, borderless");
 
         var wind_pos_comment = "Last used window position.\nMay be locked at 0x0 or -1x-1 on platforms where this is not supported (notably Wayland).";
         
         if (window.Position == Point.Zero) {
-            gvars.add_gvar("window_position", gvar_data_type.VECTOR2I, -Vector2i.One, true, wind_pos_comment); 
+            gvars.add_gvar("g_window_position", gvar_data_type.VECTOR2I, -Vector2i.One, true, wind_pos_comment); 
         } else {
-            gvars.add_gvar("window_position", gvar_data_type.VECTOR2I, Vector2i.Zero, true, wind_pos_comment);
+            gvars.add_gvar("g_window_position", gvar_data_type.VECTOR2I, Vector2i.Zero, true, wind_pos_comment);
         }
         
-        gvars.add_gvar("bind_tap_time", gvar_data_type.INT, 150, true, "Sets the tap time for digital inputs, in milliseconds.\nThis is how long it takes for a key to go from Pressed to Held,\nand if it is released before then, it will become Tapped for one frame.");
-        gvars.add_gvar("mouse_sensitivity", gvar_data_type.VECTOR2, Vector2.One, true, "Sets the mouse sensitivity individually for each axis.");
+        gvars.add_gvar("i_bind_tap_time", gvar_data_type.INT, 150, true, "Sets the tap time for digital inputs, in milliseconds.\nThis is how long it takes for a key to go from Pressed to Held,\nand if it is released before then, it will become Tapped for one frame.");
+        gvars.add_gvar("i_mouse_sensitivity", gvar_data_type.VECTOR2, Vector2.One, true, "Sets the mouse sensitivity individually for each axis.");
 
         gvars.add_gvar("ui_focus_follows_mouse", gvar_data_type.BOOL, false, true, "Forces UI window focus to always be on the window under the mouse\n(as opposed to standard click-to-focus)");
         gvars.add_gvar("ui_window_shadows", gvar_data_type.BOOL, false, true, "Adds a small drop shadow to UI windows");
@@ -315,15 +315,15 @@ public static class State {
         change_backbuffer_resolution();
         ChangeResolution(true);
         
-        gvars.add_change_action("resolution", () => ChangeResolution());
+        gvars.add_change_action("r_resolution", () => ChangeResolution());
         
-        gvars.add_change_action("vsync", () => ChangeVSync());
-        gvars.add_change_action("frame_limit", () => ChangeFrameLimit());
-        gvars.add_change_action("c_tick_rate", () => ChangeTickRate());
+        gvars.add_change_action("r_vsync", () => ChangeVSync());
+        gvars.add_change_action("r_frame_limit", () => ChangeFrameLimit());
+        gvars.add_change_action("g_tick_rate", () => ChangeTickRate());
 
-        gvars.add_change_action("interpolation", () => EnableInterpolation = gvars.get_bool("interpolation"));
+        gvars.add_change_action("r_interpolation", () => EnableInterpolation = gvars.get_bool("r_interpolation"));
 
-        gvars.add_change_action("display_mode", () => ChangeWindowMode());
+        gvars.add_change_action("r_display_mode", () => ChangeWindowMode());
         
         engine_binds.force_enable("toggle_console");
         engine_binds.force_enable("toggle_inspector");
@@ -444,32 +444,32 @@ public static class State {
     }
 
     private static void ChangeFrameLimit() {
-        if (gvars.get_int("frame_limit") == -1) {
+        if (gvars.get_int("r_frame_limit") == -1) {
             game.IsFixedTimeStep = false;
             game.TargetElapsedTime = new TimeSpan((long)((1000.0 / 60.0) * 10000.0));
         } else {
             game.IsFixedTimeStep = true;
-            game.TargetElapsedTime = new TimeSpan((long)((1000.0 / (double)gvars.get_int("frame_limit")) * 10000.0));
+            game.TargetElapsedTime = new TimeSpan((long)((1000.0 / (double)gvars.get_int("r_frame_limit")) * 10000.0));
         }
     }
 
     private static void ChangeVSync() {
-        graphics.SynchronizeWithVerticalRetrace = gvars.get_bool("vsync");
+        graphics.SynchronizeWithVerticalRetrace = gvars.get_bool("r_vsync");
         graphics.ApplyChanges();
     }
 
     private static void ChangeWindowMode() {
-        var wm = gvars.get_string("display_mode");
+        var wm = gvars.get_string("r_display_mode");
         switch (wm) {
             case "fullscreen":
-                gvars.set("resolution", FindCurrentResolution());
+                gvars.set("r_resolution", FindCurrentResolution());
                 graphics.IsFullScreen = true;
                 window.IsBorderless = false;
                 window.AllowUserResizing = false;
                 break;
                 
             case "borderless_fullscreen":
-                gvars.set("resolution", FindCurrentResolution());
+                gvars.set("r_resolution", FindCurrentResolution());
                 graphics.IsFullScreen = false;
                 window.IsBorderless = true;
                 window.AllowUserResizing = false;
@@ -493,9 +493,9 @@ public static class State {
     }
     
     private static void ChangeTickRate() {
-        var i = gvars.get_int("c_tick_rate");
+        var i = gvars.get_int("g_tick_rate");
         if (i < 1) {
-            gvars.set("c_tick_rate", 1);
+            gvars.set("g_tick_rate", 1);
             return;
         } else {
             if (Scene.Manager.update_thread != null) Scene.Manager.update_thread.tick_rate = i;
@@ -537,7 +537,7 @@ public static class State {
         Skybox.sun_moon.update();
         
         if (Clock.game_time.TotalGameTime.TotalMilliseconds - time_of_last_window_size_change > 500 && changing_window_size) {
-            gvars.set("resolution", window.ClientBounds.Size.ToVector2i());
+            gvars.set("r_resolution", window.ClientBounds.Size.ToVector2i());
             changing_window_size = false;
             time_of_last_window_size_change = 0;
 
@@ -638,7 +638,7 @@ public static class Clock {
     public static ulong frame_count = 0;
     public static ulong tick_count = 0;
 
-    public static float time_scale => gvars.get_float("c_timescale");
+    public static float time_scale => gvars.get_float("g_time_scale");
     
     public static void FrameRateUpdate(double milliseconds) {
         _frame_rate_timer += milliseconds;

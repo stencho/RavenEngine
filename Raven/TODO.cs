@@ -3,6 +3,8 @@ internal class TODO {
 //TODO add a TabbedPanel UI form then use it to start building the inspector
 // also re-add frame probes and add some cool frame profiling stats to it 
 
+//TODO report how many scroll wheel ticks have happened in the last frame
+
 //TODO right click system where a menu can be connected to a collision
 //TODO drop down selection menu
 

@@ -7,7 +7,7 @@ public class OrientationMatrix {
     private Matrix interpolated_angle;
     public Matrix InterpolatedAngleEnd;
 
-    public double interpolation_length { get; set; } = 1000.0 / gvars.get_float("c_tick_rate");
+    public double interpolation_length { get; set; } = 1000.0 / gvars.get_float("g_tick_rate");
     public double current_interpolation_point { get; set; } = 0.0;
     public float interpolation_f => (float)(current_interpolation_point / interpolation_length);
     

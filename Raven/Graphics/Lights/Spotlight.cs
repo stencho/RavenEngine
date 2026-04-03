@@ -7,7 +7,7 @@ using Raven.Graphics.Drawing3D;
 namespace Raven.Graphics.Lights {
     public class SpotLight : DynamicLight {
         public LightType type => LightType.SPOT;
-        public int depth_map_resolution => gvars.get_int("light_spot_resolution");
+        public int depth_map_resolution => gvars.get_int("r_light_spot_resolution");
 
         RenderTarget2D _depth;
         public RenderTarget2D depth_map => _depth;
@@ -49,7 +49,7 @@ namespace Raven.Graphics.Lights {
             
             frustum = new BoundingFrustum(view * projection);
 
-            //gvars.add_change_action("light_spot_resolution", change_depth_buffer_size);
+            //gvars.add_change_action("r_light_spot_resolution", change_depth_buffer_size);
         }
 
         public void change_depth_buffer_size() { 

@@ -365,7 +365,7 @@ public static class InputBinds {
         internal void press() {
             pressed_at = Clock.game_run_time_ms;
             
-            if (double_tap_eligible && pressed_at - double_tap_timer < gvars.get_int("bind_tap_time")) {
+            if (double_tap_eligible && pressed_at - double_tap_timer < gvars.get_int("i_bind_tap_time")) {
                 double_tap_timer_second_press = Clock.game_run_time_ms;
                 digital_state = PressedState.DoublePressed;
             } else {
@@ -393,16 +393,16 @@ public static class InputBinds {
                 digital_state = PressedState.Released;
             }
 
-            if (pressed_at - double_tap_timer > gvars.get_int("bind_tap_time")) {
+            if (pressed_at - double_tap_timer > gvars.get_int("i_bind_tap_time")) {
                 double_tap_eligible = false;
             }
             
             if (digital_state == PressedState.Pressed) {
-                if (PressedForMs > gvars.get_int("bind_tap_time")) {
+                if (PressedForMs > gvars.get_int("i_bind_tap_time")) {
                     digital_state = PressedState.Held;
                 }
             } else if (digital_state == PressedState.JustReleased) {
-                if (PressedForMs < gvars.get_int("bind_tap_time")) {
+                if (PressedForMs < gvars.get_int("i_bind_tap_time")) {
                     if (!double_tap_eligible) {
                         double_tap_eligible = true;
                         double_tap_timer = Clock.game_run_time_ms;
