@@ -95,12 +95,12 @@ public class CassowaryGame : Game {
         cam.gbuffer.enable_screen_draw_fullscreen(-1);
         cam.gbuffer.draw_UI_to_this_buffer();
         
-        for (int i = 0; i < 50; i++) {
-            var pos = (Vector3.UnitX * (RNG.rng_float_neg_one_to_one * 500)) + (Vector3.UnitZ * (RNG.rng_float_neg_one_to_one * 500));
+        
+        for (int i = 0; i < 10; i++) {
+            var pos = (Vector3.UnitX * (RNG.rng_float_neg_one_to_one * 50)) + (Vector3.UnitZ * (RNG.rng_float_neg_one_to_one * 50));
             var ent = new TestEntity(pos);
             
             State.CurrentScene.Spawn(ent);
-            
         }
         
         cam.gbuffer.Draw3DLayer = () => {
