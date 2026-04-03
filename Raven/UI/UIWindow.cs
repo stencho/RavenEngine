@@ -29,7 +29,7 @@ namespace Raven.UI {
         public Vector2i min_window_size = new Vector2i(40, 40);
         public Vector2i max_window_size = new Vector2i(600, 600);
 
-        int top_bar_height = 13;
+        int top_bar_height = 17;
 
         RenderTarget2D top_bar_render_target;
         
@@ -267,8 +267,8 @@ namespace Raven.UI {
         public FloatLerperManual focus_lerp = new FloatLerperManual(0f, 1f, 200);
 
         private Color border => Draw2D.ColorInterpolate(UIColors.Foreground.multiply_color(UIColors.focus_fade), UIColors.Foreground, focus_lerp.Value);
-        private Color title_bar => Draw2D.ColorInterpolate(UIColors.Background.multiply_color(UIColors.focus_fade), UIColors.Foreground, focus_lerp.Value);
-        private Color title_text => Draw2D.ColorInterpolate(UIColors.Foreground.multiply_color(UIColors.focus_fade), UIColors.Background, focus_lerp.Value);
+        private Color title_bar => Draw2D.ColorInterpolate(UIColors.Foreground75Percent.multiply_color(UIColors.focus_fade), UIColors.Foreground75Percent, focus_lerp.Value);
+        private Color title_text => Draw2D.ColorInterpolate(UIColors.Foreground.multiply_color(UIColors.focus_fade), UIColors.Foreground25Percent, focus_lerp.Value);
 
         private float _text_side_gap = 4f;
         
@@ -279,18 +279,19 @@ namespace Raven.UI {
             State.graphics_device.SetRenderTarget(top_bar_render_target);
             State.graphics_device.Clear(title_bar);
             Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None);
-
-            Draw2D.fill_rect_dither(Vector2i.Zero , top_bar_size - Vector2i.UnitY, 
-                UIColors.Foreground.multiply_color(0.9f).multiply_color(UIColors.focus_fade), 
+            
+            Draw2D.fill_rect_dither(Vector2i.One , top_bar_size - (Vector2.One * 2), 
+                UIColors.Foreground75Percent.multiply_color(UIColors.focus_fade), 
                 Draw2D.ColorInterpolate(UIColors.Foreground.multiply_color(UIColors.focus_fade), UIColors.Foreground, focus_lerp.Value), 
                 (int)(top_bar_height / 3f));
 
             var text_background_min = (Vector2i.Right * ((top_bar_size.X / 2f) - (text_size.X / 2f) - (_text_side_gap)));
             var text_background_max = text_background_min + (text_size.X + (_text_side_gap * 2)).ToV2X() + top_bar_height.ToV2Y();
             
-            Draw2D.fill_rect(text_background_min, text_background_max, Draw2D.ColorInterpolate(UIColors.Background, UIColors.Foreground, focus_lerp.Value));
-            
-            Draw2D.text("profont", text, (Vector2i.Right * ((top_bar_size.X / 2f) - (text_size.X / 2f))) + (Vector2.UnitY * ((top_bar_height / 2f) - (text_size.Y / 2f))), title_text);
+            Draw2D.fill_rect(text_background_min + Vector2i.UnitY, text_background_max - (Vector2i.UnitY * 2), Draw2D.ColorInterpolate(UIColors.Background, UIColors.Foreground, focus_lerp.Value));
+            Draw2D.line(text_background_min, text_background_min + (Vector2.UnitY * top_bar_height), title_bar, 1f);
+            Draw2D.line(text_background_max, text_background_max - (Vector2.UnitY * top_bar_height), title_bar, 1f);
+            Draw2D.text("profont", text, (Vector2i.Right * ((top_bar_size.X / 2f) - (text_size.X / 2f))) + (Vector2.UnitY * ((top_bar_height / 2f) - (text_size.Y / 2f) - 0.5f)), title_text);
             
             Draw2D.end();
 

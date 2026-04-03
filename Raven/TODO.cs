@@ -5,6 +5,10 @@ internal class TODO {
 
 //TODO report how many scroll wheel ticks have happened in the last frame
 
+//TODO better mouse cursor (w/ actual point) + draw crosshair while in mouse lock
+// probably just draw the mouse cursor with code? could be an opportunity to build a 'fill polygon' shader
+// also move the logic for this from Cassowary into the actual engine
+
 //TODO right click system where a menu can be connected to a collision
 //TODO drop down selection menu
 

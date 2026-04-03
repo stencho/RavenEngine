@@ -180,21 +180,27 @@ namespace Raven.UI  {
                         return;
                     }
                 }
-            } /*else {
+            } else {
                 if (window.visible && !is_top_visible_window(window)) {
-                    defocus_all_windows();
-                    windows.BringToFront(window);
-                    force_focus(window);
-                    return;
+                    if (!mouse_holding_window) {
+                        defocus_all_windows();
+                        windows.BringToFront(window);
+                        force_focus(window);
+                        return;
+                    }
                 }                
-            }*/
+            }
 
             window.toggle_visibility();
 
             if (window.visible && !MouseWatcher.MouseLocked) {
                 if (MouseWatcher.MouseLocked) return;
-                windows.BringToFront(window);
-                force_focus(window);
+                
+                if (!mouse_holding_window) {
+                    windows.BringToFront(window);
+                    force_focus(window);
+                }
+
                 BindWatcher.global_enable = false;
             } else {
                 if (window.visible) {
@@ -230,6 +236,8 @@ namespace Raven.UI  {
         }
         
         IUIForm top_subform_under_mouse = null;
+        IUIForm window_on_mouse = null;
+        bool mouse_holding_window => window_on_mouse != null;
         
         public void update() {
             //Clock.frame_probe.set("wm_update");
@@ -251,19 +259,19 @@ namespace Raven.UI  {
 
 
             if (!State.is_active || MouseWatcher.MouseLocked) return;
-
-            int window_on_mouse = -1;
+            
+            window_on_mouse = null;
             
             for (int i = windows.Count - 1; i >= 0; i--) {
                 if (windows[i] is UIWindow) {
                     if ((windows[i] as UIWindow).BeingMoved || (windows[i] as UIWindow).BeingResized) {
-                        window_on_mouse = i;
+                        window_on_mouse = windows[i];
                         break;
                     }
                 }
             }
             
-            bool mouse_holding_window = window_on_mouse > -1;
+            
             
             //initial mouse stack and bring-to-front-on-click handling and such
             for (int i = windows.Count - 1; i >= 0; i--) {
@@ -323,7 +331,7 @@ namespace Raven.UI  {
             // dragging a window with the mouse close to its edge
             if (mouse_holding_window) {
                 for (int i = windows.Count - 1; i >= 0; i--) {
-                    if (i != window_on_mouse) {
+                    if (windows[i] != window_on_mouse) {
                         windows[i].has_focus = false;
                         windows[i].top_of_mouse_stack = false;
                         windows[i].mouse_interactions.Clear();
