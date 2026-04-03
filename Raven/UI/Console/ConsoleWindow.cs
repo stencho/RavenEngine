@@ -55,6 +55,8 @@ namespace Raven.Console {
         public Vector2i client_top_left => top_left;
         public Vector2i client_size => size;
         public Vector2i client_bottom_right => bottom_right;
+        public Vector2i root_client_top_left { get; }
+        public Vector2i root_client_size { get; }
         public bool use_internal_rendering => false;
         public RenderTarget2D client_area { get; }
 

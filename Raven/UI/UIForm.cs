@@ -34,6 +34,9 @@ public interface IUIForm {
     Vector2i client_top_left { get; }
     Vector2i client_bottom_right { get; }
 
+    public Vector2i root_client_top_left { get; }
+    public Vector2i root_client_size { get; }
+    
     bool use_internal_rendering { get; }
     RenderTarget2D client_area { get; }
 

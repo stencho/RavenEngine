@@ -119,6 +119,9 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
                         public Vector2i top_right => position + size.OnlyX();
                         public Vector2i bottom_left => position + size.OnlyY();
                         
+                        public Vector2i root_client_top_left => parent_form != null ? parent_form.root_client_top_left : client_top_left;
+                        public Vector2i root_client_size => parent_form != null ? parent_form.root_client_size : client_size;
+                        
                         public bool mouse_over => (mouse_interactions.Count > 0) && top_of_mouse_stack;
                         public bool top_of_mouse_stack { get; set; } = false;
                         public List<string> mouse_interactions => _mouse_interactions;

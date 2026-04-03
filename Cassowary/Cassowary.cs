@@ -187,6 +187,7 @@ public class CassowaryGame : Game {
 
         test_panel_2.foreground_draw = p => {
             Draw2D.image(Resources.GetTexture("adam"), Vector2i.Zero, p.client_size);
+            Draw2D.text(p.root_client_size.ToXString(), Vector2i.One * 5, Color.Black);
         };
         
         test_panel.hide();
