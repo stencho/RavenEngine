@@ -76,9 +76,10 @@ namespace Raven.Engine {
         public float near_clip { get; set; } = 0.1f;
         public float far_clip { get; set; } = 10000f;
 
-        public float FOV { get; set; } = 90f;
-        public float FOV_default { get; set; } = 90f;
-
+        public bool use_gvar_field_of_view { get; set; }= false;
+        public float field_of_view => use_gvar_field_of_view ? gvars.get_float("r_field_of_view") : _field_of_view;
+        private float _field_of_view = 90f;
+        
         public float aspect_ratio { get; set; }
 
         public string name { get; set; } = "Camera";
@@ -153,27 +154,35 @@ namespace Raven.Engine {
 
         private void update_frustum_projection() {
             frustum_projection = Matrix.CreatePerspectiveFieldOfView(
-                        MathHelper.ToRadians(FOV), aspect_ratio, near_clip, far_clip);
+                        MathHelper.ToRadians(field_of_view/ aspect_ratio), aspect_ratio, near_clip, far_clip);
         }
 
         public void update_projection(Vector2i res) {
-            aspect_ratio = (res.X / (float)res.Y);
+            if (res.X > res.Y) 
+                aspect_ratio = (res.X / (float)res.Y);
+            else
+                aspect_ratio = (res.Y / (float)res.X);
+            
             viewport = new Viewport(0, 0, res.X, res.Y);
             //mouse_picker.setup(viewport, this);
             update_frustum_projection();
-
+            
             projection = Matrix.CreatePerspectiveFieldOfView(
-                            MathHelper.ToRadians(FOV), aspect_ratio, near_clip, far_clip);
+                            MathHelper.ToRadians(field_of_view / aspect_ratio), aspect_ratio, near_clip, far_clip);
 
         }
         public void update_projection_ortho(Vector2i res) {
-            aspect_ratio = (res.X / (float)res.Y);
+            if (res.X > res.Y) 
+                aspect_ratio = (res.X / (float)res.Y);
+            else
+                aspect_ratio = (res.Y / (float)res.X);
+            
             viewport = new Viewport(0, 0, res.X, res.Y);
             //mouse_picker.setup(viewport, this);
             update_frustum_projection();
 
             projection = Matrix.CreatePerspectiveFieldOfView(
-                            MathHelper.ToRadians(FOV / aspect_ratio), aspect_ratio, near_clip, far_clip);
+                            MathHelper.ToRadians(field_of_view / aspect_ratio), aspect_ratio, near_clip, far_clip);
         }
 
         public void update() {

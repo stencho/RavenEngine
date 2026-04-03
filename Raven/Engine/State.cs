@@ -287,6 +287,7 @@ public static class State {
         gvars.add_gvar("r_vsync", gvar_data_type.BOOL, true, true, "Sync vertical retrace to display.");
         gvars.add_gvar("r_frame_limit", gvar_data_type.INT, 180, true, "Sets the render thread's frame rate limit.");
         gvars.add_gvar("r_interpolation", gvar_data_type.BOOL, true, false);
+        gvars.add_gvar("r_field_of_view", gvar_data_type.FLOAT, 110f, true, "Main camera field of view.");
         
         gvars.add_gvar("r_light_spot_resolution", gvar_data_type.INT, 1024, false);
         

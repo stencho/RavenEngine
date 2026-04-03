@@ -180,14 +180,14 @@ namespace Raven.UI  {
                         return;
                     }
                 }
-            } else {
+            } /*else {
                 if (window.visible && !is_top_visible_window(window)) {
                     defocus_all_windows();
                     windows.BringToFront(window);
                     force_focus(window);
                     return;
-                }
-            }
+                }                
+            }*/
 
             window.toggle_visibility();
 

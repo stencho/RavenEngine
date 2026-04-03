@@ -91,7 +91,7 @@ public class CassowaryGame : Game {
         State.CurrentScene.Spawn(free_cam, Vector3.Zero);
 
         var cam = free_cam.Components.GetFirst<GBufferCamera>().camera;
-        
+        cam.use_gvar_field_of_view = true;
         cam.gbuffer.enable_screen_draw_fullscreen(-1);
         cam.gbuffer.draw_UI_to_this_buffer();
         
