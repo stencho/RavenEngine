@@ -20,6 +20,10 @@
         <None Remove="Engine\Collision\Solver\**" />        
         <None Remove="Content\bin\**" />        
         <None Remove="Content\obj\**" />        
+        <None Remove="Content\Fonts\**" />        
+        <None Remove="Content\Models\**" />        
+        <None Remove="Content\Shaders\**" />        
+        <None Remove="Content\Sounds\**" />        
     </ItemGroup>
     <ItemGroup>
         <EmbeddedResource Include="Icon.ico">
@@ -32,6 +36,10 @@
         <EmbeddedResource Remove="Engine\Collision\Solver\**" />
         <EmbeddedResource Remove="Content\bin\**" />
         <EmbeddedResource Remove="Content\obj\**" />
+        <EmbeddedResource Remove="Content\Fonts\**" />
+        <EmbeddedResource Remove="Content\Models\**" />
+        <EmbeddedResource Remove="Content\Shaders\**" />
+        <EmbeddedResource Remove="Content\Sounds\**" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="CS-Script" Version="4.13.1" />
@@ -41,20 +49,16 @@
         <PackageReference Include="TextCopy" Version="6.2.1" />
     </ItemGroup>
     <ItemGroup>
-      <Folder Include="Content\Models\" />
-      <Folder Include="Content\Sounds\" />
-      <Folder Include="Content\Fonts\" />
-    </ItemGroup>
-    <ItemGroup>
       <Compile Remove="Content\Effects\**" />
       <Compile Remove="Content\bin\**" />
       <Compile Remove="Content\obj\**" />
+      <Compile Remove="Content\Fonts\**" />
+      <Compile Remove="Content\Models\**" />
+      <Compile Remove="Content\Shaders\**" />
+      <Compile Remove="Content\Sounds\**" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\Raven.CodeGenerators\Raven.CodeGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"  />
-    </ItemGroup>
-    <ItemGroup>
-      <None Include="Content\Shaders\no_overdraw.fx" />
     </ItemGroup>
     <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
         <Message Text="Restoring dotnet tools" Importance="High" />

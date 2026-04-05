@@ -128,7 +128,6 @@ public class CassowaryGame : Game {
 
             var debug_str = "";
             debug_str += State.engine_info();
-            debug_str += $"[Freecam] {free_cam.position.XYZ.ToXString()} {free_cam.position.XYZ.ToXString()} \n";
             
             if (show_all_debug_info) {
                 debug_str += $"[SceneType] {State.CurrentScene.scene_type}\n\n";
@@ -197,10 +196,11 @@ public class CassowaryGame : Game {
         
         var tester = new UIWindow(new Vector2i(20,20), new Vector2i(400, 320));
 
-        var subtest = new UIButton(5, 5, "mmm im a subby lil button :3c");
+        var subtest = new UIButton(5, 5, "button hehe :3c");
         subtest.set_action(() => Log.log("ahn!!"));
-        var subtest2 = new UIButton(5, 55, "im a subby lil button too hehe");
+        var subtest2 = new UIButton(5, 55, "another funny little button");
         subtest2.set_action(() => Log.log("uhnghn!!"));
+        
         var panel = new TabbedPanel(Vector2i.Zero, tester.client_size);
         
         

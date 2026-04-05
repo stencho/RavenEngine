@@ -74,7 +74,8 @@ public sealed class ListManagedGenerator : ISourceGenerator
         sb.AppendLine();
         sb.AppendLine($"    public static void Remove({className} instance)");
         sb.AppendLine("    {");
-        sb.AppendLine($"        {className.ToLower()}s.Remove(instance);");
+        sb.AppendLine($"        if ({className.ToLower()}s.Contains(instance))");
+        sb.AppendLine($"            {className.ToLower()}s.Remove(instance);");
         sb.AppendLine("    }");
         sb.AppendLine("}");
         sb.AppendLine("}");
@@ -170,7 +171,8 @@ public sealed class GuidDictionaryManagedGenerator : ISourceGenerator
         sb.AppendLine();
         sb.AppendLine($"    public static void Remove(Guid id)");
         sb.AppendLine("    {");
-        sb.AppendLine($"        {className.ToLower()}s.Remove(id, out _);");
+        sb.AppendLine($"        if ({className.ToLower()}s.ContainsKey(id))");
+        sb.AppendLine($"            {className.ToLower()}s.Remove(id, out _);");
         sb.AppendLine("    }");
         sb.AppendLine("}");
         sb.AppendLine("}");
@@ -257,12 +259,14 @@ public sealed class HashSetManagedGenerator : ISourceGenerator
         sb.AppendLine();
         sb.AppendLine($"    public static void Add({className} instance)");
         sb.AppendLine("    {");
-        sb.AppendLine($"        {className.ToLower()}s.Add(instance);");
+        sb.AppendLine($"        if (!{className.ToLower()}s.Contains(instance))");
+        sb.AppendLine($"            {className.ToLower()}s.Add(instance);");
         sb.AppendLine("    }");
         sb.AppendLine();
         sb.AppendLine($"    public static void Remove({className} instance)");
         sb.AppendLine("    {");
-        sb.AppendLine($"        {className.ToLower()}s.Remove(instance);");
+        sb.AppendLine($"        if ({className.ToLower()}s.Contains(instance))");
+        sb.AppendLine($"            {className.ToLower()}s.Remove(instance);");
         sb.AppendLine("    }");
         sb.AppendLine("}");
         sb.AppendLine("}");

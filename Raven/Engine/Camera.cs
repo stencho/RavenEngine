@@ -10,16 +10,16 @@ using Raven.Graphics.Drawing3D;
 
 namespace Raven.Engine {
     [GuidManaged]
-    public partial class Camera {
+    public partial class Camera : IDisposable {
         public static partial class Manager {
             public static string ListAllCameras {
                 get {
                     string output = "[Cameras]\n";
                     foreach (var camera in cameras) {
                         output += $"  [{camera.Value.ManagedGuid}]\n";
-                        output += $"   | position > {camera.Value.current_camera_chunk?.XYZ.ToXString()} {camera.Value.position.ToXString()}\n";
+                        output += $"   | position > {camera.Value.position.ToXString()}\n";
                         output += $"   | forward > {camera.Value.orientation.Forward.ToXString()}\n";
-                        output += $"   | GBuffer > {(camera.Value.ManagedGBufferGuid != Guid.Empty ? camera.Value.ManagedGBufferGuid.ToString() : "")}\n";
+                        if (camera.Value.using_gbuffer) output += $"   | GBuffer > {(camera.Value.ManagedGBufferGuid != Guid.Empty ? camera.Value.ManagedGBufferGuid.ToString() : "")}\n";
                         output += "\n";
                     }
                     return output;
@@ -80,7 +80,21 @@ namespace Raven.Engine {
         public float field_of_view => use_gvar_field_of_view ? gvars.get_float("r_field_of_view") : _field_of_view;
         private float _field_of_view = 90f;
         
-        public float aspect_ratio { get; set; }
+        public float aspect_ratio {
+            get {
+                if (using_gbuffer) 
+                    return gbuffer.aspect_ratio;
+                
+                return _aspect_ratio;
+            }
+            set {
+                if (!using_gbuffer) _aspect_ratio = value;
+            }
+        }
+
+        private float _aspect_ratio = 1f;
+        
+        private bool ar_wider_than_tall => using_gbuffer ? gbuffer.resolution.X > gbuffer.resolution.Y : aspect_ratio < 1f;
 
         public string name { get; set; } = "Camera";
 
@@ -97,80 +111,92 @@ namespace Raven.Engine {
 
         public LinkedObjectPosition LinkedObjectPosition;
         public EntityPosition current_camera_chunk => LinkedObjectPosition.child;
-        
-        //public Mouse_Picker mouse_picker;
 
+        private bool linked_to_object => LinkedObjectPosition != null;
+        //public Mouse_Picker mouse_picker;
         
         public Camera() {
             position = Vector3.Zero;
-            viewport = new Viewport(0, 0, State.resolution.X, State.resolution.Y);
+            
             //mouse_picker = new Mouse_Picker(viewport, this);
             frustum = new BoundingFrustum(view * projection);
 
-            update_projection(State.resolution);
+            update_projection();
             managed_guid = Manager.Add(this);
         }
+        
         public Camera(Vector3 position) {
             this.position = position;
-            viewport = new Viewport(0, 0, State.resolution.X, State.resolution.Y);
+            
             //mouse_picker = new Mouse_Picker(viewport, this);
             frustum = new BoundingFrustum(view * projection);
 
-            update_projection(State.resolution);
+            update_projection();
             managed_guid = Manager.Add(this);
         }
 
         public Camera(Vector3 position, Vector3 facing) {
             this.position = position;
             this.orientation = Matrix.CreateLookAt(position, position + facing, Vector3.Up);
-            viewport = new Viewport(0, 0, State.resolution.X, State.resolution.Y);
+            
             //mouse_picker = new Mouse_Picker(viewport, this);
             frustum = new BoundingFrustum(view * projection);
 
-            update_projection(State.resolution);
+            update_projection();
             managed_guid = Manager.Add(this);
         }
 
         public Camera(Vector3 position, Matrix orientation) {
             this.position = position;
             this.orientation = orientation;
-            viewport = new Viewport(0, 0, State.resolution.X, State.resolution.Y);
+            
             //mouse_picker = new Mouse_Picker(viewport, this);
             frustum = new BoundingFrustum(view * projection);
 
-            update_projection(State.resolution);
+            update_projection();
             managed_guid = Manager.Add(this);
+        }
+
+
+        ~Camera() {
+            Dispose(false);
         }
 
         public void enable_gbuffer(int width, int height, float res_scale = 1f) {
             gbuffer = new GBuffer(width, height, res_scale);
+            
             using_gbuffer = true;
             gbuffer.AttachCamera(this);
         }
+
+        public void enable_gbuffer_draw_to_screen(int X, int Y, int width, int height) {
+            if (using_gbuffer)
+                gbuffer.enable_screen_draw(new Vector2i(X,Y), new Vector2i(width, height), 1);
+            
+            viewport = new Viewport(X, Y, width, height);
+        }
         
-        ~Camera() {
-            Manager.Remove(managed_guid);
-        }
-
         private void update_frustum_projection() {
-            frustum_projection = Matrix.CreatePerspectiveFieldOfView(
-                        MathHelper.ToRadians(field_of_view/ aspect_ratio), aspect_ratio, near_clip, far_clip);
-        }
-
-        public void update_projection(Vector2i res) {
-            if (res.X > res.Y) 
-                aspect_ratio = (res.X / (float)res.Y);
+            if (ar_wider_than_tall)
+                frustum_projection = Matrix.CreatePerspectiveFieldOfView(
+                    MathHelper.ToRadians(field_of_view / aspect_ratio), aspect_ratio, near_clip, far_clip);
             else
-                aspect_ratio = (res.Y / (float)res.X);
-            
-            viewport = new Viewport(0, 0, res.X, res.Y);
-            //mouse_picker.setup(viewport, this);
-            update_frustum_projection();
-            
-            projection = Matrix.CreatePerspectiveFieldOfView(
-                            MathHelper.ToRadians(field_of_view / aspect_ratio), aspect_ratio, near_clip, far_clip);
-
+                frustum_projection = Matrix.CreatePerspectiveFieldOfView(
+                    MathHelper.ToRadians(field_of_view * aspect_ratio), aspect_ratio, near_clip, far_clip);
         }
+
+        public void update_projection() {
+            if (ar_wider_than_tall) {
+                projection = Matrix.CreatePerspectiveFieldOfView(
+                    MathHelper.ToRadians(field_of_view / aspect_ratio), aspect_ratio, near_clip, far_clip);
+            } else {
+                projection = Matrix.CreatePerspectiveFieldOfView(
+                    MathHelper.ToRadians(field_of_view * aspect_ratio), aspect_ratio, near_clip, far_clip);
+            }
+            
+            update_frustum_projection();
+        }
+        
         public void update_projection_ortho(Vector2i res) {
             if (res.X > res.Y) 
                 aspect_ratio = (res.X / (float)res.Y);
@@ -196,6 +222,27 @@ namespace Raven.Engine {
             InverseViewProjection = Matrix.Invert(view * projection);
 
             frustum.Matrix = frustum_view * frustum_projection;
+        }
+
+        private void ReleaseUnmanagedResources() {
+            // TODO release unmanaged resources here
+        }
+
+        private void Dispose(bool disposing) {
+            ReleaseUnmanagedResources();
+            if (disposing) {
+                gbuffer?.Dispose();
+                render_target?.Dispose();
+                
+                LinkedObjectPosition = null;
+            
+                Manager.Remove(managed_guid);
+            }
+        }
+
+        public void Dispose() {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

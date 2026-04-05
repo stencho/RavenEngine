@@ -32,6 +32,7 @@ public partial class FreeCamEntity : Entity {
             ("backward", [Keys.S]),
             ("up", [Keys.Space]),
             ("down", [Keys.C]),
+            ("drop_cam", [Keys.Home]),
             
             ("shift", [Keys.LeftShift]),
             ("ctrl", [Keys.LeftControl]),
@@ -72,10 +73,19 @@ public partial class FreeCamEntity : Entity {
         double width = range * 2.0;
         return x - width * Math.Floor((x + range) / width);
     }
+
+    private Camera cam = null;
     
     public void Update() {
         binds.Update();
         var camera = Components.GetFirst<GBufferCamera>().camera;
+
+        if (binds.just_pressed("drop_cam")) {
+            if (cam != null) cam.Dispose();
+            cam = new Camera(camera.position, camera.orientation);
+            cam.enable_gbuffer(500,500 );
+            cam.enable_gbuffer_draw_to_screen(0, 500, 500, 500);
+        }
         
         Vector3 movement = Vector3.Zero;
         if (binds.pressed("forward")) movement += Vector3.Cross(Vector3.Up, camera.orientation.Right);

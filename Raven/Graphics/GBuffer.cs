@@ -13,7 +13,7 @@ using Raven.Graphics.Effects;
 
 namespace Raven.Graphics {
     [GuidManaged]
-    public partial class GBuffer {
+    public partial class GBuffer : IDisposable {
         public static partial class Manager {
             public static string ListAllBuffers {
                 get {
@@ -182,7 +182,7 @@ namespace Raven.Graphics {
         }
 
         ~GBuffer() {
-            Manager.Remove(managed_guid);
+            Dispose(false);
         }
 
         public void draw_UI_to_this_buffer() {
@@ -223,7 +223,7 @@ namespace Raven.Graphics {
         }
 
         public void RenderUniverse(Camera camera) {
-            camera.update_projection(resolution);
+            camera.update_projection();
             camera.update();
             
             
@@ -348,6 +348,28 @@ namespace Raven.Graphics {
                 //rt_fxaa = null;
                 //gvars.set("FXAA", false);
             }
+        }
+
+        private void ReleaseUnmanagedResources() {
+            Manager.Remove(this.managed_guid);
+        }
+
+        private void Dispose(bool disposing) {
+            ReleaseUnmanagedResources();
+            if (disposing) {
+                rt_normal?.Dispose();
+                rt_depth?.Dispose();
+                rt_lighting?.Dispose();
+                rt_final?.Dispose();
+                rt_composed_half?.Dispose();
+                rt_composed?.Dispose();
+                rt_2D?.Dispose();
+            }
+        }
+
+        public void Dispose() {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }
