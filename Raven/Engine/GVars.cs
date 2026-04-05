@@ -337,6 +337,13 @@ namespace Raven.Engine {
             return s;
         }
 
+        public static string get_comment(string gvar_name) {
+            if (!_gvars.ContainsKey(gvar_name)) {
+                return $"gvar '{gvar_name}' does not exist";
+            }
+            return $"{gvar_name}: {_gvars[gvar_name].comment}";
+        }
+
         #region FIFO
 
         public static string get_string_for_disk(string name) {

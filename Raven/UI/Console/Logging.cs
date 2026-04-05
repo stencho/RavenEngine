@@ -167,6 +167,10 @@ namespace Raven.Console {
             data.Insert(0, new log_data(text, "test", type.ToString().Replace("Magpie.","")));
         }
 
+        public static void gvar_help(string gvar_name) {
+            log(gvars.get_comment(gvar_name));
+        }
+
         public static string last_n_messages(int n) {
             if (n > data.Count - 1) n = data.Count - 1;
             if (n < 0) n = 0;
