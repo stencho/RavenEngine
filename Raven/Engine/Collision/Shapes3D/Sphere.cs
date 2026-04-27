@@ -10,7 +10,7 @@ namespace Raven.Engine.Collision.Shapes3D {
 
         public Vector3 P;
 
-        public float radius { get; set; } = 0f;
+        public float radius { get; set; } = 1f;
 
         public BoundingBox sweep_bounding_box(Matrix world, Vector3 sweep) {
             if (sweep != Vector3.Zero) {
@@ -24,6 +24,12 @@ namespace Raven.Engine.Collision.Shapes3D {
         }
         public BoundingBox find_bounding_box(Matrix world) {
             return CollisionHelper.BoundingBox_around_sphere(radius + Math3D.big_epsilon, world);
+        }
+
+        public Sphere() {
+            P = Vector3.Zero;
+
+            this.radius = 1f;
         }
 
         public Sphere(float radius) {
