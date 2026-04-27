@@ -6,6 +6,7 @@ using System.Net.Mail;
 using CSScripting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Xna.Framework;
+using Raven.Console;
 using Raven.Graphics;
 using Raven.Graphics.Drawing3D;
 
@@ -202,8 +203,43 @@ public class ComponentData<T> : ComponentData {
 
     public T get_data() => data;
 }
-
 #endregion
 
 #region SYSTEMS
+[HashSetManaged]
+public abstract partial class GameSystem : IDisposable {
+    public partial class Manager {
+        public static void AllUpdate() {
+            foreach (var game_system in gamesystems) {
+                game_system.Update();
+            }
+        }
+        public static void AllUpdateGraphics() {
+            foreach (var game_system in gamesystems) {
+                game_system.UpdateGraphics();
+            }
+        }
+        public static void AllUpdateEndOfFrame() {
+            foreach (var game_system in gamesystems) {
+                game_system.UpdateEndOfFrame();
+            }
+        }
+        public static void AllUpdateGraphicsEndOfFrame() {
+            foreach (var game_system in gamesystems) {
+                game_system.UpdateGraphicsEndOfFrame();
+            }
+        }
+    }
+    
+    public GameSystem() => Manager.Add(this);
+    public void Dispose() => Manager.Remove(this);
+    
+    ~GameSystem() => Dispose();
+
+    public abstract void Update();
+    public abstract void UpdateEndOfFrame();
+    public abstract void UpdateGraphics();
+    public abstract void UpdateGraphicsEndOfFrame();
+}
+
 #endregion

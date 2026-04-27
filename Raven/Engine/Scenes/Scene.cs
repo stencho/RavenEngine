@@ -30,7 +30,7 @@ public abstract partial class Scene {
         private static Guid active_scene_id;
         public static Guid ActiveSceneGuid => active_scene_id;
         public static Scene? ActiveScene => Guid.Empty != ActiveSceneGuid ? scenes[ActiveSceneGuid] : null;
-
+        
         public static Clock.UpdateThread update_thread;
         public static void StartUpdateThread() {
             update_thread = new Clock.UpdateThread("Update", Update);
@@ -42,8 +42,9 @@ public abstract partial class Scene {
         }
         
         public static void Update() {
-            
             if (ActiveScene != null) ActiveScene?.Update();
+            
+            GameSystem.Manager.AllUpdate();
             
             foreach (Scene scene in scenes.Values) {
                 if (scene.always_update && scene.GUID != active_scene_id) {
@@ -69,15 +70,22 @@ public abstract partial class Scene {
             }
             
             IAutoInterpolate.Manager.UpdateInternalLoop(Manager.update_thread.fixed_timestep ? Manager.update_thread.goal_time : Manager.update_thread.delta_ms);
+            
+            GameSystem.Manager.AllUpdateEndOfFrame();
+            
             Interlocked.Exchange(ref State.using_scene, State.SceneUseState.NONE);
         }
 
         public static void UpdateGraphics() {
+            GameSystem.Manager.AllUpdateGraphics();
+            
             foreach (Scene scene in scenes.Values) {
                 if ((scene.always_update && scene.GUID != active_scene_id) || scene.GUID == active_scene_id) {
                     scene.UpdateGraphics();
                 }
             }
+            
+            GameSystem.Manager.AllUpdateGraphicsEndOfFrame();
         }
     }
 
