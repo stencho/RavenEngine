@@ -30,4 +30,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Raven\Raven.csproj" />
     </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Raven.CodeGenerators\Raven.CodeGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"  />
+    </ItemGroup>
 </Project>
