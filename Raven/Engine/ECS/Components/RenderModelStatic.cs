@@ -53,7 +53,7 @@ public partial class RenderModelStatic : Component {
 
     public void DrawBasic(Camera camera, GBuffer buffer) {
         ForAllMeshParts((VertexBuffer VertexBuffer, IndexBuffer IndexBuffer) => {
-            Draw3D.batch_draw_diffuse_texture(camera, buffer,  VertexBuffer, IndexBuffer, Texture, Color.White, WorldMatrix);
+            Draw3D.batch_draw_diffuse_texture(camera, VertexBuffer, IndexBuffer, Texture, Color.White, WorldMatrix);
         });
     }
 }

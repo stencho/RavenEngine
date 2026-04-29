@@ -135,7 +135,7 @@ namespace Raven.Graphics {
 
         //public RenderTarget2D rt_fxaa;
         
-        private bool FXAA => false;// gvars.get_bool("FXAA") && gvars.get_float("r_super_resolution_scale") == 1.0f;
+        private bool FXAA => false;// gvars.get_bool("FXAA") && gvars.get_float("r_resolution_scale") == 1.0f;
 
         private int _width;
         private int _height;

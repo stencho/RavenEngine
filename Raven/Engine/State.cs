@@ -29,6 +29,9 @@ using KeyboardInput = Microsoft.Xna.Framework.Input.KeyboardInput;
 
     
 namespace Raven.Engine;
+
+public enum EngineThread { Render, Update } 
+
 public static class State {
     public static class Skybox {
         public static SkyBoxTesselator skybox_t = new SkyBoxTesselator();
@@ -108,7 +111,7 @@ public static class State {
         public void update() {
             //haven't maxed out the day yet
             if (current_time_ms <= entire_day_cycle_length_ms)
-                current_time_ms += (!time_stopped ? Clock.delta_time_ms : 0) * time_multiplier;
+                current_time_ms += (!time_stopped ? Clock.render_delta_time_ms : 0) * time_multiplier;
             
             //have maxed out day, subtract a day
             if (current_time_ms > entire_day_cycle_length_ms) current_time_ms -= entire_day_cycle_length_ms;
@@ -174,7 +177,7 @@ public static class State {
             
             ("toggle_console", [Keys.OemTilde]),
             ("toggle_inspector", [Keys.F1]),
-            ("screenshot", [Keys.F2]),
+            ("screenshot", [Keys.Insert]),
             ("toggle_full_info", [Keys.F3]),
             ("switch_buffer", [Keys.F4]),
             
@@ -197,7 +200,7 @@ public static class State {
     public static UIWindowManager UI;
     
     public static Vector2i resolution => gvars.get_Vector2i("r_resolution");
-    public static float super_res_scale => gvars.get_float("r_super_resolution_scale");
+    public static float super_res_scale => gvars.get_float("r_resolution_scale");
     
     public static Viewport viewport => graphics_device.Viewport;
     public static Scene CurrentScene => Scene.Manager.ActiveScene;
@@ -207,7 +210,9 @@ public static class State {
     public static bool is_active => game.IsActive;
     
     public static bool running = true;
-
+    
+    
+    
     [Flags]
    public enum SceneUseState : byte {
         NONE = 0,
@@ -283,7 +288,8 @@ public static class State {
         gvars.add_gvar("g_time_scale", gvar_data_type.FLOAT, 1f, false);
         
         gvars.add_gvar("r_resolution", gvar_data_type.VECTOR2I, FindCurrentResolution(), true, "Resolution of both the game window and output buffer.");
-        gvars.add_gvar("r_super_resolution_scale", gvar_data_type.FLOAT, 1f, true, "Set the 3D render output buffer resolution scale.\n0.5 will half the resolution, making things pixelated, 2.0 will double the resolution and enable supersampling\nThis will not affect the 2D layer, which will always be at the main buffer resolution.");
+        gvars.add_gvar("r_resolution_scale", gvar_data_type.FLOAT, 1f, true, "Set the 3D render output buffer resolution scale.\n0.5 will half the resolution, making things pixelated, 2.0 will double the resolution.\nThis will not affect the 2D layer or backbuffer.\nGoing above 1.0 will not really do anything due to how deferred rendering works.\n");
+        
         gvars.add_gvar("r_vsync", gvar_data_type.BOOL, true, true, "Sync vertical retrace to display.");
         gvars.add_gvar("r_frame_limit", gvar_data_type.INT, 180, true, "Sets the render thread's frame rate limit.");
         gvars.add_gvar("r_interpolation", gvar_data_type.BOOL, true, false);
@@ -317,6 +323,7 @@ public static class State {
         ChangeResolution(true);
         
         gvars.add_change_action("r_resolution", () => ChangeResolution());
+        gvars.add_change_action("r_resolution_scale", () => ChangeResolution(false));
         
         gvars.add_change_action("r_vsync", () => ChangeVSync());
         gvars.add_change_action("r_frame_limit", () => ChangeFrameLimit());
@@ -562,7 +569,7 @@ public static class State {
             } 
         }
         
-        IAutoInterpolate.Manager.UpdateRenderThread(Clock.delta_time_ms);
+        IAutoInterpolate.Manager.UpdateRenderThread(Clock.render_delta_time_ms);
         
         //fuck it, clear ALL gbuffers
         //probably worthwhile to implement a small system to allow keeping targets
@@ -622,11 +629,17 @@ public static class Clock {
     public static double game_run_time_ms => game_run_time_stopwatch.ElapsedMilliseconds;
     public static long game_run_time_ticks => game_run_time_stopwatch.ElapsedTicks;
     
-    public static double delta_time => game_time.ElapsedGameTime.TotalSeconds;
-    public static double delta_time_ms => game_time.ElapsedGameTime.TotalMilliseconds;
-    public static float delta_time_ms_f => (float)game_time.ElapsedGameTime.TotalMilliseconds;
+    public static double render_delta_time => game_time.ElapsedGameTime.TotalSeconds;
+    public static float render_delta_time_f => (float)game_time.ElapsedGameTime.TotalSeconds;
+    public static double render_delta_time_ms => game_time.ElapsedGameTime.TotalMilliseconds;
+    public static float render_delta_time_ms_f => (float)game_time.ElapsedGameTime.TotalMilliseconds;
 
-    public static double total_tick_ms_last_update = 0;
+    internal static double total_tick_ms_last_update = 0;
+
+    public static double update_delta_time => Scene.Manager.update_thread.delta_s;
+    public static float update_delta_time_f => (float)Scene.Manager.update_thread.delta_s;
+    public static double update_delta_time_ms => Scene.Manager.update_thread.delta_ms;
+    public static float update_delta_time_ms_f => (float)Scene.Manager.update_thread.delta_ms;
     
     public static double frame_rate { get; set; } = 0;
     private static double _frame_rate_timer = 0;
@@ -639,6 +652,35 @@ public static class Clock {
     public static ulong frame_count = 0;
     public static ulong tick_count = 0;
 
+    public static double delta (EngineThread thread) {
+        switch (thread) {
+            case EngineThread.Render: return render_delta_time;
+            case EngineThread.Update: return update_delta_time;
+            default: throw new ArgumentOutOfRangeException(nameof(thread), thread, null);
+        }
+    }
+    public static double delta_ms (EngineThread thread) {
+        switch (thread) {
+            case EngineThread.Render: return render_delta_time_ms;
+            case EngineThread.Update: return update_delta_time_ms;
+            default: throw new ArgumentOutOfRangeException(nameof(thread), thread, null);
+        }
+    }
+    public static float delta_f (EngineThread thread) {
+        switch (thread) {
+            case EngineThread.Render: return render_delta_time_f;
+            case EngineThread.Update: return update_delta_time_f;
+            default: throw new ArgumentOutOfRangeException(nameof(thread), thread, null);
+        }
+    }
+    public static float delta_ms_f (EngineThread thread) {
+        switch (thread) {
+            case EngineThread.Render: return render_delta_time_ms_f;
+            case EngineThread.Update: return update_delta_time_ms_f;
+            default: throw new ArgumentOutOfRangeException(nameof(thread), thread, null);
+        }
+    }
+    
     public static float time_scale => gvars.get_float("g_time_scale");
     
     public static void FrameRateUpdate(double milliseconds) {
@@ -741,8 +783,8 @@ public static class Clock {
                     //Thread.SpinWait(1);
                 }
                 
-                Clock.total_tick_ms_last_update = elapsed_ms();
-                Clock.TickRateUpdate(total_tick_ms_last_update);
+                total_tick_ms_last_update = elapsed_ms();
+                TickRateUpdate(total_tick_ms_last_update);
                 _delta_ms_actual = elapsed_ms();
             }
         }

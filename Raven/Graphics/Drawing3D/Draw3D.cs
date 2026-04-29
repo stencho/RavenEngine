@@ -396,7 +396,7 @@ namespace Raven.Graphics.Drawing3D;
             State.graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
         }
 
-        public static void batch_draw_diffuse_texture(Camera camera, GBuffer buffer, VertexBuffer vb, IndexBuffer ib,
+        public static void batch_draw_diffuse_texture(Camera camera, VertexBuffer vb, IndexBuffer ib,
             Texture2D texture, Color color, Matrix world) {
             State.e_gbuffer.Parameters["World"].SetValue(world);
             State.e_gbuffer.Parameters["WVIT"].SetValue(Matrix.Transpose(Matrix.Invert(world * camera.view)));
@@ -411,7 +411,7 @@ namespace Raven.Graphics.Drawing3D;
 
             State.e_gbuffer.Parameters["tint"].SetValue(Color.White.ToVector3());
         }
-
+        
         public static void draw_buffers_diffuse_texture(Camera camera, GBuffer buffer, VertexBuffer vb, IndexBuffer ib, Texture2D texture, Color color, Matrix world) {
             State.graphics_device.SetRenderTargets(buffer.target_bindings);
             

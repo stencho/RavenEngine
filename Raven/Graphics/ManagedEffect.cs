@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using CSScripting;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -27,8 +29,6 @@ namespace Raven.Graphics.Effects {
         public Effect effect => _effect;
         internal Effect _effect;
 
-        public int selected_technique { get; set; } = 0;
-        public int selected_pass { get; set; } = -1;
         public bool throw_error_on_bad_param { get; set; } = false;
 
         public Matrix basic_effect_world { get { return basic_effect.World; } set { basic_effect.World = value; } }
@@ -165,41 +165,27 @@ namespace Raven.Graphics.Effects {
             Draw2D.end();
         }
 
-
         /// <summary>
-        /// Apply all passes from the selected technique
+        /// Apply all passes from the current technique
         /// </summary>
-        void apply_passes() {
-            for (int i = 0; i < _effect.Techniques[selected_technique].Passes.Count; i++) {
-                _effect.Techniques[selected_technique].Passes[i].Apply();
+        public void apply_passes() {
+            for (int i = 0; i < _effect.CurrentTechnique.Passes.Count; i++) {
+                _effect.CurrentTechnique.Passes[i].Apply();
             }
         }
-        /// <summary>
-        /// Apply single pass from the selected technique
-        /// </summary>
-        /// <param name="pass"></param>
-        void apply_pass(int pass) {
-            _effect.Techniques[selected_technique].Passes[pass].Apply();
+        
+        public void change_technique(int technique) {
+            if (technique < 0 || technique >= _effect.Techniques.Count) 
+                throw new Exception($"Technique index {technique} is out of range.");
+            _effect.CurrentTechnique = _effect.Techniques[technique];
         }
 
-        /// <summary>
-        /// Apply single pass from a specified technique
-        /// </summary>
-        /// <param name="technique"></param>
-        /// <param name="pass"></param>
-        public void apply_pass(int technique, int pass) {
-            _effect.Techniques[technique].Passes[pass].Apply();
+        public void change_technique(string technique) {
+            // none of the techniques have this name
+            if (_effect.Techniques.All(t => technique != t.Name))
+                throw new Exception($"Technique \"{technique}\" is not defined in effect \"{effect.Name}\".");
+            _effect.CurrentTechnique = _effect.Techniques[technique];
         }
-        /// <summary>
-        /// Apply all passes from the specified technique
-        /// </summary>
-        /// <param name="technique"></param>
-        public void apply_passes(int technique) {
-            for (int i = 0; i < _effect.Techniques[technique].Passes.Count; i++) {
-                _effect.Techniques[technique].Passes[i].Apply();
-            }
-        }
-
 
         /// <summary>
         /// <para>Uses the BasicEffect to set up the vertices and paint a base white texture,
@@ -214,8 +200,6 @@ namespace Raven.Graphics.Effects {
         /// <param name="projection">Projection matrix</param>
         public virtual void draw_buffers_basic_effect_first_pass(VertexBuffer vb, IndexBuffer ib, Matrix world, Matrix view, Matrix projection) {
             if (_effect == null) return;
-            if (selected_technique < 0 || selected_technique >= _effect.Techniques.Count) return;
-            if (selected_pass < -1 || selected_pass >= _effect.Techniques[selected_technique].Passes.Count) return;
 
             basic_effect.World = world;
             basic_effect.View = view;
@@ -225,12 +209,8 @@ namespace Raven.Graphics.Effects {
             State.graphics_device.SetVertexBuffer(vb);
             State.graphics_device.Indices = ib;
 
-            basic_effect.CurrentTechnique.Passes[0].Apply();
+            apply_passes();
 
-            if (selected_pass == -1) apply_passes();
-            else apply_pass(selected_pass);
-
-            //shader.CurrentTechnique.Passes[0].Apply();
             State.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
         }
 
@@ -246,19 +226,13 @@ namespace Raven.Graphics.Effects {
         /// <param name="projection">Projection matrix</param>
         public virtual void draw_buffers_basic_effect_first_pass(Matrix world, Matrix view, Matrix projection) {
             if (_effect == null) return;
-            if (selected_technique < 0 || selected_technique >= _effect.Techniques.Count) return;
-            if (selected_pass < -1 || selected_pass >= _effect.Techniques[selected_technique].Passes.Count) return;
-
+            
             basic_effect.World = world;
             basic_effect.View = view;
             basic_effect.Projection = projection;
 
-            basic_effect.CurrentTechnique.Passes[0].Apply();
+            apply_passes();    
 
-            if (selected_pass == -1) apply_passes();
-            else apply_pass(selected_pass);            
-
-            //shader.CurrentTechnique.Passes[0].Apply();
             State.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
         }
 
@@ -272,15 +246,9 @@ namespace Raven.Graphics.Effects {
         /// </summary>
         public virtual void draw_buffers_basic_effect_first_pass() {
             if (_effect == null) return;
-            if (selected_technique < 0 || selected_technique >= _effect.Techniques.Count) return;
-            if (selected_pass < -1 || selected_pass >= _effect.Techniques[selected_technique].Passes.Count) return;
+            
+            apply_passes();   
 
-            basic_effect.CurrentTechnique.Passes[0].Apply();
-
-            if (selected_pass == -1) apply_passes();
-            else apply_pass(selected_pass);            
-
-            //shader.CurrentTechnique.Passes[0].Apply();
             State.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
         }
     }

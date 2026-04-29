@@ -13,7 +13,7 @@
 
 #---------------------------------- Content ---------------------------------#
 
-#begin Fonts/profont.spritefont
+#begin Engine/Fonts/profont.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
 /processorParam:PremultiplyAlpha=True
@@ -21,7 +21,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Fonts/profont.spritefont
 
-#begin Models/bigcube.FBX
+#begin Engine/Models/bigcube.FBX
 /importer:FbxImporter
 /processor:ModelProcessor
 /processorParam:ColorKeyColor=0,0,0,0
@@ -41,7 +41,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Models/bigcube.FBX
 
-#begin Models/cone.FBX
+#begin Engine/Models/cone.FBX
 /importer:FbxImporter
 /processor:ModelProcessor
 /processorParam:ColorKeyColor=0,0,0,0
@@ -61,7 +61,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Models/cone.FBX
 
-#begin Models/cube.FBX
+#begin Engine/Models/cube.FBX
 /importer:FbxImporter
 /processor:ModelProcessor
 /processorParam:ColorKeyColor=0,0,0,0
@@ -81,7 +81,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Models/cube.FBX
 
-#begin Models/desk.fbx
+#begin Engine/Models/desk.fbx
 /importer:FbxImporter
 /processor:ModelProcessor
 /processorParam:ColorKeyColor=0,0,0,0
@@ -101,7 +101,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Models/desk.fbx
 
-#begin Models/fourth.fbx
+#begin Engine/Models/fourth.fbx
 /importer:FbxImporter
 /processor:ModelProcessor
 /processorParam:ColorKeyColor=0,0,0,0
@@ -121,7 +121,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Models/fourth.fbx
 
-#begin Models/skull.fbx
+#begin Engine/Models/skull.fbx
 /importer:FbxImporter
 /processor:ModelProcessor
 /processorParam:ColorKeyColor=0,0,0,0
@@ -141,7 +141,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Models/skull.fbx
 
-#begin Models/smoothsphere.FBX
+#begin Engine/Models/smoothsphere.FBX
 /importer:FbxImporter
 /processor:ModelProcessor
 /processorParam:ColorKeyColor=0,0,0,0
@@ -161,7 +161,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Models/smoothsphere.FBX
 
-#begin Models/sphere.FBX
+#begin Engine/Models/sphere.FBX
 /importer:FbxImporter
 /processor:ModelProcessor
 /processorParam:ColorKeyColor=0,0,0,0
@@ -181,7 +181,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Models/sphere.FBX
 
-#begin Shaders/clear.fx
+#begin Engine/Shaders/clear.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
@@ -189,7 +189,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/clear.fx
 
-#begin Shaders/compositor.fx
+#begin Engine/Shaders/compositor.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
@@ -197,7 +197,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/compositor.fx
 
-#begin Shaders/directionallight.fx
+#begin Engine/Shaders/directionallight.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
@@ -205,7 +205,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/directionallight.fx
 
-#begin Shaders/dither.fx
+#begin Engine/Shaders/dither.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
@@ -213,7 +213,15 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/dither.fx
 
-#begin Shaders/exp_light_depth.fx
+#begin Engine/Shaders/draw_forward.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/processorParam:Defines=
+/processorParam:Version=3.8.5.0
+/build:Engine/Shaders/draw_forward.fx
+
+#begin Engine/Shaders/exp_light_depth.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
@@ -221,7 +229,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/exp_light_depth.fx
 
-#begin Shaders/fill_gbuffer.fx
+#begin Engine/Shaders/fill_gbuffer.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
@@ -229,7 +237,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/fill_gbuffer.fx
 
-#begin Shaders/light_depth.fx
+#begin Engine/Shaders/light_depth.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
@@ -237,7 +245,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/light_depth.fx
 
-#begin Shaders/particle.fx
+#begin Engine/Shaders/particle.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
@@ -245,7 +253,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/particle.fx
 
-#begin Shaders/pointlight.fx
+#begin Engine/Shaders/pointlight.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
@@ -253,7 +261,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/pointlight.fx
 
-#begin Shaders/render_target_screen_pos.fx
+#begin Engine/Shaders/render_target_screen_pos.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
@@ -261,7 +269,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/render_target_screen_pos.fx
 
-#begin Shaders/sdf_circle.fx
+#begin Engine/Shaders/sdf_circle.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
@@ -269,7 +277,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/sdf_circle.fx
 
-#begin Shaders/sdf_pixel.fx
+#begin Engine/Shaders/sdf_pixel.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
@@ -277,7 +285,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/sdf_pixel.fx
 
-#begin Shaders/sdf.fx
+#begin Engine/Shaders/sdf.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
@@ -285,7 +293,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/sdf.fx
 
-#begin Shaders/skybox.fx
+#begin Engine/Shaders/skybox.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
@@ -293,7 +301,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/skybox.fx
 
-#begin Shaders/spotlight.fx
+#begin Engine/Shaders/spotlight.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
@@ -301,7 +309,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/spotlight.fx
 
-#begin Shaders/terrain.fx
+#begin Engine/Shaders/terrain.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
@@ -309,7 +317,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/terrain.fx
 
-#begin Shaders/texture_effects.fx
+#begin Engine/Shaders/texture_effects.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
@@ -317,7 +325,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/texture_effects.fx
 
-#begin Textures/ge_orb.png
+#begin Engine/Textures/ge_orb.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -330,7 +338,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Textures/ge_orb.png
 
-#begin Textures/monkeymelon.JPG
+#begin Engine/Textures/monkeymelon.JPG
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -343,7 +351,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Textures/monkeymelon.JPG
 
-#begin Textures/smugdean.png
+#begin Engine/Textures/smugdean.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -356,7 +364,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Textures/smugdean.png
 
-#begin Textures/society.png
+#begin Engine/Textures/society.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -369,7 +377,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Textures/society.png
 
-#begin Textures/texture_1001.png
+#begin Engine/Textures/texture_1001.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -382,7 +390,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Textures/texture_1001.png
 
-#begin Textures/trumpmap.png
+#begin Engine/Textures/trumpmap.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -395,7 +403,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Textures/trumpmap.png
 
-#begin Textures/XboxenDiffuse.png
+#begin Engine/Textures/XboxenDiffuse.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -408,7 +416,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Textures/XboxenDiffuse.png
 
-#begin Textures/zorker.png
+#begin Engine/Textures/zorker.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255

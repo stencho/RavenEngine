@@ -16,7 +16,7 @@ public class LerpedMatrix : AutoInterpolate<Matrix> {
 
     public LerpedMatrix(Matrix start_value, Matrix end_value, double length_ms,
         InterpolationType interpolation_type = InterpolationType.Loop,
-        InterpolationThread interpolation_thread = InterpolationThread.Render) : base(start_value, end_value, length_ms,
+        EngineThread interpolation_thread = EngineThread.Render) : base(start_value, end_value, length_ms,
         interpolation_type, interpolation_thread) {
         init();
     }

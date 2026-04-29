@@ -6,7 +6,7 @@ namespace Raven.Graphics.InterpolatedTypes;
 public class LerpedFloat : AutoInterpolate<float> {
     public LerpedFloat(float start_value, float end_value, double length_ms, 
         InterpolationType interpolation_type = InterpolationType.Loop, 
-        InterpolationThread interpolation_thread = InterpolationThread.Render) 
+        EngineThread interpolation_thread = EngineThread.Render) 
         : base(start_value, end_value, length_ms, interpolation_type, interpolation_thread) {
         init();
     }
@@ -36,11 +36,11 @@ public class FloatLerperManual {
 
 
     private InterpolationType InterpolationType { get; set; } = InterpolationType.Once;
-    private InterpolationThread Thread { get; set; } = InterpolationThread.Render;
+    private EngineThread Thread { get; set; } = EngineThread.Render;
     
     public FloatLerperManual(float start_value, float end_value, float length_ms, 
         InterpolationType interpolation_type = InterpolationType.Once, 
-        InterpolationThread interpolation_thread  = InterpolationThread.Render) {
+        EngineThread interpolation_thread  = EngineThread.Render) {
         
         start = start_value;
         end = end_value;
@@ -52,12 +52,12 @@ public class FloatLerperManual {
     }
             
     public void Lerp() {
-        var delta = Thread == InterpolationThread.Render ? Clock.delta_time_ms_f : (float)State.scene_update_thread.delta_ms;
+        var delta = Thread == EngineThread.Render ? Clock.render_delta_time_ms_f : (float)State.scene_update_thread.delta_ms;
         position_ms += delta;
         lerp();
     }
     public void LerpReverse() {
-        var delta = Thread == InterpolationThread.Render ? Clock.delta_time_ms_f : (float)State.scene_update_thread.delta_ms;
+        var delta = Thread == EngineThread.Render ? Clock.render_delta_time_ms_f : (float)State.scene_update_thread.delta_ms;
         position_ms -= delta;
         lerp();
     }
