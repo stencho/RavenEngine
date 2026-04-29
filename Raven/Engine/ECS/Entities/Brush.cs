@@ -4,6 +4,7 @@ using Raven.Engine.Collision;
 using Raven.Engine.Collision.Shapes3D;
 
 namespace Raven.Engine.Entities;
+
 public partial class Brush : Entity {
     shape_type shape;
     Shape3D collision;

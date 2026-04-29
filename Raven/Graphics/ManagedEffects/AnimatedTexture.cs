@@ -37,7 +37,7 @@ public class AnimatedTexture {
     }
 
     public void GraphicsUpdate() {
-        ScrollPosition += (ScrollDirection * ScrollSpeedPerSecond) * (float)Clock.delta_time;
+        ScrollPosition += (ScrollDirection * ScrollSpeedPerSecond) * (float)Clock.render_delta_time;
         ScrollPosition = new  Vector2(ScrollPosition.X - MathF.Floor(ScrollPosition.X), ScrollPosition.Y - MathF.Floor(ScrollPosition.Y));
     }
 }
