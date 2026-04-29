@@ -57,38 +57,6 @@ namespace Raven.Graphics.Drawing3D {
             graphics_device.DepthStencilState = DepthStencilState.Default;
         }
 
-        public static void draw_scene(Camera camera, GBuffer gbuffer) {
-            gbuffer.draw_to_bindings();
-
-            e_gbuffer.Parameters["atmosphere_color"].SetValue(State.Skybox.sun_moon.atmosphere_color.ToVector3());
-            e_gbuffer.Parameters["sky_color"].SetValue(State.Skybox.sun_moon.sky_color.ToVector3());
-
-            e_gbuffer.Parameters["FarClip"].SetValue(camera.far_clip);
-            e_gbuffer.Parameters["camera_pos"].SetValue(camera.position);
-
-            e_gbuffer.Parameters["View"].SetValue(camera.view);
-            e_gbuffer.Parameters["Projection"].SetValue(camera.projection);
-
-            foreach (var o in visible_entities.OrderByDescending(a => Vector3.Distance(camera.position, a.position.XYZ))) {
-                graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
-                graphics_device.BlendState = BlendState.NonPremultiplied;
-                graphics_device.BlendFactor = Color.Transparent;
-                graphics_device.DepthStencilState = DepthStencilState.Default;
-
-                e_gbuffer.Parameters["fog"].SetValue(true);
-
-                //map.game_objects[o].draw();
-
-                e_gbuffer.Parameters["tint"].SetValue(Color.White.ToVector3());
-                e_gbuffer.Parameters["fog"].SetValue(false);
-
-            }
-
-            graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
-            graphics_device.DepthStencilState = DepthStencilState.Default;
-            e_gbuffer.Parameters["tint"].SetValue(Color.White.ToVector3());
-            e_gbuffer.Parameters["fog"].SetValue(false);
-        }
 
         public static void update_point_light(ref light l, Camera camera) {
             l.world = Matrix.CreateScale(l.point_info.radius) * Matrix.CreateTranslation(l.point_info.position);
@@ -238,10 +206,5 @@ namespace Raven.Graphics.Drawing3D {
             }
 
         }
-
-        public static void compose() {
-
-        }
-
     }
 }
