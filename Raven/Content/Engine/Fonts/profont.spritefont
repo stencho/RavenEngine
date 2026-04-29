@@ -17,13 +17,13 @@ with.
     Size is a float value, measured in points. Modify this value to change
     the size of the font.
     -->
-    <Size>9</Size>
+    <Size>11</Size>
 
     <!--
     Spacing is a float value, measured in pixels. Modify this value to change
     the amount of spacing in between characters.
     -->
-    <Spacing>0</Spacing>
+    <Spacing>-1</Spacing>
 
     <!--
     UseKerning controls the layout of the font. If this value is true, kerning information
@@ -63,8 +63,5 @@ with.
     by scanning the text in each of the resource files and adding those specific
     characters to the font. 
     -->
-    <ResourceFiles>
-      <!-- <Resx>Strings.resx</Resx> -->
-    </ResourceFiles>
   </Asset>
 </XnaContent>
