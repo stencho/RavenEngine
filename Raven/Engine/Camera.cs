@@ -11,6 +11,9 @@ using Raven.Graphics.Drawing3D;
 namespace Raven.Engine {
     [GuidManaged]
     public partial class Camera : IDisposable {
+
+        public static Camera current_render_camera = null;
+        
         public static partial class Manager {
             public static string ListAllCameras {
                 get {
@@ -35,13 +38,15 @@ namespace Raven.Engine {
             public static void BuildAllViewLists() {
             
             }
-        
+            
             public static void BuildAllCameraGBuffers() {
                 foreach (var camera in cameras.Values) {
                     if (camera.using_gbuffer) {
+                        current_render_camera = camera;
                         camera.gbuffer.RenderUniverse(camera);
                         camera.gbuffer.Draw3DLayer?.Invoke();
                         Renderer.draw_lighting(camera, camera.gbuffer);
+                        //
                         State.graphics_device.SetRenderTarget(camera.gbuffer.rt_2D);
                         AutoRender2D.Manager.RenderAll();
                         camera.gbuffer.Draw2DLayer?.Invoke();
@@ -50,6 +55,8 @@ namespace Raven.Engine {
                         camera.gbuffer.Compose(camera);
                     }
                 }
+
+                current_render_camera = null;
             }
         }
         

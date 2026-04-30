@@ -130,9 +130,9 @@ namespace Raven.Graphics {
 
             private Matrix world_normal => Matrix.Identity * Matrix.CreateScale(scale) * orientation * Matrix.CreateTranslation(position);
 
-            private Matrix world_billboard => Matrix.Identity * Matrix.CreateScale(scale) * Matrix.CreateBillboard(position, Camera.current_camera.position, Camera.current_camera.up_direction, Camera.current_camera.direction);
+            private Matrix world_billboard => Matrix.Identity * Matrix.CreateScale(scale) * Matrix.CreateBillboard(position, Camera.current_render_camera.position, Camera.current_render_camera.up_direction, Camera.current_render_camera.direction);
 
-            private Matrix world_constrained_billboard => Matrix.Identity * Matrix.CreateScale(scale) * Matrix.CreateBillboard(position, Camera.current_camera.position, Vector3.Up, Camera.current_camera.direction);
+            private Matrix world_constrained_billboard => Matrix.Identity * Matrix.CreateScale(scale) * Matrix.CreateBillboard(position, Camera.current_render_camera.position, Vector3.Up, Camera.current_render_camera.direction);
 
             public Vector3 position = Vector3.Zero;
             public Vector3 scale = Vector3.One;
