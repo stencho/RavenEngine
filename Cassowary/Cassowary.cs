@@ -33,17 +33,12 @@ public class CassowaryGame : Game {
 
     public static Scene scene;
     
-    public static Model test_box; 
-    public static Model test_skull; 
-    
-    public static TestEntity test_ent;
-    public static TestEntity test_ent2;
     public static FreeCamEntity free_cam;
     
     private static float skull_rotate = 0f;
     private static light skull_lamp;
 
-    public static bool show_all_debug_info = true;
+    public static bool show_all_debug_info = false;
 
     private Sine sine;
     
@@ -51,7 +46,7 @@ public class CassowaryGame : Game {
     
     private LerpedMatrix l_mat = new LerpedMatrix(Matrix.Identity * Matrix.CreateFromAxisAngle(Vector3.UnitX, float.DegreesToRadians(-90)),
         Matrix.Identity * Matrix.CreateFromAxisAngle(Vector3.UnitX, float.DegreesToRadians(90)), 2000,
-        InterpolationType.Bounce, InterpolationThread.Render);
+        InterpolationType.Bounce, EngineThread.Render);
     
     public CassowaryGame() {
         _graphics = new GraphicsDeviceManager(this);
@@ -104,19 +99,6 @@ public class CassowaryGame : Game {
         }
         
         cam.gbuffer.Draw3DLayer = () => {
-            //drawing the world should go here
-            Draw3D.draw_buffers_diffuse_texture(cam, cam.gbuffer,
-                test_box.Meshes[0].MeshParts[0].VertexBuffer,
-                test_box.Meshes[0].MeshParts[0].IndexBuffer,
-                Resources.GetTexture("XboxenDiffuse"), Color.White,
-                Matrix.CreateScale(2f) * Matrix.CreateRotationY(skull_rotate) *
-                Matrix.CreateTranslation((Vector3.Down * 5f) + Vector3.Forward * 5f));
-            Draw3D.draw_buffers_diffuse_texture(cam, cam.gbuffer,
-                test_skull.Meshes[0].MeshParts[0].VertexBuffer,
-                test_skull.Meshes[0].MeshParts[0].IndexBuffer,
-                Resources.GetTexture("texture_1001"), Color.White,
-                Matrix.CreateScale(2f) * l_mat.tween_value *
-                Matrix.CreateTranslation((Vector3.Down * 1f) + Vector3.Forward * 5f));
         };
         
         cam.gbuffer.Draw2DLayer = () => {
@@ -154,9 +136,6 @@ public class CassowaryGame : Game {
             //Draw2D.fill_circle(new Vector2(200 + (50 * ), 24), 6f, Color.MediumPurple);
         };
         
-        test_box = Resources.GetModel("fourth");
-        test_skull = Resources.GetModel("skull");
-
         //Oscillator test = new Oscillator(SoundFlowState.Engine, SoundFlowState.PlaybackDevice.Format) { Frequency = 220, Type = Oscillator.WaveformType.Sine};
         
         

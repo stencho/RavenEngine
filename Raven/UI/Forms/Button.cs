@@ -16,8 +16,8 @@ namespace Raven.UI.Forms;
         public Vector2i client_size => size;
         public Vector2i client_bottom_right => bottom_right;
 
-        FloatLerperManual molerp = new FloatLerperManual(0, 1, 50);
-        FloatLerperManual mdlerp = new FloatLerperManual(0, 1, 50);
+        Lerper molerp = new Lerper(0, 1, 50);
+        Lerper mdlerp = new Lerper(0, 1, 50);
         
         private bool mouse_down_and_over = false;
         

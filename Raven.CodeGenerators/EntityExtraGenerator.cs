@@ -88,8 +88,8 @@ public sealed class EntityUpdatePacketGenerator : ISourceGenerator
             
             public Scene parent_scene { get; set; }
             
-            double DELTA_MS => State.scene_update_thread.delta_ms;
-            double DELTA => State.scene_update_thread.delta_s;
+            double DELTA_MS => Clock.delta_ms(EngineThread.Update);
+            double DELTA => Clock.delta(EngineThread.Update);
             
             public void Initialize() {
                 Components.set_parent(this);
@@ -101,7 +101,7 @@ public sealed class EntityUpdatePacketGenerator : ISourceGenerator
             }
             
             public void UpdateInterpolatedPosition() {
-                position.interpolate(Clock.delta_time_ms);
+                position.interpolate(Clock.delta(EngineThread.Render));
             }
             
             private void MoveAndSlide(Vector3 movement) => position.MoveAndSlide(movement);

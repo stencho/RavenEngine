@@ -23,7 +23,7 @@ public partial class FreeCamEntity : Entity {
     
     private BindWatcher binds;
     private MouseWatcher mouse;
-
+    
     internal static (string bind, object[] bind_data)[]
         bind_list = [
             ("forward", [Keys.W]),

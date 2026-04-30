@@ -1,17 +1,16 @@
 using System;
 using System.Collections.Generic;
+using Raven.Engine;
 
 namespace Raven.Graphics.InterpolatedTypes;
 
 public enum InterpolationType { Loop, Bounce, Once, OnceEvery, OnceEveryRandom }
-public enum InterpolationThread { Render, EntityUpdate } 
-
 
 public interface IAutoInterpolate {
     public static partial class Manager {
         public static readonly HashSet<IAutoInterpolate> interpolated = new();
 
-        public static void Add<I>(I start_value, I end_value, double length, InterpolationType interpolation_type = InterpolationType.Loop, InterpolationThread interpolation_thread = InterpolationThread.Render) {
+        public static void Add<I>(I start_value, I end_value, double length, InterpolationType interpolation_type = InterpolationType.Loop, EngineThread interpolation_thread = EngineThread.Render) {
             interpolated.Add(new AutoInterpolate<I>(start_value, end_value, length, interpolation_type, interpolation_thread));
         }
 
@@ -25,14 +24,14 @@ public interface IAutoInterpolate {
     
         public static void UpdateRenderThread(double delta) {
             foreach (IAutoInterpolate iai in interpolated) {
-                if (iai.interpolation_thread == InterpolationThread.Render)
+                if (iai.interpolation_thread == EngineThread.Render)
                     iai.lerp(delta);
             }
         }
     
         public static void UpdateInternalLoop(double delta) {
             foreach (var iai in interpolated) {
-                if (iai.interpolation_thread == InterpolationThread.EntityUpdate) {
+                if (iai.interpolation_thread == EngineThread.Update) {
                     iai.lerp(delta);
                 }
             }
@@ -42,7 +41,7 @@ public interface IAutoInterpolate {
     
     Type type { get; }
 
-    InterpolationThread interpolation_thread { get; set; } 
+    EngineThread interpolation_thread { get; set; } 
     
     public void lerp(double delta);
 }
@@ -65,13 +64,13 @@ public partial class AutoInterpolate<I> : IAutoInterpolate {
     Func<AutoInterpolate<I>> left_end_func;
 
     InterpolationType interpolation_type = InterpolationType.Loop;
-    public InterpolationThread interpolation_thread { get; set; } = InterpolationThread.Render;
+    public EngineThread interpolation_thread { get; set; } = EngineThread.Render;
     
     public void SetRightEndFunc(Func<AutoInterpolate<I>> func) { right_end_func = func; }
     public void SetLeftEndFunc(Func<AutoInterpolate<I>> func) { left_end_func = func; }
     
     public void SetInterpolationType(InterpolationType type) { interpolation_type = type; }
-    public void SetInterpolationThread(InterpolationThread thread) { interpolation_thread = thread; }
+    public void SetInterpolationThread(EngineThread thread) { interpolation_thread = thread; }
     
     public void SetOnceEveryInterval(double interval) { once_every_ms = interval; }
     
@@ -83,7 +82,7 @@ public partial class AutoInterpolate<I> : IAutoInterpolate {
         IAutoInterpolate.Manager.Add(this);
     }
     
-    public AutoInterpolate(I start_value, I end_value, double length_ms, InterpolationType interpolation_type = InterpolationType.Loop, InterpolationThread interpolation_thread = InterpolationThread.Render) {
+    public AutoInterpolate(I start_value, I end_value, double length_ms, InterpolationType interpolation_type = InterpolationType.Loop, EngineThread interpolation_thread = EngineThread.Render) {
         this.start_value = start_value;
         this.end_value = end_value;
         this.length_ms = length_ms;

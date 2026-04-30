@@ -264,7 +264,7 @@ namespace Raven.UI {
         public Action internal_draw_action;
         public Action draw_action;
 
-        public FloatLerperManual focus_lerp = new FloatLerperManual(0f, 1f, 200);
+        public Lerper focus_lerp = new Lerper(0f, 1f, 200);
 
         private Color border => Draw2D.ColorInterpolate(UIColors.Foreground.multiply_color(UIColors.focus_fade), UIColors.Foreground, focus_lerp.Value);
         private Color title_bar => Draw2D.ColorInterpolate(UIColors.Foreground75Percent.multiply_color(UIColors.focus_fade), UIColors.Foreground75Percent, focus_lerp.Value);
