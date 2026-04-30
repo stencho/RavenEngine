@@ -270,7 +270,6 @@ public static class State {
 
         graphics_device.SetRenderTarget(null);
        
-        //camera.enable_gbuffer(1280,720);
         wait_for_init = true;
     }
 
@@ -279,23 +278,6 @@ public static class State {
     
     public static void LoadFinished() {
         window.ClientSizeChanged += (sender, args) => {
-            /*
-            var g = false;
-            
-            if (window.ClientBounds.Size.X < 640) {
-                graphics.PreferredBackBufferWidth = 640;
-                g = true;
-            }
-
-            if (window.ClientBounds.Size.Y < 480) {
-                graphics.PreferredBackBufferHeight = 480;
-                g = true;
-            }
-
-            if (g) {
-                graphics.ApplyChanges();
-            }
-            */
             changing_window_size = true;
             time_of_last_window_size_change = Clock.game_time.TotalGameTime.TotalMilliseconds;
         };
@@ -308,9 +290,6 @@ public static class State {
         return new Vector2i(cdm.Width, cdm.Height);
     }
     private static Vector2i FindMonitorTopLeft() {
-        //var cdm = ;
-        //return new Vector2i(cdm.Width, cdm.Height);
-        //var dcount = SDL.SDL_GetNumVideoDisplays();
         return Vector2i.Zero;
     }
 
@@ -417,15 +396,16 @@ public static class State {
 
     public static void UpdateGraphics(GameTime gt) {
         Clock.game_time = gt;
+        //Update all graphics stuff
         engine_binds.Update();
         UI.update();
         SkyboxState.sun_moon.update();
         
+        //Change game resolution to match window resolution
         if (Clock.game_time.TotalGameTime.TotalMilliseconds - time_of_last_window_size_change > 500 && changing_window_size) {
             gvars.set("r_resolution", window.ClientBounds.Size.ToVector2i());
             changing_window_size = false;
             time_of_last_window_size_change = 0;
-
         }
     }
 
