@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Raven.Engine;
+using Raven.Graphics.Skybox;
 
 namespace Raven.Graphics.Drawing3D;
 
@@ -380,8 +381,8 @@ namespace Raven.Graphics.Drawing3D;
         public static void batch_draw_setup(Camera camera, GBuffer buffer) {
             State.graphics_device.SetRenderTargets(buffer.target_bindings);
             
-            State.e_gbuffer.Parameters["atmosphere_color"].SetValue(State.Skybox.sun_moon.atmosphere_color.ToVector3());
-            State.e_gbuffer.Parameters["sky_color"].SetValue(State.Skybox.sun_moon.sky_color.ToVector3());
+            State.e_gbuffer.Parameters["atmosphere_color"].SetValue(SkyboxState.sun_moon.atmosphere_color.ToVector3());
+            State.e_gbuffer.Parameters["sky_color"].SetValue(SkyboxState.sun_moon.sky_color.ToVector3());
 
             State.e_gbuffer.Parameters["FarClip"].SetValue(camera.far_clip);
             State.e_gbuffer.Parameters["camera_pos"].SetValue(camera.position);
@@ -415,8 +416,8 @@ namespace Raven.Graphics.Drawing3D;
         public static void draw_buffers_diffuse_texture(Camera camera, GBuffer buffer, VertexBuffer vb, IndexBuffer ib, Texture2D texture, Color color, Matrix world) {
             State.graphics_device.SetRenderTargets(buffer.target_bindings);
             
-            State.e_gbuffer.Parameters["atmosphere_color"].SetValue(State.Skybox.sun_moon.atmosphere_color.ToVector3());
-            State.e_gbuffer.Parameters["sky_color"].SetValue(State.Skybox.sun_moon.sky_color.ToVector3());
+            State.e_gbuffer.Parameters["atmosphere_color"].SetValue(SkyboxState.sun_moon.atmosphere_color.ToVector3());
+            State.e_gbuffer.Parameters["sky_color"].SetValue(SkyboxState.sun_moon.sky_color.ToVector3());
 
             State.e_gbuffer.Parameters["FarClip"].SetValue(camera.far_clip);
             State.e_gbuffer.Parameters["camera_pos"].SetValue(camera.position);

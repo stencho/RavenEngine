@@ -51,7 +51,7 @@ public partial class FreeCamEntity : Entity {
 
     public void Initialized() {
         var cam = Components.GetFirst<GBufferCamera>().camera;
-        cam.gbuffer.Draw2DLayerOverUI = () => {
+        cam.gbuffer.Draw2DOnTop = () => {
             if (!binds.MouseLocked && !binds.MouseLockedPrevious) {
                 Draw2D.fill_circle(MouseWatcher.Position, 3f, Color.White);
                 Draw2D.circle(MouseWatcher.Position, 3f, 2f, Color.Black);

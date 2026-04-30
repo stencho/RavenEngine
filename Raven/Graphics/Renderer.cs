@@ -6,7 +6,9 @@ using Microsoft.Xna.Framework.Graphics;
 using Raven.Engine;
 using Raven.Engine.Collision;
 using Raven.Engine.Collision.Shapes3D;
-
+using Raven.Engine.Components;
+using Raven.Graphics.Drawing2D;
+using Raven.Graphics.Skybox;
 using Color = Microsoft.Xna.Framework.Color;
 using static Raven.Engine.State;
 
@@ -14,6 +16,20 @@ namespace Raven.Graphics.Drawing3D {
     public static class Renderer {
         static volatile List<light> visible_lights = new List<light>();
         static volatile List<Entity> visible_entities = new List<Entity>();
+
+        enum RenderPhase {
+            build_visibility,
+            build_lighting,
+            draw_skybox,
+            render_deferred,
+            render_forward,
+            render_2D,
+            render_UI,
+            compose,
+            sleep
+        }
+
+        private static RenderPhase render_phase = RenderPhase.sleep;
         
         public static volatile string VisibilityString = "";
         
@@ -26,12 +42,69 @@ namespace Raven.Graphics.Drawing3D {
             public Texture2D texture;
         }
 
-        public static void clear_to_skybox(Camera camera, GBuffer gbuffer) {                
+        private static Camera camera => Camera.current_render_camera;
 
+        public static void render_scene_to_gbuffer() {
+            render_scene_to_gbuffer(camera);    
+        }
+        
+        public static void render_scene_to_gbuffer(Camera camera) {
+            render_phase = RenderPhase.build_visibility;
+            camera.parent_scene.ClearVisibilityLists();
+            camera.parent_scene.BuildVisibilityLists(camera);
+            
+            build_lighting(camera, camera.gbuffer);
+            
+            render_phase = RenderPhase.draw_skybox;
+            clear_to_skybox(camera, camera.gbuffer);
+            
+            render_phase = RenderPhase.render_deferred;
+            render_deferred(camera);
+            draw_lighting(camera, camera.gbuffer);
+            
+            render_phase = RenderPhase.render_forward;
+            render_forward(camera);
+            camera.gbuffer.Draw3DOnTop?.Invoke();
+            
+            graphics_device.SetRenderTarget(camera.gbuffer.rt_2D);
+            
+            AutoRender2D.Manager.RenderAll();
+            camera.gbuffer.Draw2DOverGame?.Invoke();
+            
+            GBuffer.Manager.DrawUIToSelectedGBuffer();
+            camera.gbuffer.Draw2DOnTop?.Invoke();
+            
+            camera.gbuffer.Compose(camera);
+        }
+        
+        static void render_deferred(Camera camera) {
+            Draw3D.batch_draw_setup(camera, camera.gbuffer);
+        
+            foreach (var e in camera.parent_scene.render_list_deferred.Where(
+                         a => a.camera.GUID == camera.GUID)) {
+                if (e.entity.Components.HasComponentOfType<RenderModelStatic>(out var rm)) {
+                    rm.DrawBasic(camera, camera.gbuffer);
+                }
+            }
+        }
+
+        static void render_forward(Camera camera) {
+            
+        }
+        
+        public static void render_entity() {
+            if (render_phase == RenderPhase.render_deferred) {
+                
+            } else if (render_phase == RenderPhase.render_forward) {
+                
+            }
+        }
+        
+        public static void clear_to_skybox(Camera camera, GBuffer gbuffer) {       
             graphics_device.DepthStencilState = DepthStencilState.None;
 
             gbuffer.draw_to_bindings();
-            e_clear.Parameters["color"].SetValue(State.Skybox.sun_moon.atmosphere_color.ToVector4());
+            e_clear.Parameters["color"].SetValue(SkyboxState.sun_moon.atmosphere_color.ToVector4());
             e_clear.Techniques["Default"].Passes[0].Apply();
 
 
@@ -43,8 +116,8 @@ namespace Raven.Graphics.Drawing3D {
             graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
             graphics_device.BlendState = BlendState.AlphaBlend;
 
-            e_skybox.Parameters["atmosphere_color"].SetValue(State.Skybox.sun_moon.atmosphere_color.ToVector4());
-            e_skybox.Parameters["sky_color"].SetValue(State.Skybox.sun_moon.sky_color.ToVector4());
+            e_skybox.Parameters["atmosphere_color"].SetValue(SkyboxState.sun_moon.atmosphere_color.ToVector4());
+            e_skybox.Parameters["sky_color"].SetValue(SkyboxState.sun_moon.sky_color.ToVector4());
 
             e_skybox.Parameters["World"].SetValue(Matrix.CreateScale(1f) * Matrix.Identity);
             e_skybox.Parameters["View"].SetValue(Matrix.CreateLookAt(Vector3.Zero, camera.direction, camera.up_direction));
@@ -52,7 +125,7 @@ namespace Raven.Graphics.Drawing3D {
 
             e_skybox.Techniques["draw"].Passes[0].Apply();
 
-            graphics_device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, State.Skybox.skybox_data, 0, 2, State.Skybox.skybox_indices, 0, State.Skybox.skybox_indices.Length / 3, VertexPositionNormalColorUv.VertexDeclaration);
+            graphics_device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, SkyboxState.skybox_data, 0, 2, SkyboxState.skybox_indices, 0, SkyboxState.skybox_indices.Length / 3, VertexPositionNormalColorUv.VertexDeclaration);
 
             graphics_device.DepthStencilState = DepthStencilState.Default;
         }
@@ -84,9 +157,13 @@ namespace Raven.Graphics.Drawing3D {
         
         public static void build_lighting(Camera camera, GBuffer buffer) {
             graphics_device.SetRenderTarget(buffer.rt_lighting);
-            graphics_device.Clear(State.Skybox.sun_moon.atmosphere_color);
+            graphics_device.Clear(SkyboxState.sun_moon.atmosphere_color);
 
             foreach (light light in visible_lights) {
+                // need to iterate through each light's visibility list
+                // and render out their depth textures
+                
+                /*
                 if (light.type == LightType.SPOT) {
                     graphics_device.SetRenderTarget(light.spot_info.depth_map);
 
@@ -110,7 +187,7 @@ namespace Raven.Graphics.Drawing3D {
 
 
                 } else if (light.type == LightType.POINT) {
-                }
+                }*/
             }
         }
 
@@ -133,7 +210,7 @@ namespace Raven.Graphics.Drawing3D {
             graphics_device.SetVertexBuffer(quad_vb);
             graphics_device.Indices = quad_ib;
 
-            State.Skybox.sun_moon.configure_dlight_shader(camera, gbuffer, e_directionallight);
+            SkyboxState.sun_moon.configure_dlight_shader(camera, gbuffer, e_directionallight);
 
             graphics_device.BlendState = DynamicLightRequirements.blend_state;
             graphics_device.DepthStencilState = DepthStencilState.DepthRead;

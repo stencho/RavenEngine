@@ -148,10 +148,13 @@ public class EntityPosition {
 
 public class LinkedObjectPosition {
     public Vector3 child_offset_from_parent = Vector3.Zero;
+
+    public Entity parent { get; set; }
     
-    public EntityPosition parent;
-    EntityPosition _child;
-    public EntityPosition child => _child;
+    public EntityPosition parent_position => parent.position;
+    
+    EntityPosition _child_position;
+    public EntityPosition child_position => _child_position;
 
     public LinkedObjectPosition() { }
     
@@ -159,7 +162,7 @@ public class LinkedObjectPosition {
     public Vector3 child_to_parent => -child_offset_from_parent;
     
     public void Update() {
-        _child = parent;
-        _child.XYZ += child_offset_from_parent;
+        _child_position = parent_position;
+        _child_position.XYZ += child_offset_from_parent;
     }
 }

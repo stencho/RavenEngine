@@ -49,7 +49,7 @@ namespace Raven.Graphics {
             
             public static void DrawAllScreenBuffers() {
                 State.graphics_device.SetRenderTarget(null);
-                Draw2D.end();
+                Drawing2D.Draw2D.end();
                     
                 var window_size = State.window.ClientBounds.Size.ToVector2i();
                 
@@ -61,19 +61,19 @@ namespace Raven.Graphics {
                 
                     
                     if (gbuffer._screen_draw_info.fullscreen) {
-                        if (State.super_res_scale <= 1.0f) Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None);
-                        else Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearWrap, DepthStencilState.None);
+                        if (State.super_res_scale <= 1.0f) Drawing2D.Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None);
+                        else Drawing2D.Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearWrap, DepthStencilState.None);
                         
-                        Draw2D.image(gbuffer.rt_final, Vector2i.Zero, window_size);
+                        Drawing2D.Draw2D.image(gbuffer.rt_final, Vector2i.Zero, window_size);
                         
                         
                     } else {
-                        Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None);
-                        Draw2D.image(gbuffer.rt_final, gbuffer._screen_draw_info.position,
+                        Drawing2D.Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None);
+                        Drawing2D.Draw2D.image(gbuffer.rt_final, gbuffer._screen_draw_info.position,
                             gbuffer._screen_draw_info.size);
                     }
 
-                    Draw2D.end();
+                    Drawing2D.Draw2D.end();
                 }
             }
 
@@ -119,9 +119,9 @@ namespace Raven.Graphics {
             draw_to_screen = true;
         }
 
-        public Action Draw3DLayer;
-        public Action Draw2DLayer;
-        public Action Draw2DLayerOverUI;
+        public Action Draw3DOnTop;
+        public Action Draw2DOverGame;
+        public Action Draw2DOnTop;
         
         public ManagedRT2D rt_diffuse;
         public RenderTarget2D rt_normal;
@@ -222,18 +222,6 @@ namespace Raven.Graphics {
             State.graphics_device.SetRenderTargets(target_bindings);
         }
 
-        public void RenderUniverse(Camera camera) {
-            camera.update_projection();
-            camera.update();
-            
-            
-            Renderer.build_lighting(camera, this);
-        
-            Renderer.clear_to_skybox(camera, this);
-            
-            State.CurrentScene.Render(camera, this);
-        }
-
         public void flip_diffuse() {
             rt_diffuse.FlipTargets();    
         }
@@ -270,7 +258,7 @@ namespace Raven.Graphics {
             State.e_compositor.Parameters["DepthLayer"].SetValue(rt_depth);
             State.e_compositor.Parameters["LightLayer"].SetValue(rt_lighting);
             State.e_compositor.Parameters["NormalLayer"].SetValue(rt_normal);
-            //State.e_compositor.Parameters["sky_brightness"].SetValue(State.Skybox.sun_moon.sky_brightness);
+            //State.e_compositor.Parameters["sky_brightness"].SetValue(SkyboxState.sun_moon.sky_brightness);
             //e_compositor.Parameters["atmosphere_color"].SetValue(Skybox.sun_moon.atmosphere_color.ToVector3());
             State.e_compositor.Parameters["buffer"].SetValue(State.draw_debug_buffer);
         

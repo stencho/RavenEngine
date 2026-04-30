@@ -126,6 +126,23 @@ public abstract partial class Scene {
     public abstract void UpdateGraphics();
     public abstract void Stabilize();
 
-    public abstract void Render(Camera camera, GBuffer gbuffer);
+    internal List<EntityVisibility> render_list_deferred = new();
+    internal List<EntityVisibility> render_list_forward = new();
+    
+    internal void ClearVisibilityLists() {
+        render_list_deferred.Clear();
+        render_list_forward.Clear();
+    }
+    public abstract void BuildVisibilityLists(Camera camera);
+}
+
+public class EntityVisibility(Entity entity_obj, Camera camera_obj) {
+    public Guid entity_id => entity_obj.GUID;
+    public Entity entity => entity_obj;
+    
+    public Guid camera_id => camera_obj.GUID;
+    public Camera camera => camera_obj;
+    
+    public float distance => Vector3.Distance(camera_obj.position, entity_obj.position.XYZ);
 }
 

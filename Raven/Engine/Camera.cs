@@ -11,7 +11,6 @@ using Raven.Graphics.Drawing3D;
 namespace Raven.Engine {
     [GuidManaged]
     public partial class Camera : IDisposable {
-
         public static Camera current_render_camera = null;
         
         public static partial class Manager {
@@ -31,28 +30,16 @@ namespace Raven.Engine {
 
             public static void UpdateAllCameras() {
                 foreach (var camera in cameras.Values) {
+                    camera.update_projection();
                     camera.update();
                 }
-            }
-            
-            public static void BuildAllViewLists() {
-            
             }
             
             public static void BuildAllCameraGBuffers() {
                 foreach (var camera in cameras.Values) {
                     if (camera.using_gbuffer) {
                         current_render_camera = camera;
-                        camera.gbuffer.RenderUniverse(camera);
-                        camera.gbuffer.Draw3DLayer?.Invoke();
-                        Renderer.draw_lighting(camera, camera.gbuffer);
-                        //
-                        State.graphics_device.SetRenderTarget(camera.gbuffer.rt_2D);
-                        AutoRender2D.Manager.RenderAll();
-                        camera.gbuffer.Draw2DLayer?.Invoke();
-                        GBuffer.Manager.DrawUIToSelectedGBuffer();
-                        camera.gbuffer.Draw2DLayerOverUI?.Invoke();
-                        camera.gbuffer.Compose(camera);
+                        Renderer.render_scene_to_gbuffer();
                     }
                 }
 
@@ -117,53 +104,42 @@ namespace Raven.Engine {
         public Guid ManagedGBufferGuid => gbuffer.ManagedGuid;
 
         public LinkedObjectPosition LinkedObjectPosition;
-        public EntityPosition current_camera_chunk => LinkedObjectPosition.child;
+        public EntityPosition current_camera_chunk => LinkedObjectPosition.child_position;
 
         private bool linked_to_object => LinkedObjectPosition != null;
-        //public Mouse_Picker mouse_picker;
+        
+        public Entity parent_entity => LinkedObjectPosition.parent;
+        public Scene parent_scene => parent_entity.parent_scene;
         
         public Camera() {
-            position = Vector3.Zero;
-            
-            //mouse_picker = new Mouse_Picker(viewport, this);
-            frustum = new BoundingFrustum(view * projection);
-
-            update_projection();
-            managed_guid = Manager.Add(this);
+            init();
         }
         
         public Camera(Vector3 position) {
             this.position = position;
-            
-            //mouse_picker = new Mouse_Picker(viewport, this);
-            frustum = new BoundingFrustum(view * projection);
-
-            update_projection();
-            managed_guid = Manager.Add(this);
+            init();
         }
 
         public Camera(Vector3 position, Vector3 facing) {
             this.position = position;
             this.orientation = Matrix.CreateLookAt(position, position + facing, Vector3.Up);
-            
-            //mouse_picker = new Mouse_Picker(viewport, this);
-            frustum = new BoundingFrustum(view * projection);
-
-            update_projection();
-            managed_guid = Manager.Add(this);
+            init();
         }
 
         public Camera(Vector3 position, Matrix orientation) {
             this.position = position;
             this.orientation = orientation;
+            init();
+        }
+
+        void init() {
+            this.position = position;
             
-            //mouse_picker = new Mouse_Picker(viewport, this);
             frustum = new BoundingFrustum(view * projection);
 
             update_projection();
             managed_guid = Manager.Add(this);
         }
-
 
         ~Camera() {
             Dispose(false);

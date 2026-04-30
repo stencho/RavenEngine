@@ -8,19 +8,19 @@ using Raven.Graphics.Drawing2D;
 
 namespace Raven;
 
+// UNUSED FOR NOW
+// MAY END UP BEING THE EDITOR LATER
+
 public class RavenGame : Game {
     private GraphicsDeviceManager _graphics;
 
     public RavenGame() {
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
-        
         _graphics.PreferredBackBufferWidth = 1280;
         _graphics.PreferredBackBufferHeight = 720;
-        
         IsMouseVisible = true;
         Window.AllowUserResizing = true;
-        
     }
 
     protected override void Initialize() {
@@ -33,13 +33,7 @@ public class RavenGame : Game {
     }
     
     protected override void Update(GameTime gameTime) {
-        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
-            Keyboard.GetState().IsKeyDown(Keys.Escape)) {
-            Exit();
-        }
-        
         State.UpdateGraphics(gameTime);
-        
         base.Update(gameTime);
     }
     

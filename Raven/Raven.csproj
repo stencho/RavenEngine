@@ -33,7 +33,6 @@
             <LogicalName>Icon.bmp</LogicalName>
         </EmbeddedResource>
         <EmbeddedResource Remove="Content\Effects\**" />
-        <EmbeddedResource Remove="Engine\Collision\Solver\**" />
         <EmbeddedResource Remove="Content\bin\**" />
         <EmbeddedResource Remove="Content\obj\**" />
         <EmbeddedResource Remove="Content\Fonts\**" />

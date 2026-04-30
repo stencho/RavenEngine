@@ -11,9 +11,8 @@ public partial class GBufferCamera : Component {
         public static void UpdateLinkedChunkPositions() {
             foreach (GBufferCamera gbc in gbuffercameras) {
                 if (gbc.parent == null) continue;
-                gbc.camera_position.parent = gbc.parent.position;
                 gbc.camera_position.Update();
-                gbc.camera.position = gbc.camera.LinkedObjectPosition.child.position_interpolated;
+                gbc.camera.position = gbc.camera.LinkedObjectPosition.child_position.position_interpolated;
             }
         }
     }
@@ -73,7 +72,7 @@ public partial class GBufferCamera : Component {
         camera = new Camera(position, orientation);
         camera.enable_gbuffer(resolution.X, resolution.Y, res_scale);
 
-        camera_position.parent = parent.position;
+        camera_position.parent = parent;
         camera.LinkedObjectPosition = camera_position;
         
         if (resolution == -Vector2i.One)

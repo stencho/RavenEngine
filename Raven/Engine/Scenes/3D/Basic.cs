@@ -71,7 +71,9 @@ public class BasicScene : Scene {
             ent.UpdateInterpolatedPosition();
             ent.UpdateGraphics();
         }
+        
         GBufferCamera.Manager.UpdateLinkedChunkPositions();
+        Camera.Manager.UpdateAllCameras();
     }
 
     public override void Stabilize() {
@@ -92,12 +94,10 @@ public class BasicScene : Scene {
         kill_list.Clear();
     }
 
-    public override void Render(Camera camera, GBuffer gbuffer) {
-        Draw3D.batch_draw_setup(camera,gbuffer);
-        foreach (var e in entities.Values) {
-            if (e.Components.HasComponentOfType<RenderModelStatic>(out var rm)) {
-                rm.DrawBasic(camera, gbuffer);
-            }
+    public override void BuildVisibilityLists(Camera camera) {
+        foreach (var e in entities) {
+            var key = e.Key; var ent = e.Value;
+            render_list_deferred.Add(new EntityVisibility(ent, camera));
         }
     }
 }

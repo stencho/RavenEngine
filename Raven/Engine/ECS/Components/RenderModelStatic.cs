@@ -13,6 +13,9 @@ namespace Raven.Engine.Components;
 [ComponentProperty("ModelName", typeof(string))]
 [ComponentProperty("TextureName", typeof(string))]
 
+[ComponentProperty("Tint", typeof(Color))]
+[ComponentProperty("Opacity", typeof(float))]
+
 [ComponentProperty("Scale", typeof(float))]
 [ComponentProperty("Orientation", typeof(Matrix))]
 [ComponentProperty("Offset", typeof(Vector3))]
@@ -20,8 +23,9 @@ namespace Raven.Engine.Components;
 [ComponentProperty("BlendState", typeof(BlendState))]
 [ComponentProperty("RasterizerState", typeof(RasterizerState))]
 
-public partial class RenderModelStatic : Component {
+[ComponentProperty("AlwaysRenderForward", typeof(bool))]
 
+public partial class RenderModelStatic : Component {
     public Matrix WorldMatrix => Matrix.CreateScale(Scale) * Orientation * Matrix.CreateTranslation(parent.position.position_interpolated + OffsetFromParent);
     
     public Model Model => Resources.GetModel(ModelName);
@@ -29,10 +33,12 @@ public partial class RenderModelStatic : Component {
 
     public Vector3 OffsetFromParent = Vector3.Zero;
     
-    
     public RenderModelStatic(string model = "cube", string texture = "OnePXWhite") {
         add_data("ModelName", model);
         add_data("TextureName", texture);
+        
+        add_data("Tint", Color.White);
+        add_data("Opacity", 1.0f);
         
         add_data("Offset", Vector3.Zero);
         add_data("Scale", 1.0f);
@@ -40,6 +46,8 @@ public partial class RenderModelStatic : Component {
 
         add_data("BlendState", BlendState.AlphaBlend);
         add_data("RasterizerState", RasterizerState.CullCounterClockwise);
+        
+        add_data("AlwaysRenderForward", false);
     }
 
     public void ForAllMeshParts(Action<VertexBuffer, IndexBuffer> action) {
@@ -61,12 +69,18 @@ public partial class RenderModelStatic : Component {
 [ComponentProperty("ModelName", typeof(string))]
 [ComponentProperty("TextureName", typeof(string))]
 
+[ComponentProperty("Tint", typeof(Color))]
+[ComponentProperty("Opacity", typeof(float))]
+
 [ComponentProperty("Scale", typeof(float))]
 [ComponentProperty("Orientation", typeof(Matrix))]
 [ComponentProperty("Offset", typeof(Vector3))]
 
 [ComponentProperty("BlendState", typeof(BlendState))]
 [ComponentProperty("RasterizerState", typeof(RasterizerState))]
+
+[ComponentProperty("AlwaysRenderForward", typeof(bool))]
+
 public partial class RenderModelStaticCollision : Component {
 
     public Matrix WorldMatrix => GetData<Matrix>("Orientation") * Matrix.CreateScale(GetData<Vector3>("Scale"));
@@ -78,11 +92,16 @@ public partial class RenderModelStaticCollision : Component {
         add_data("ModelName", model);
         add_data("TextureName", texture);
         
+        add_data("Tint", Color.White);
+        add_data("Opacity", 1.0f);
+        
         add_data("Offset", Vector3.Zero);
         add_data("Scale", 1.0f);
         add_data("Orientation", Matrix.Identity);
 
         add_data("BlendState", BlendState.AlphaBlend);
         add_data("RasterizerState", RasterizerState.CullCounterClockwise);
+        
+        add_data("AlwaysRenderForward", false);
     }
 }

@@ -89,6 +89,8 @@ public partial class MouseWatcher {
     }
 
     public bool center_mouse_after_lock_released { get; set; } = false;
+
+    private static readonly object state_lock = new object();
     
     public void UpdateDeltas() {
         if (!mouse_locked && mouse_locked_p) {
@@ -99,7 +101,10 @@ public partial class MouseWatcher {
         
         do { } while (!Interlocked.CompareExchange(ref GETTING_STATE, true, false));
         mouse_state_previous = mouse_state_current;
-        mouse_state_current = Mouse.GetState();
+        lock (state_lock) {
+            mouse_state_current = Mouse.GetState();
+        }
+
         Interlocked.Exchange(ref GETTING_STATE, false);
         
         mouse_delta = mouse_state_current.Position.ToVector2i() - mouse_state_previous.Position.ToVector2i();

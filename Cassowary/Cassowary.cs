@@ -16,6 +16,7 @@ using Raven.Graphics;
 using Raven.Graphics.Drawing2D;
 using Raven.Graphics.Drawing3D;
 using Raven.Graphics.InterpolatedTypes;
+using Raven.Graphics.Skybox;
 using Raven.UI;
 using Raven.UI.Forms;
 using SoundFlow.Components;
@@ -98,12 +99,12 @@ public class CassowaryGame : Game {
             State.CurrentScene.Spawn(ent);
         }
         
-        cam.gbuffer.Draw3DLayer = () => {
+        cam.gbuffer.Draw3DOnTop = () => {
         };
         
-        cam.gbuffer.Draw2DLayer = () => {
+        cam.gbuffer.Draw2DOverGame = () => {
             //StaticControlBinds.draw_state(600, 0, 100, 10, 10);
-            var dayper = State.Skybox.sun_moon.current_time_entire_day_percent;
+            var dayper = SkyboxState.sun_moon.current_time_entire_day_percent;
             bool afternoon = dayper > 0.5f;
             var hour = afternoon ? ((dayper - 0.5f) * 2) * 12f : (dayper * 2f) * 12f;
             if ((int)hour == 0) hour = 12;
@@ -124,12 +125,12 @@ public class CassowaryGame : Game {
             }
             Draw2D.text_shadow(debug_str, Vector2i.One * 4, Color.White, Color.Black);
 
-            Draw2D.image(State.Skybox.sun_moon.lerps.debug_band, Vector2i.Down * 24 + (Vector2i.Right * (State.resolution.X - State.Skybox.sun_moon.lerps.debug_band.Bounds.Size.X)),
-                State.Skybox.sun_moon.lerps.debug_band.Bounds.Size.ToVector2i() + (Vector2i.UnitY * 10));
-            var tl = (Vector2i.Down * 24) + (Vector2i.Right * (State.resolution.X - State.Skybox.sun_moon.lerps.debug_band.Bounds.Size.X)) +
-                                            (State.Skybox.sun_moon.lerps.debug_band.Bounds.Size.ToVector2i() * (float)dayper);
+            Draw2D.image(SkyboxState.sun_moon.lerps.debug_band, Vector2i.Down * 24 + (Vector2i.Right * (State.resolution.X - SkyboxState.sun_moon.lerps.debug_band.Bounds.Size.X)),
+                SkyboxState.sun_moon.lerps.debug_band.Bounds.Size.ToVector2i() + (Vector2i.UnitY * 10));
+            var tl = (Vector2i.Down * 24) + (Vector2i.Right * (State.resolution.X - SkyboxState.sun_moon.lerps.debug_band.Bounds.Size.X)) +
+                                            (SkyboxState.sun_moon.lerps.debug_band.Bounds.Size.ToVector2i() * (float)dayper);
             Draw2D.line(tl, tl + (Vector2i.UnitY * 11), Color.Red, 1f);
-            Draw2D.text_shadow($"[Environment] {(int)hour} O'clock", Vector2i.Down * 4 + (Vector2i.Right * (State.resolution.X - State.Skybox.sun_moon.lerps.debug_band.Bounds.Size.X)), Color.White, Color.Black);
+            Draw2D.text_shadow($"[Environment] {(int)hour} O'clock", Vector2i.Down * 4 + (Vector2i.Right * (State.resolution.X - SkyboxState.sun_moon.lerps.debug_band.Bounds.Size.X)), Color.White, Color.Black);
             
             //Draw2D.fill_circle(new Vector2(200 + (50 * (sine.Phase / (MathF.PI * 2))), 10), 6f, Color.IndianRed);
             //Draw2D.fill_circle(new Vector2(200 + (50 * ), 18), 6f, Color.DarkOliveGreen);
@@ -214,21 +215,21 @@ public class CassowaryGame : Game {
             skull_rotate -= MathF.PI * 2;
         }
         
-        var time = State.Skybox.sun_moon.current_time_entire_day_percent;
+        var time = SkyboxState.sun_moon.current_time_entire_day_percent;
         
         if (State.engine_binds.double_tapped("test")) {
-            State.Skybox.sun_moon.set_time_of_day(0.5f);    
+            SkyboxState.sun_moon.set_time_of_day(0.5f);    
             
         } else if (State.engine_binds.pressed("test")) {
             if (State.engine_binds.just_pressed("scroll_up")) {
                 time += 0.005;
                 if (time > 1.0) time -= 1.0;
-                State.Skybox.sun_moon.set_time_of_day(time);    
+                SkyboxState.sun_moon.set_time_of_day(time);    
             }
             if (State.engine_binds.just_pressed("scroll_down")) {
                 time -= 0.005;
                 if (time < 0) time += 1.0;
-                State.Skybox.sun_moon.set_time_of_day(time);    
+                SkyboxState.sun_moon.set_time_of_day(time);    
             }
         }
         
