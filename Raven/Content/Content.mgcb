@@ -21,26 +21,6 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Fonts/profont.spritefont
 
-#begin Engine/Models/bigcube.FBX
-/importer:FbxImporter
-/processor:ModelProcessor
-/processorParam:ColorKeyColor=0,0,0,0
-/processorParam:ColorKeyEnabled=True
-/processorParam:DefaultEffect=BasicEffect
-/processorParam:GenerateMipmaps=True
-/processorParam:GenerateTangentFrames=False
-/processorParam:PremultiplyTextureAlpha=True
-/processorParam:PremultiplyVertexColors=True
-/processorParam:ResizeTexturesToPowerOfTwo=False
-/processorParam:RotationX=0
-/processorParam:RotationY=0
-/processorParam:RotationZ=0
-/processorParam:Scale=1
-/processorParam:SwapWindingOrder=False
-/processorParam:TextureFormat=Compressed
-/processorParam:Version=3.8.5.0
-/build:Engine/Models/bigcube.FBX
-
 #begin Engine/Models/cone.FBX
 /importer:FbxImporter
 /processor:ModelProcessor
@@ -81,26 +61,6 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Models/cube.FBX
 
-#begin Engine/Models/desk.fbx
-/importer:FbxImporter
-/processor:ModelProcessor
-/processorParam:ColorKeyColor=0,0,0,0
-/processorParam:ColorKeyEnabled=True
-/processorParam:DefaultEffect=BasicEffect
-/processorParam:GenerateMipmaps=True
-/processorParam:GenerateTangentFrames=False
-/processorParam:PremultiplyTextureAlpha=True
-/processorParam:PremultiplyVertexColors=True
-/processorParam:ResizeTexturesToPowerOfTwo=False
-/processorParam:RotationX=0
-/processorParam:RotationY=0
-/processorParam:RotationZ=0
-/processorParam:Scale=1
-/processorParam:SwapWindingOrder=False
-/processorParam:TextureFormat=Compressed
-/processorParam:Version=3.8.5.0
-/build:Engine/Models/desk.fbx
-
 #begin Engine/Models/fourth.fbx
 /importer:FbxImporter
 /processor:ModelProcessor
@@ -120,26 +80,6 @@
 /processorParam:TextureFormat=Compressed
 /processorParam:Version=3.8.5.0
 /build:Engine/Models/fourth.fbx
-
-#begin Engine/Models/skull.fbx
-/importer:FbxImporter
-/processor:ModelProcessor
-/processorParam:ColorKeyColor=0,0,0,0
-/processorParam:ColorKeyEnabled=True
-/processorParam:DefaultEffect=BasicEffect
-/processorParam:GenerateMipmaps=True
-/processorParam:GenerateTangentFrames=False
-/processorParam:PremultiplyTextureAlpha=True
-/processorParam:PremultiplyVertexColors=True
-/processorParam:ResizeTexturesToPowerOfTwo=False
-/processorParam:RotationX=0
-/processorParam:RotationY=0
-/processorParam:RotationZ=0
-/processorParam:Scale=1
-/processorParam:SwapWindingOrder=False
-/processorParam:TextureFormat=Compressed
-/processorParam:Version=3.8.5.0
-/build:Engine/Models/skull.fbx
 
 #begin Engine/Models/smoothsphere.FBX
 /importer:FbxImporter

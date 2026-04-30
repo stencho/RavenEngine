@@ -16,8 +16,7 @@
     <ItemGroup>
         <None Remove="Icon.ico" />
         <None Remove="Icon.bmp" />
-        <None Remove="Content\Effects\**" />
-        <None Remove="Engine\Collision\Solver\**" />        
+        <None Remove="Content\Effects\**" />       
         <None Remove="Content\bin\**" />        
         <None Remove="Content\obj\**" />        
         <None Remove="Content\Fonts\**" />        
