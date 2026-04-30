@@ -27,17 +27,18 @@ public partial class KeyboardWatcher {
     public KeyboardWatcher() { }
 
     private static volatile bool GETTING_STATE = false; 
-    private static readonly object state_lock = new object();
+    
     public void Update() {
-        //IS THIS STILL A RACE CONDITION? is the ! making it a race condition???
-        do {} while (!Interlocked.CompareExchange(ref GETTING_STATE, true, false));
         keyboard_state_prev = keyboard_state;
-        lock (state_lock) { 
-            // hella mad that I still seemingly need to do this
-            keyboard_state = Keyboard.GetState();
+        while (true) {
+            if (Interlocked.CompareExchange(ref GETTING_STATE, true, false)) {
+                keyboard_state = Keyboard.GetState();
+                break;
+            }
         }
+
         Interlocked.Exchange(ref GETTING_STATE, false);
-        
+
         pressed_keys_previous = pressed_keys;
         pressed_keys = keyboard_state.GetPressedKeys();
     }

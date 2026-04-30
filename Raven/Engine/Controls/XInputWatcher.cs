@@ -16,15 +16,15 @@ public partial class XInputWatcher {
     public PlayerIndex PlayerIndex => player_index;
     
     private static volatile bool GETTING_STATE = false;
-
-    private static readonly object state_lock = new object();
     
     public void Update() {
-        do { } while (!Interlocked.CompareExchange(ref GETTING_STATE, true, false));
         gamepad_state_previous = gamepad_state;
-        
-        lock (state_lock) {
-            gamepad_state = GamePad.GetState(player_index);
+
+        while (true) {
+            if (Interlocked.CompareExchange(ref GETTING_STATE, true, false)) {
+                gamepad_state = GamePad.GetState(player_index);
+                break;
+            }
         }
 
         Interlocked.Exchange(ref GETTING_STATE, false);
