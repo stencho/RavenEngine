@@ -64,7 +64,6 @@ namespace Raven.Graphics.Drawing3D {
             
             render_phase = RenderPhase.render_forward;
             render_forward(camera);
-            camera.gbuffer.Draw3DOnTop?.Invoke();
             
             graphics_device.SetRenderTarget(camera.gbuffer.rt_2D);
             

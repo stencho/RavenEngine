@@ -119,7 +119,6 @@ namespace Raven.Graphics {
             draw_to_screen = true;
         }
 
-        public Action Draw3DOnTop;
         public Action Draw2DOverGame;
         public Action Draw2DOnTop;
         
