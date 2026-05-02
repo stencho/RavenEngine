@@ -15,6 +15,7 @@ using Raven.Engine.Scene3D;
 using Raven.Graphics;
 using Raven.Graphics.Drawing2D;
 using Raven.Graphics.Drawing3D;
+using Raven.Graphics.Geometry2D;
 using Raven.Graphics.InterpolatedTypes;
 using Raven.Graphics.Skybox;
 using Raven.UI;
@@ -98,9 +99,30 @@ public class CassowaryGame : Game {
             
             State.CurrentScene.Spawn(ent);
         }
+
+        Vector2i top_left = Vector2i.One * 20;
+        Polygon2D test_shape = new Polygon2D(Vector2i.UnitX * 200 + (Vector2i.UnitY * 100),
+            top_left,
+            top_left + (Vector2i.Right * 60),
+            top_left + (Vector2i.One * 60),
+            top_left + (Vector2i.Down * 60)
+            
+            );
+
+        test_shape.regions[sdf_region.inner].color = UIColors.Foreground;
+        test_shape.regions[sdf_region.inner].secondary = UIColors.Foreground50Percent;
+            
+        test_shape.regions[sdf_region.outer].color = Color.DodgerBlue;
+        test_shape.regions[sdf_region.outer].secondary = Color.MidnightBlue;
+
+        test_shape.regions[sdf_region.inner].pattern_type = sdf_pattern.DITHER;
+        test_shape.regions[sdf_region.outer].pattern_type = sdf_pattern.DITHER;
+        test_shape.regions[sdf_region.inner].dither_resolution = 10;
         
-        cam.gbuffer.Draw3DOnTop = () => {
-        };
+        test_shape.inner_border_width = 3.5f;
+        test_shape.regions[sdf_region.inner_border].color = UIColors.Foreground;
+        
+        //SkyboxState.sun_moon.set_time_of_day(0.9f);
         
         cam.gbuffer.Draw2DOverGame = () => {
             //StaticControlBinds.draw_state(600, 0, 100, 10, 10);
@@ -135,6 +157,16 @@ public class CassowaryGame : Game {
             //Draw2D.fill_circle(new Vector2(200 + (50 * (sine.Phase / (MathF.PI * 2))), 10), 6f, Color.IndianRed);
             //Draw2D.fill_circle(new Vector2(200 + (50 * ), 18), 6f, Color.DarkOliveGreen);
             //Draw2D.fill_circle(new Vector2(200 + (50 * ), 24), 6f, Color.MediumPurple);
+            
+            //Draw2D.image(cursor.white_fill, Vector2i.One * 50, Vector2i.One * 100, 0f);
+            //Draw2D.image(cursor.signed_distance_negative, Vector2i.One * 50, Vector2i.One * 100, 0f);
+            //Draw2D.rect(Vector2i.One * 50, Vector2i.One * 32 + 50, Color.Black, 1f);
+            
+            //Draw2D.rect((Vector2i.One * 50) + (Vector2i.Down * 110), (Vector2i.One * 100+50) + (Vector2i.Down * 110), Color.Black, 1f);
+            test_shape.render(Vector2i.One * 50);
+            
+            Draw2D.end();
+            
         };
         
         //Oscillator test = new Oscillator(SoundFlowState.Engine, SoundFlowState.PlaybackDevice.Format) { Frequency = 220, Type = Oscillator.WaveformType.Sine};
@@ -174,24 +206,24 @@ public class CassowaryGame : Game {
         
         State.UI.add_window(inspector);
         
-        var tester = new UIWindow(new Vector2i(20,20), new Vector2i(400, 320));
+        //var tester = new UIWindow(new Vector2i(20,20), new Vector2i(400, 320));
 
         var subtest = new UIButton(5, 5, "button hehe :3c");
         subtest.set_action(() => Log.log("ahn!!"));
         var subtest2 = new UIButton(5, 55, "another funny little button");
         subtest2.set_action(() => Log.log("uhnghn!!"));
         
-        var panel = new TabbedPanel(Vector2i.Zero, tester.client_size);
+        //var panel = new TabbedPanel(Vector2i.Zero, tester.client_size);
         
         
-        panel.add_subform(subtest);
-        panel.add_subform(subtest2);
-        tester.add_subform(panel);
+        //panel.add_subform(subtest);
+        //panel.add_subform(subtest2);
+        //tester.add_subform(panel);
         
         //tester.internal_draw_action = () => {
         //};
         
-        State.UI.add_window(tester);
+        //State.UI.add_window(tester);
         
         
         //SoundFlowState.Master.AddComponent(test);

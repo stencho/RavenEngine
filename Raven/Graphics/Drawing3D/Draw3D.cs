@@ -489,8 +489,7 @@ namespace Raven.Graphics.Drawing3D;
             basic_effect.World = Matrix.Identity;
         }
 
-
-        public static VertexPositionNormalTexture[] quad = new VertexPositionNormalTexture[4] {
+        public static VertexPositionNormalTexture[]quad = new VertexPositionNormalTexture[4] {
                 new VertexPositionNormalTexture(new Vector3(-1, 1, 0), -Vector3.UnitZ, new Vector2(0, 0)),
                 new VertexPositionNormalTexture(new Vector3(1, 1, 0), -Vector3.UnitZ, new Vector2(1, 0)),
                 new VertexPositionNormalTexture(new Vector3(1, -1, 0), -Vector3.UnitZ, new Vector2(1, 1)),
@@ -518,33 +517,21 @@ namespace Raven.Graphics.Drawing3D;
         }
 
         public static void fill_tri(Camera camera, Matrix world, Vector3 A, Vector3 B, Vector3 C, Color color) {
-            State.graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
+            State.graphics_device.RasterizerState = RasterizerState.CullNone;
             if (t_index_buffer == null) {
                 t_index_buffer = new IndexBuffer(State.graphics_device, IndexElementSize.SixteenBits, t_indices.Length, BufferUsage.None);
                 t_index_buffer.SetData<ushort>(t_indices);
+            
+                tri = new VertexPositionNormalTexture[3] {
+                    new VertexPositionNormalTexture(A, -Vector3.UnitZ, new Vector2(0, 0)),
+                    new VertexPositionNormalTexture(B, -Vector3.UnitZ, new Vector2(1, 0)),
+                    new VertexPositionNormalTexture(C, -Vector3.UnitZ, new Vector2(1, 1))
+                };
+
+                t_vertex_buffer = new VertexBuffer(State.graphics_device, VertexPositionNormalTexture.VertexDeclaration, tri.Length, BufferUsage.None);
+                t_vertex_buffer.SetData<VertexPositionNormalTexture>(tri);
             }
-            tri = new VertexPositionNormalTexture[3] {
-                new VertexPositionNormalTexture(A, -Vector3.UnitZ, new Vector2(0, 0)),
-                new VertexPositionNormalTexture(B, -Vector3.UnitZ, new Vector2(1, 0)),
-                new VertexPositionNormalTexture(C, -Vector3.UnitZ, new Vector2(1, 1))
-            };
-
-            t_vertex_buffer = new VertexBuffer(State.graphics_device, VertexPositionNormalTexture.VertexDeclaration, tri.Length, BufferUsage.None);
-            t_vertex_buffer.SetData<VertexPositionNormalTexture>(tri);
-
-            draw_buffers(camera, t_vertex_buffer, t_index_buffer, world, color);
-        }
-
-        public static void fill_tris_big_buffer(Camera camera, Matrix world, (Vector3 A, Vector3 B, Vector3 C)[] tris, Color color) {
-            if (t_index_buffer == null) {
-                t_index_buffer = new IndexBuffer(State.graphics_device, IndexElementSize.SixteenBits, t_indices.Length, BufferUsage.None);
-                t_index_buffer.SetData<ushort>(t_indices);
-            }
-
-
-            t_vertex_buffer = new VertexBuffer(State.graphics_device, VertexPositionNormalTexture.VertexDeclaration, tri.Length, BufferUsage.None);
-            t_vertex_buffer.SetData<VertexPositionNormalTexture>(tri);
-
+            
             draw_buffers(camera, t_vertex_buffer, t_index_buffer, world, color);
         }
 

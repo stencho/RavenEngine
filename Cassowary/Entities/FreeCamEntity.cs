@@ -12,6 +12,8 @@ using Raven.Engine.Components;
 using Raven.Engine.Controls;
 using Raven.Graphics.Drawing2D;
 using Raven.Graphics.Drawing3D;
+using Raven.Graphics.Geometry2D;
+using Raven.UI;
 
 namespace Raven.Engine.Entities;
 
@@ -23,6 +25,10 @@ public partial class FreeCamEntity : Entity {
     
     private BindWatcher binds;
     private MouseWatcher mouse;
+    
+    Vector2i pointer_tip = (Vector2i.One * 5) + (Vector2i.Right * 5);
+
+    private Polygon2D cursor;
     
     internal static (string bind, object[] bind_data)[]
         bind_list = [
@@ -47,16 +53,41 @@ public partial class FreeCamEntity : Entity {
         
         binds = new BindWatcher(bind_list);
         mouse = new MouseWatcher();
+        
+        cursor = new Polygon2D(Vector2i.One * 32, 
+            pointer_tip,
+            pointer_tip + (Vector2i.One * 15),
+            pointer_tip + (Vector2i.Down * 15) + (Vector2i.Right * 6), 
+            pointer_tip + (Vector2i.Down * 21) 
+        );
+
+        cursor.regions[sdf_region.inner].color = UIColors.Foreground;
+        cursor.regions[sdf_region.inner].secondary = UIColors.Foreground50Percent;
+        cursor.regions[sdf_region.inner].pattern_type = sdf_pattern.DITHER;
+        cursor.regions[sdf_region.inner].dither_resolution = 4;
+
+        cursor.regions[sdf_region.inner_border].color = UIColors.Foreground;
+        cursor.regions[sdf_region.outer_border].color = UIColors.Foreground;
+
+        cursor.inner_border_width = 1f;
+        cursor.outer_border_width = 0f;
     }
+
 
     public void Initialized() {
         var cam = Components.GetFirst<GBufferCamera>().camera;
+
+        
         cam.gbuffer.Draw2DOnTop = () => {
             if (!binds.MouseLocked && !binds.MouseLockedPrevious) {
+                cursor.render(MouseWatcher.Position - pointer_tip, Vector2i.One * 32);
+            } else {
                 Draw2D.fill_circle(MouseWatcher.Position, 3f, Color.White);
                 Draw2D.circle(MouseWatcher.Position, 3f, 2f, Color.Black);
             }
+            
         };
+        
     }
 
     private Vector3 velocity = Vector3.Zero;
