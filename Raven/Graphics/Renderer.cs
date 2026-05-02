@@ -8,6 +8,7 @@ using Raven.Engine.Collision;
 using Raven.Engine.Collision.Shapes3D;
 using Raven.Engine.Components;
 using Raven.Graphics.Drawing2D;
+using Raven.Graphics.Effects;
 using Raven.Graphics.Skybox;
 using Color = Microsoft.Xna.Framework.Color;
 using static Raven.Engine.State;
@@ -56,11 +57,17 @@ namespace Raven.Graphics.Drawing3D {
             build_lighting(camera, camera.gbuffer);
             
             render_phase = RenderPhase.draw_skybox;
+            clear_buffers(camera.gbuffer);
             clear_to_skybox(camera, camera.gbuffer);
             
             render_phase = RenderPhase.render_deferred;
+            ManagedEffect.Manager.do_updates();
+            
             render_deferred(camera);
+            
+            draw_directional_lighting(camera,camera.gbuffer);
             draw_lighting(camera, camera.gbuffer);
+            
             
             render_phase = RenderPhase.render_forward;
             render_forward(camera);
@@ -98,20 +105,21 @@ namespace Raven.Graphics.Drawing3D {
                 
             }
         }
-        
-        public static void clear_to_skybox(Camera camera, GBuffer gbuffer) {       
+
+        private static void clear_buffers(GBuffer gbuffer) {
             graphics_device.DepthStencilState = DepthStencilState.None;
 
             gbuffer.draw_to_bindings();
             e_clear.Parameters["color"].SetValue(SkyboxState.sun_moon.atmosphere_color.ToVector4());
             e_clear.Techniques["Default"].Passes[0].Apply();
 
-
             graphics_device.SetVertexBuffer(quad_vb);
             graphics_device.Indices = quad_ib;
 
             graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
-
+        }
+        
+        private static void clear_to_skybox(Camera camera, GBuffer gbuffer) {       
             graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
             graphics_device.BlendState = BlendState.AlphaBlend;
 
@@ -154,7 +162,7 @@ namespace Raven.Graphics.Drawing3D {
         }
 
         
-        public static void build_lighting(Camera camera, GBuffer buffer) {
+        private static void build_lighting(Camera camera, GBuffer buffer) {
             graphics_device.SetRenderTarget(buffer.rt_lighting);
             graphics_device.Clear(SkyboxState.sun_moon.atmosphere_color);
 
@@ -190,7 +198,7 @@ namespace Raven.Graphics.Drawing3D {
             }
         }
 
-        public static void draw_lighting(Camera camera, GBuffer gbuffer) {
+        private static void draw_directional_lighting(Camera camera, GBuffer gbuffer) {
             graphics_device.SetRenderTarget(gbuffer.rt_lighting);
 
             e_pointlight.Parameters["View"].SetValue(camera.view);
@@ -210,11 +218,16 @@ namespace Raven.Graphics.Drawing3D {
             graphics_device.Indices = quad_ib;
 
             SkyboxState.sun_moon.configure_dlight_shader(camera, gbuffer, e_directionallight);
+            
+        }
+        private static void draw_lighting(Camera camera, GBuffer gbuffer) {
 
             graphics_device.BlendState = DynamicLightRequirements.blend_state;
             graphics_device.DepthStencilState = DepthStencilState.DepthRead;
             
             foreach(light light in visible_lights) {
+                /* TURN E_SPOTLIGHT AND E_POINTLIGHT INTO MANAGEDEFFECTS
+                    ALSO ADD SHADOWS TO POINT LIGHTS
                 if (light.type == LightType.SPOT) {
                     e_spotlight.Parameters["World"].SetValue(light.world);
 
@@ -279,8 +292,8 @@ namespace Raven.Graphics.Drawing3D {
                     e_pointlight.CurrentTechnique.Passes[0].Apply();
                     graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, Resources.GetModel("sphere").Meshes[0].MeshParts[0].VertexBuffer.VertexCount);
                 }
+                */
             }
-
         }
     }
 }

@@ -122,6 +122,8 @@ namespace Raven.Graphics {
         public Action Draw2DOverGame;
         public Action Draw2DOnTop;
         
+        //public Action Draw3DOverGame;
+        
         public ManagedRT2D rt_diffuse;
         public RenderTarget2D rt_normal;
         public RenderTarget2D rt_depth;

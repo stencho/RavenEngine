@@ -10,9 +10,9 @@ using Raven.Graphics.Drawing2D;
 
 namespace Raven.Graphics.Effects {
 
-    public class ManagedEffect {
+    public partial class ManagedEffect {
         public static class Manager {
-            static List<ManagedEffect> registered_effects_update = new List<ManagedEffect>();
+            static HashSet<ManagedEffect> registered_effects_update = new HashSet<ManagedEffect>();
 
             public static void register_for_update(ManagedEffect effect) => registered_effects_update.Add(effect);            
             public static void unregister_for_update(ManagedEffect effect) => registered_effects_update.Remove(effect);
@@ -37,16 +37,23 @@ namespace Raven.Graphics.Effects {
 
         public ManagedEffect() {
             build_basic_effect();
+            Manager.register_for_update(this);
         }
         public ManagedEffect(Effect effect) {
             _effect = effect;
             build_basic_effect();
+            Manager.register_for_update(this);
         }
         public ManagedEffect(ContentManager content, string effect_name) {
             load_shader_file(content, effect_name);
             build_basic_effect();
+            Manager.register_for_update(this);
         }
 
+        ~ManagedEffect() {
+            Manager.unregister_for_update(this);
+        }
+        
         void build_basic_effect() {
             if (basic_effect == null) {
                 basic_effect = new BasicEffect(State.graphics_device);

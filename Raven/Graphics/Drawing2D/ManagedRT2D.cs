@@ -100,8 +100,8 @@ public partial class ManagedRT2D {
     }
     
     private void update_render_targets() {
-        flip = new RenderTarget2D(State.graphics_device, Width, Height, mipmap, surface_format, depth_format);
-        if (double_buffered) flop = new RenderTarget2D(State.graphics_device, Width, Height, mipmap, surface_format, depth_format);
+        flip = new RenderTarget2D(State.graphics_device, Width, Height, mipmap, surface_format, depth_format, 0, RenderTargetUsage.DiscardContents);
+        if (double_buffered) flop = new RenderTarget2D(State.graphics_device, Width, Height, mipmap, surface_format, depth_format, 0, RenderTargetUsage.DiscardContents);
         else flop = null;
     }
 }

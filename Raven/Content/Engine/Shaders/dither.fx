@@ -7,13 +7,6 @@
 	#define PS_SHADERMODEL ps_4_0_level_9_1
 #endif
 
-Texture2D SpriteTexture;
-
-sampler2D SpriteTextureSampler = sampler_state
-{
-	Texture = <SpriteTexture>;
-};
-
 float4 color_a = float4(1,1,1,1);
 float4 color_b = float4(0.5,0.5,0.5,1);
 
@@ -24,7 +17,6 @@ int pattern_size = 2;
 float4x4 world; 
 
 bool clip_b = false;
-
 
 struct VertexShaderOutput
 {
