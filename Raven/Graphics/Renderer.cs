@@ -9,6 +9,7 @@ using Raven.Engine.Collision.Shapes3D;
 using Raven.Engine.Components;
 using Raven.Graphics.Drawing2D;
 using Raven.Graphics.Effects;
+using Raven.Graphics.Geometry2D;
 using Raven.Graphics.Skybox;
 using Color = Microsoft.Xna.Framework.Color;
 using static Raven.Engine.State;

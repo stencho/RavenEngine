@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Raven.Engine;
 
-namespace Raven.Graphics.Effects;
+namespace Raven.Graphics.Geometry2D;
 
 public class AnimatedTexture {
     public static class Manager {
