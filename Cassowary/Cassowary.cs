@@ -64,6 +64,9 @@ public class CassowaryGame : Game {
 
     protected override void Initialize() {
         State.Initialize(this, Content, _graphics, Window);
+        
+        gvars.set("g_time_scale", 0f);
+        
         base.Initialize();
     }
 

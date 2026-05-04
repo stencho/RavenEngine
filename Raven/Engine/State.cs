@@ -176,7 +176,7 @@ public static class State {
         ConsoleInputRunner.build_using_list();
         
         gvars.add_gvar("g_tick_rate", gvar_data_type.INT, 60, true, "Sets the update thread's tick rate.");
-        gvars.add_gvar("g_time_scale", gvar_data_type.FLOAT, 0f, false);
+        gvars.add_gvar("g_time_scale", gvar_data_type.FLOAT, 1f, false);
         
         gvars.add_gvar("r_resolution", gvar_data_type.VECTOR2I, FindCurrentResolution(), true, "Resolution of both the game window and output buffer.");
         gvars.add_gvar("r_resolution_scale", gvar_data_type.FLOAT, 1f, true, "Set the 3D render output buffer resolution scale.\n0.5 will half the resolution, making things pixelated, 2.0 will double the resolution.\nThis will not affect the 2D layer or backbuffer.\nGoing above 1.0 will not really do anything due to how deferred rendering works.\n");

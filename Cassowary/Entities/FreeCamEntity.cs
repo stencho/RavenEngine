@@ -147,8 +147,10 @@ public partial class FreeCamEntity : Entity {
 
         if (toggle_mouse_lock) {
             if (!mouse_locked && mouse.just_pressed(MouseWatcher.MouseButtons.Right) && !State.UI.mouse_over_UI()) {
+                gvars.set("g_time_scale", 1f);
                 mouse_locked = true;
             } else if (mouse_locked && mouse.just_pressed(MouseWatcher.MouseButtons.Right)) {
+                gvars.set("g_time_scale", 0f);
                 mouse_locked = false;
             }
         } else {
