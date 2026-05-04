@@ -169,6 +169,7 @@ public class BindWatcher {
                 
                 // made it through all inputs and none were pressed, so release the bind
                 bind.release();
+                bind.JustReleased?.Invoke();
                 bind.ActiveInput = null;
                 
             // handle pressing digital state    
@@ -182,6 +183,7 @@ public class BindWatcher {
                             if (Keyboard.just_pressed(k.Key)) {
                                 bind.press();
                                 bind.ActiveInput = d_bind;
+                                bind.JustPressed?.Invoke();
                                 goto next;
                             }
                             break;
@@ -190,6 +192,7 @@ public class BindWatcher {
                             if (Mouse.just_pressed(mb.MouseButton)) {
                                 bind.press();
                                 bind.ActiveInput = d_bind;
+                                bind.JustPressed?.Invoke();
                                 goto next;
                             }
                             break;
@@ -310,6 +313,9 @@ public static class InputBinds {
         public float AnalogState => analog_state;
         
         public IInput ActiveInput { get; set; }
+        
+        public Action JustPressed { get; set; }
+        public Action JustReleased { get; set; }
         
         public Bind(string name, IInput input) {
             Name = name; 
