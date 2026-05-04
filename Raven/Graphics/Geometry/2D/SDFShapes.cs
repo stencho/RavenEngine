@@ -207,28 +207,6 @@ public class SDFShape {
 }
 
 public partial class DrawShapesToSurface : ManagedEffect {
-    /*private ConcurrentDictionary<string, SDFShape> shapes = new ConcurrentDictionary<string, SDFShape>();
-
-    public SDFShape? get(string name) {
-        if (shapes.TryGetValue(name, out var shape)) {
-            return shape;
-        }
-
-        return null;
-    }
-    
-    public void add_shape(string name, params Vector2i[] points) {
-        shapes.TryAdd(name, new SDFShape(points));
-    }
-    public void draw_shape(string name) {
-        draw_shape(get(name));
-    }
-    public void draw_all_shapes() {
-        //set_param("resolution", surface_resolution);
-        
-    }
-    */
-    
     internal bool draw_debug = true;
 
     private Vector2[] shader_points = new Vector2[32];
