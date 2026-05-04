@@ -35,13 +35,11 @@ public class Lerper {
     }
             
     public void Lerp() {
-        var delta = Thread == EngineThread.Render ? Clock.render_delta_time_ms_f : (float)State.scene_update_thread.delta_ms;
-        position_ms += delta;
+        position_ms += Clock.delta_ms_f(Thread);
         lerp();
     }
     public void LerpReverse() {
-        var delta = Thread == EngineThread.Render ? Clock.render_delta_time_ms_f : (float)State.scene_update_thread.delta_ms;
-        position_ms -= delta;
+        position_ms -= Clock.delta_ms_f(Thread);
         lerp();
     }
 
