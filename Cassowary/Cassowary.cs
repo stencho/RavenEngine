@@ -1,5 +1,4 @@
 ﻿using System;
-using Cassowary.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -45,7 +44,7 @@ public class CassowaryGame : Game {
 
     private Sine sine;
     
-    InspectorWindow inspector;
+    UIWindow inspector;
     
     private LerpedMatrix l_mat = new LerpedMatrix(Matrix.Identity * Matrix.CreateFromAxisAngle(Vector3.UnitX, float.DegreesToRadians(-90)),
         Matrix.Identity * Matrix.CreateFromAxisAngle(Vector3.UnitX, float.DegreesToRadians(90)), 2000,
@@ -191,6 +190,11 @@ public class CassowaryGame : Game {
         */
 
         LayoutManager lm = new LayoutManager(inspector);
+        
+        lm.add_strip(new UIButton(0, 0, "test button"));
+        lm.add_strip(new UIButton(0,0, "test button"), new UIButton(0,0, "test button"));
+        lm.add_strip(new UIButton(0,0, "test button"), new UIButton(0,0, "test button"), new UIButton(0,0, "test button"));
+        
         inspector.add_subform(lm);
         
         State.UI.add_window(inspector);
