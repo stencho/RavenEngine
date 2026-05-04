@@ -155,8 +155,8 @@ public class CassowaryGame : Game {
         //Oscillator test = new Oscillator(SoundFlowState.Engine, SoundFlowState.PlaybackDevice.Format) { Frequency = 220, Type = Oscillator.WaveformType.Sine};
         
         
-        inspector = new InspectorWindow(new Vector2i(0, State.resolution.Y - 700), new Vector2i(400, 320));
-        inspector.hide();
+        inspector = new UIWindow(new Vector2i(0, State.resolution.Y - 700), new Vector2i(400, 320));
+        //inspector.hide();
         /*
         var b = new UIButton(5, 5, "fart really hard");
 
