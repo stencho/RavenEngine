@@ -65,7 +65,7 @@ public partial class MouseWatcher {
     private static bool mouse_locked_global_status_previous = false;
     public static bool MouseLockedPrevious => mouse_locked_global_status_previous;
     
-    private static Vector2i mouse_lock_stored_position;
+    public static Vector2i mouse_lock_stored_position;
     
     public static bool mouse_in_bounds => Math2D.point_within_square(Vector2i.Zero, State.window.ClientBounds.Size.ToVector2i(), Position);
     

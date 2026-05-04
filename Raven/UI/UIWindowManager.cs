@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using Raven.Console;
 using Raven.Engine;
 using Raven.Engine.Collision;
@@ -47,7 +48,7 @@ namespace Raven.UI  {
         public List<IUIForm> windows = new List<IUIForm>();
         ConsoleWindow console;
 
-        public bool focus_follows_mouse = gvars.get_bool("ui_focus_follows_mouse");
+        public bool focus_follows_mouse => gvars.get_bool("ui_focus_follows_mouse");
         public bool window_shadows => gvars.get_bool("ui_window_shadows");
         public Vector2i shadow_offset = (Vector2i.One * 3) + Vector2i.Down;
         
@@ -115,9 +116,20 @@ namespace Raven.UI  {
             return false;
         }
 
+        void move_mouse_to_form_center(IUIForm form) {
+            if (focus_follows_mouse) {
+                var pos = form.position + (form.client_size / 2);
+                if (!MouseWatcher.MouseLocked)
+                    Mouse.SetPosition(pos.X, pos.Y);
+                else MouseWatcher.mouse_lock_stored_position = pos;
+            }
+        }
+        
         void force_focus(IUIForm form) {
             int windex = -1;
             int sindex = -1;
+
+            if (MouseWatcher.MouseLocked) return;
             
             for (int o = 0; o < windows.Count; o++) {
                 if (windows[o] == form)
@@ -176,6 +188,7 @@ namespace Raven.UI  {
                         defocus_all_windows();
                         windows.BringToFront(window);
                         force_focus(window);
+                        move_mouse_to_form_center(window);
                         BindWatcher.global_enable = false;
                         return;
                     }
@@ -186,26 +199,34 @@ namespace Raven.UI  {
                         defocus_all_windows();
                         windows.BringToFront(window);
                         force_focus(window);
+                        move_mouse_to_form_center(window);
                         return;
                     }
                 }                
             }
 
-            window.toggle_visibility();
+            if (!focus_follows_mouse)
+                window.toggle_visibility();
 
             if (window.visible && !MouseWatcher.MouseLocked) {
                 if (MouseWatcher.MouseLocked) return;
                 
+                if (focus_follows_mouse && window.has_focus)
+                    window.toggle_visibility();
+                
                 if (!mouse_holding_window) {
                     windows.BringToFront(window);
                     force_focus(window);
-                }
+                    move_mouse_to_form_center(window);
+                } 
 
                 BindWatcher.global_enable = false;
-            } else {
-                if (window.visible) {
-                    windows.BringToFront(window);
-                }
+            } else if (!MouseWatcher.MouseLocked && !mouse_holding_window) {
+                if (focus_follows_mouse) window.toggle_visibility();
+                
+                if (window.visible) windows.BringToFront(window);
+                if (focus_follows_mouse) move_mouse_to_form_center(window);
+                
                 BindWatcher.global_enable = true;
                 defocus_all_windows();
             }

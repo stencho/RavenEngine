@@ -149,7 +149,9 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
                         
                         public void reconfigure_client_area() {
                             _client_area = new RenderTarget2D(State.graphics_device, client_size.X, client_size.Y);
-                            _collision.Add("client_area", new BoundingBox2D(absolute_position, size));
+                            if (_collision.ContainsKey("client_area")) {
+                                _collision["client_area"] = new BoundingBox2D(absolute_position, size);
+                            } else _collision.Add("client_area", new BoundingBox2D(absolute_position, size));
                         }
                         
                         public void add_subform(IUIForm subform) {
