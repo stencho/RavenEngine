@@ -105,7 +105,7 @@ public class CassowaryGame : Game {
         //SkyboxState.sun_moon.set_time_of_day(0.9f);
         Vector2i pointer_tip = (Vector2i.One * 5) + (Vector2i.Right * 5);
         
-        cam.gbuffer.Draw2DOverGame = (DrawShapesToSurface draw_shapes) => {
+        cam.gbuffer.Draw2DOverGame += (DrawShapesToSurface draw_shapes) => {
             //StaticControlBinds.draw_state(600, 0, 100, 10, 10);
             var dayper = SkyboxState.sun_moon.current_time_entire_day_percent;
             bool afternoon = dayper > 0.5f;
