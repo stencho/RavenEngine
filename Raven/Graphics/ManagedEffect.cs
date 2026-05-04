@@ -95,6 +95,7 @@ namespace Raven.Graphics.Effects {
             else if (t == typeof(float[])) _effect.Parameters[param].SetValue((float[])obj);
             else if (t == typeof(Vector2i)) _effect.Parameters[param].SetValue(((Vector2i)obj).ToVector2());
             else if (t == typeof(Vector2)) _effect.Parameters[param].SetValue((Vector2)obj);
+            else if (t == typeof(Point)) _effect.Parameters[param].SetValue(((Point)obj).ToVector2());
             else if (t == typeof(Vector3)) _effect.Parameters[param].SetValue((Vector3)obj);
             else if (t == typeof(Vector4)) _effect.Parameters[param].SetValue((Vector4)obj);
             else if (t == typeof(Vector2[])) _effect.Parameters[param].SetValue((Vector2[])obj);

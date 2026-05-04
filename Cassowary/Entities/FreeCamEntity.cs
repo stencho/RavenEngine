@@ -28,7 +28,7 @@ public partial class FreeCamEntity : Entity {
     
     Vector2i pointer_tip = (Vector2i.One * 5) + (Vector2i.Right * 5);
 
-    private Polygon2D cursor;
+    private SDFShape cursor;
     
     internal static (string bind, object[] bind_data)[]
         bind_list = [
@@ -46,6 +46,7 @@ public partial class FreeCamEntity : Entity {
             ("click", [MouseWatcher.MouseButtons.Left]),
             ("click_right", [MouseWatcher.MouseButtons.Right]),
         ];
+    
     public FreeCamEntity() {
         gbuffer_camera = new GBufferCamera(this, State.resolution, State.super_res_scale);
         
@@ -54,36 +55,29 @@ public partial class FreeCamEntity : Entity {
         binds = new BindWatcher(bind_list);
         mouse = new MouseWatcher();
         
-        cursor = new Polygon2D(Vector2i.One * 32, 
+        cursor = new SDFShape(
             pointer_tip,
             pointer_tip + (Vector2i.One * 15),
             pointer_tip + (Vector2i.Down * 15) + (Vector2i.Right * 6), 
             pointer_tip + (Vector2i.Down * 21) 
         );
 
-        cursor.regions[sdf_region.inner].color = UIColors.Foreground;
-        cursor.regions[sdf_region.inner].secondary = UIColors.Foreground50Percent;
-        cursor.regions[sdf_region.inner].pattern_type = sdf_pattern.DITHER;
-        cursor.regions[sdf_region.inner].dither_resolution = 4;
-
-        cursor.regions[sdf_region.inner_border].color = UIColors.Foreground;
-        cursor.regions[sdf_region.outer_border].color = UIColors.Foreground;
-
-        cursor.inner_border_width = 1f;
-        cursor.outer_border_width = 0f;
+        cursor.inner_color = UIColors.Background;
+        cursor.inner_border_color =  UIColors.Foreground;
+        cursor.inner_border_width = 2;
     }
 
 
     public void Initialized() {
         var cam = Components.GetFirst<GBufferCamera>().camera;
-
         
-        cam.gbuffer.Draw2DOnTop = () => {
+        cam.gbuffer.Draw2DOnTop = (DrawShapesToSurface draw_shapes) => {
             if (!binds.MouseLocked && !binds.MouseLockedPrevious) {
-                cursor.render(MouseWatcher.Position - pointer_tip, Vector2i.One * 32);
+                cursor.render_position = MouseWatcher.Position;
+                draw_shapes.draw_shape(cursor);
             } else {
-                Draw2D.fill_circle(MouseWatcher.Position, 3f, Color.White);
-                Draw2D.circle(MouseWatcher.Position, 3f, 2f, Color.Black);
+                Draw2D.fill_circle(cam.gbuffer.resolution / 2, 3f, UIColors.Background);
+                Draw2D.circle(cam.gbuffer.resolution / 2, 3f, 1f, UIColors.Foreground);
             }
             
         };

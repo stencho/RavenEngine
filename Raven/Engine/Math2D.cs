@@ -209,6 +209,33 @@ namespace Raven.Engine {
             return a + t * ab;
         }
 
+        public static Vector2 highest_dot_in_point_array(Vector2 direction, Vector2[] points) {
+            float highest_dot = float.MinValue;
+            Vector2 farthest_point = Vector2.Zero;
 
+            foreach (var point in points) {
+                var d = Vector2.Dot(direction, point);
+                if (d > highest_dot) {
+                    highest_dot = d;
+                    farthest_point = point;
+                }
+            }
+            
+            return farthest_point;
+        }
+        public static Vector2i highest_dot_in_point_array(Vector2 direction, Vector2i[] points) {
+            float highest_dot = float.MinValue;
+            Vector2i farthest_point = Vector2i.Zero;
+
+            foreach (var point in points) {
+                var d = Vector2.Dot(direction, point.ToVector2());
+                if (d > highest_dot) {
+                    highest_dot = d;
+                    farthest_point = point;
+                }
+            }
+            
+            return farthest_point;
+        }
     }
 }

@@ -58,7 +58,8 @@ namespace Raven.Graphics.Drawing3D {
             build_lighting(camera, camera.gbuffer);
             
             render_phase = RenderPhase.draw_skybox;
-            clear_buffers(camera.gbuffer);
+            
+            clear_buffers(camera.gbuffer); 
             clear_to_skybox(camera, camera.gbuffer);
             
             render_phase = RenderPhase.render_deferred;
@@ -76,10 +77,11 @@ namespace Raven.Graphics.Drawing3D {
             graphics_device.SetRenderTarget(camera.gbuffer.rt_2D);
             
             AutoRender2D.Manager.RenderAll();
-            camera.gbuffer.Draw2DOverGame?.Invoke();
+            graphics_device.SetRenderTarget(camera.gbuffer.rt_2D);
+            camera.gbuffer.draw_over_game_layer();
             
             GBuffer.Manager.DrawUIToSelectedGBuffer();
-            camera.gbuffer.Draw2DOnTop?.Invoke();
+            camera.gbuffer.draw_on_top_layer();
             
             camera.gbuffer.Compose(camera);
         }
@@ -108,9 +110,17 @@ namespace Raven.Graphics.Drawing3D {
         }
 
         private static void clear_buffers(GBuffer gbuffer) {
+            graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
             graphics_device.DepthStencilState = DepthStencilState.None;
-
+            
+            ManagedRT2D.Manager.FlipAll();
             gbuffer.draw_to_bindings();
+            
+            foreach (var rtb in gbuffer.target_bindings) {
+                graphics_device.SetRenderTarget((RenderTarget2D)rtb.RenderTarget);
+                graphics_device.Clear(Color.Transparent);
+            }
+
             e_clear.Parameters["color"].SetValue(SkyboxState.sun_moon.atmosphere_color.ToVector4());
             e_clear.Techniques["Default"].Passes[0].Apply();
 
@@ -123,7 +133,9 @@ namespace Raven.Graphics.Drawing3D {
         private static void clear_to_skybox(Camera camera, GBuffer gbuffer) {       
             graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
             graphics_device.BlendState = BlendState.AlphaBlend;
-
+            
+            gbuffer.draw_to_bindings();
+            
             e_skybox.Parameters["atmosphere_color"].SetValue(SkyboxState.sun_moon.atmosphere_color.ToVector4());
             e_skybox.Parameters["sky_color"].SetValue(SkyboxState.sun_moon.sky_color.ToVector4());
 

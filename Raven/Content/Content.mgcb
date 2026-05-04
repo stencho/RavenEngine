@@ -201,6 +201,22 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/pointlight.fx
 
+#begin Engine/Shaders/sdf_shape.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/processorParam:Defines=
+/processorParam:Version=3.8.5.0
+/build:Engine/Shaders/sdf_shape.fx
+
+#begin Engine/Shaders/render_target_screen_pos.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/processorParam:Defines=
+/processorParam:Version=3.8.5.0
+/build:Engine/Shaders/render_target_screen_pos.fx
+
 #begin Engine/Shaders/render_target_screen_pos.fx
 /importer:EffectImporter
 /processor:EffectProcessor
@@ -216,14 +232,6 @@
 /processorParam:Defines=
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/sdf_circle.fx
-
-#begin Engine/Shaders/sdf_dual_texture.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/processorParam:Defines=
-/processorParam:Version=3.8.5.0
-/build:Engine/Shaders/sdf_dual_texture.fx
 
 #begin Engine/Shaders/sdf_pixel.fx
 /importer:EffectImporter

@@ -1,5 +1,4 @@
-float4 pattern_select(int pattern, float4 color_a, float4 color_b, float2 UV, float2 top_left, float2 bottom_right, int dither_resolution) {
-    float2 size = bottom_right - top_left;
+float4 pattern_select(int pattern, float4 color_a, float4 color_b, float2 UV, float2 size, int dither_resolution) {    
     float2 px = size * UV.xy;
     
     float4 output = float4(1,1,1,1);
@@ -13,7 +12,7 @@ float4 pattern_select(int pattern, float4 color_a, float4 color_b, float2 UV, fl
         // DITHER        
         int2 px_i = int2(px);
     
-        int psize = dither_resolution;
+        int psize = dither_resolution * 2;
         if (psize % 2 != 0) psize += 1;
     
         bool x = px_i.x % psize >= (psize / 2);
@@ -31,8 +30,11 @@ float4 pattern_select(int pattern, float4 color_a, float4 color_b, float2 UV, fl
     }
     
     if (pattern == 3) {
-        // STRIPE      
-        
+        // STRIPE              
+    }
+    
+    if (pattern == 4) {
+        // GLOW         
     }
     
     return output;

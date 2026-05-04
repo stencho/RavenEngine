@@ -10,6 +10,7 @@ using Raven.Engine.Components;
 using Raven.Graphics.Drawing2D;
 using Raven.Graphics.Drawing3D;
 using Raven.Graphics.Effects;
+using Raven.Graphics.Geometry2D;
 
 namespace Raven.Graphics {
     [GuidManaged]
@@ -119,8 +120,13 @@ namespace Raven.Graphics {
             draw_to_screen = true;
         }
 
-        public Action Draw2DOverGame;
-        public Action Draw2DOnTop;
+        private DrawShapesToSurface shape_drawing;
+        
+        public Action<DrawShapesToSurface> Draw2DOverGame;
+        public void draw_over_game_layer() => Draw2DOverGame?.Invoke(shape_drawing);
+        
+        public Action<DrawShapesToSurface> Draw2DOnTop;
+        public void draw_on_top_layer() => Draw2DOnTop?.Invoke(shape_drawing);
         
         //public Action Draw3DOverGame;
         
@@ -302,13 +308,15 @@ namespace Raven.Graphics {
             }
 
             rt_diffuse = new ManagedRT2D((int)(width * res_scale), (int)(height * res_scale), true, false, SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
-            rt_normal = new RenderTarget2D(State.graphics_device, (int)(width * res_scale), (int)(height * res_scale), false, SurfaceFormat.Vector4, DepthFormat.None, 0, RenderTargetUsage.PlatformContents);
-            rt_depth = new RenderTarget2D(State.graphics_device, (int)(width * res_scale), (int)(height * res_scale), false, SurfaceFormat.Single, DepthFormat.Depth24Stencil8, 0, RenderTargetUsage.PlatformContents);
-            rt_lighting = new RenderTarget2D(State.graphics_device, (int)(width * res_scale), (int)(height * res_scale), false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PlatformContents);
-            rt_composed = new RenderTarget2D(State.graphics_device, (int)(width * res_scale), (int)(height * res_scale), false, SurfaceFormat.Color, DepthFormat.None);
-            rt_composed_half = new RenderTarget2D(State.graphics_device, (int)(width / 2), (int)(height / 2), false, SurfaceFormat.Color, DepthFormat.None);
+            rt_normal = new RenderTarget2D(State.graphics_device, (int)(width * res_scale), (int)(height * res_scale), false, SurfaceFormat.Vector4, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+            rt_depth = new RenderTarget2D(State.graphics_device, (int)(width * res_scale), (int)(height * res_scale), false, SurfaceFormat.Single, DepthFormat.Depth24Stencil8, 0, RenderTargetUsage.PreserveContents);
+            rt_lighting = new RenderTarget2D(State.graphics_device, (int)(width * res_scale), (int)(height * res_scale), false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+            rt_composed = new RenderTarget2D(State.graphics_device, (int)(width * res_scale), (int)(height * res_scale), false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+            rt_composed_half = new RenderTarget2D(State.graphics_device, (int)(width / 2), (int)(height / 2), false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
             rt_2D = new RenderTarget2D(State.graphics_device, (int)(width), (int)(height), false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
             rt_final = new RenderTarget2D(State.graphics_device, (int)(width), (int)(height), false, SurfaceFormat.Color, DepthFormat.None);
+                
+            shape_drawing = new DrawShapesToSurface(() => rt_2D.Bounds.Size.ToVector2i());
             
             target_bindings[0] = !rt_diffuse.FlipFlop || !rt_diffuse.DoubleBuffered ? rt_diffuse.flip : rt_diffuse.flop;
             target_bindings[1] = rt_normal;

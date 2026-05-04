@@ -99,32 +99,11 @@ public class CassowaryGame : Game {
             
             State.CurrentScene.Spawn(ent);
         }
-
-        Vector2i top_left = Vector2i.One * 20;
-        Polygon2D test_shape = new Polygon2D(Vector2i.UnitX * 200 + (Vector2i.UnitY * 100),
-            top_left,
-            top_left + (Vector2i.Right * 60),
-            top_left + (Vector2i.One * 60),
-            top_left + (Vector2i.Down * 60)
-            
-            );
-
-        test_shape.regions[sdf_region.inner].color = UIColors.Foreground;
-        test_shape.regions[sdf_region.inner].secondary = UIColors.Foreground50Percent;
-            
-        test_shape.regions[sdf_region.outer].color = Color.DodgerBlue;
-        test_shape.regions[sdf_region.outer].secondary = Color.MidnightBlue;
-
-        test_shape.regions[sdf_region.inner].pattern_type = sdf_pattern.DITHER;
-        test_shape.regions[sdf_region.outer].pattern_type = sdf_pattern.DITHER;
-        test_shape.regions[sdf_region.inner].dither_resolution = 10;
-        
-        test_shape.inner_border_width = 3.5f;
-        test_shape.regions[sdf_region.inner_border].color = UIColors.Foreground;
         
         //SkyboxState.sun_moon.set_time_of_day(0.9f);
+        Vector2i pointer_tip = (Vector2i.One * 5) + (Vector2i.Right * 5);
         
-        cam.gbuffer.Draw2DOverGame = () => {
+        cam.gbuffer.Draw2DOverGame = (DrawShapesToSurface draw_shapes) => {
             //StaticControlBinds.draw_state(600, 0, 100, 10, 10);
             var dayper = SkyboxState.sun_moon.current_time_entire_day_percent;
             bool afternoon = dayper > 0.5f;
@@ -162,9 +141,11 @@ public class CassowaryGame : Game {
             //Draw2D.image(cursor.signed_distance_negative, Vector2i.One * 50, Vector2i.One * 100, 0f);
             //Draw2D.rect(Vector2i.One * 50, Vector2i.One * 32 + 50, Color.Black, 1f);
             
-            //Draw2D.rect((Vector2i.One * 50) + (Vector2i.Down * 110), (Vector2i.One * 100+50) + (Vector2i.Down * 110), Color.Black, 1f);
-            test_shape.render(Vector2i.One * 50);
+            //Draw2D.rect((Vector2i.One * 100), (Vector2i.One * 100) + shapes.get("cursor").bordered_bounds.size, Color.Black, 1f);
             
+            //test_shape.render(Vector2i.One * 50);
+            
+            //Draw2D.rect((Vector2i.One * 100)+ shapes.get("cursor").shape_top_left_within_border, (Vector2i.One * 100)  + shapes.get("cursor").shape_top_left_within_border + shapes.get("cursor").bounds.size, Color.Black, 1f);
             Draw2D.end();
             
         };

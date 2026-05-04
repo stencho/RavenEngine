@@ -1,8 +1,63 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Runtime.InteropServices;
+using Microsoft.Xna.Framework;
 using Raven.Graphics.Drawing2D;
 using static Raven.Engine.Collision.Collision2D;
 
 namespace Raven.Engine.Collision.Shapes2D {
+    [StructLayout(LayoutKind.Sequential, Size = sizeof(int) * 4)]
+    public struct AABB {
+        public Vector2i top_left;
+        public Vector2i bottom_right;
+
+        public Vector2i center => (size / 2);
+        public Vector2i size => bottom_right - top_left;
+        public static AABB build_around_points(Vector2i[] points) {
+            float top, bottom, right, left;
+            top = Math2D.highest_dot_in_point_array(-Vector2.UnitY, points).Y - 1;
+            bottom = Math2D.highest_dot_in_point_array(Vector2.UnitY, points).Y + 1;
+            left = Math2D.highest_dot_in_point_array(-Vector2.UnitX, points).X - 1;
+            right = Math2D.highest_dot_in_point_array(Vector2.UnitX, points).X + 1;
+
+            return new AABB() {
+                top_left = new Vector2i(left, top),
+                bottom_right = new Vector2i(right, bottom)
+            };
+        }
+
+        public void expand(int top, int left, int bottom, int right) {
+            top_left.Y += -top;
+            bottom_right.Y += bottom;
+            top_left.X += -left;
+            bottom_right.X += right;
+        }
+        public void expand(int size) {
+            top_left.Y += -size;
+            bottom_right.Y += size;
+            top_left.X += -size;
+            bottom_right.X += size;
+        }
+        
+        public AABB create_expanded(int top, int left, int bottom, int right) {
+            return new AABB() {
+                top_left = top_left - new Vector2i(left, top),
+                bottom_right = bottom_right + new Vector2i(right, bottom)
+            };
+        }
+        public AABB create_expanded(int size) {
+            return new AABB() {
+                top_left = top_left - (Vector2i.One * size),
+                bottom_right = bottom_right + (Vector2i.One * size)
+            };
+        }
+
+        public static AABB build_from_tlbr(int top, int left, int bottom, int right) {
+            return new AABB() {
+                top_left = new Vector2i(left, top),
+                bottom_right = new Vector2i(right, bottom)
+            };
+        }
+    }
+    
     public class BoundingBox2D : Collision2D.Shape2D {
 
         public Vector2 top_left;
