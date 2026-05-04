@@ -17,12 +17,17 @@ public partial class XInputWatcher {
     
     private static volatile bool GETTING_STATE = false;
     
+    static object state_lock = new object();
+    
     public void Update() {
         gamepad_state_previous = gamepad_state;
 
         while (true) {
             if (Interlocked.CompareExchange(ref GETTING_STATE, true, false)) {
-                gamepad_state = GamePad.GetState(player_index);
+                lock (state_lock) {
+                    gamepad_state = GamePad.GetState(player_index);
+                }
+
                 break;
             }
         }
