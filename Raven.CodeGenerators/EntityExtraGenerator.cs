@@ -101,7 +101,7 @@ public sealed class EntityUpdatePacketGenerator : ISourceGenerator
             }
             
             public void UpdateInterpolatedPosition() {
-                position.interpolate(Clock.delta(EngineThread.Render));
+                position.interpolate(Clock.delta_ms(EngineThread.Render));
             }
             
             private void MoveAndSlide(Vector3 movement) => position.MoveAndSlide(movement);
