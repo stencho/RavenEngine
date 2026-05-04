@@ -13,6 +13,7 @@ using Raven.Engine.Controls;
 using Raven.Graphics.Drawing2D;
 using Raven.Graphics.Drawing3D;
 using Raven.Graphics.Geometry2D;
+using Raven.Graphics.InterpolatedTypes;
 using Raven.UI;
 
 namespace Raven.Engine.Entities;
@@ -70,6 +71,9 @@ public partial class FreeCamEntity : Entity {
     Vector2i cursor_shadow_offset = (Vector2i.One * 3) + (Vector2i.Right * 3);
     public void Initialized() {
         var cam = Components.GetFirst<GBufferCamera>().camera;
+        cam.gbuffer.Draw2DOverGame += (DrawShapesToSurface draw_shapes) => {
+            
+        };
         
         cam.gbuffer.Draw2DOnTop = (DrawShapesToSurface draw_shapes) => {
             if (!binds.MouseLocked && !binds.MouseLockedPrevious) {
@@ -139,18 +143,26 @@ public partial class FreeCamEntity : Entity {
 
     private bool toggle_mouse_lock = true;
     private bool mouse_locked = false;
+
+    private Lerper time_scale_lerp = new Lerper(0f, 1f, 300);
     
     public void UpdateGraphics() {
         mouse.UpdateDeltas();
         
         var camera = Components.GetFirst<GBufferCamera>().camera;
 
+        if (mouse_locked) {
+            time_scale_lerp.Lerp();
+        } else {
+            time_scale_lerp.LerpReverse();
+        }
+        
+        gvars.set("g_time_scale", time_scale_lerp.Value);
+        
         if (toggle_mouse_lock) {
             if (!mouse_locked && mouse.just_pressed(MouseWatcher.MouseButtons.Right) && !State.UI.mouse_over_UI()) {
-                gvars.set("g_time_scale", 1f);
                 mouse_locked = true;
             } else if (mouse_locked && mouse.just_pressed(MouseWatcher.MouseButtons.Right)) {
-                gvars.set("g_time_scale", 0f);
                 mouse_locked = false;
             }
         } else {
