@@ -1,27 +1,48 @@
 namespace Raven;
 internal class TODO {
+//TODO color picker UI and UI colors saved to gvars
+
+//TODO locked-size windows
+
+//TODO dialog popup form
+    
 //TODO add a TabbedPanel UI form then use it to start building the inspector
 // also re-add frame probes and add some cool frame profiling stats to it 
 
 //TODO report how many scroll wheel ticks have happened in the last frame
 
-//TODO better mouse cursor (w/ actual point) + draw crosshair while in mouse lock
-// probably just draw the mouse cursor with code? could be an opportunity to build a 'fill polygon' shader
-// also move the logic for this from Cassowary into the actual engine
+//TODO move mouse onto force-focused windows when in focus follows mouse mode
 
 //TODO right click system where a menu can be connected to a collision
 //TODO drop down selection menu
+
+//TODO scrolling textures
+
+//TODO make screenshot able to change resolution scale temporarily and only capture the resulting scaled buffer 
+
+//TODO Forward rendering and the ability to render brushes using it
+//TODO effectively, a gaussian splat averaged from 3D textures, with the ability to damage and cut through it,
+// rendered with forward rendering. Forward is the literal only way to do this, though a Z prepass may be a good idea
+// pointcloud can already basically do this
+
+//TODO A DynamicSpriteFontImprovements class. Similar idea to what I was doing in Swoop, but instead of using GDI+ (why),
+// use MonoGame itself to supply the initial glyphs when they're requested, then remove whitespace from those,
+// find centers, size, etc, and pack them tightly in a glyph sheet, as well as a texture array, for use in a heavily
+// shader-based string drawing/measurement system.  
+
+//TODO A procedural geometry generation, alteration, and rendering system,
+// for things like terrain, and simple world geometry which can easily be crafted
+// through a texture + a slightly modified shape. This will allow me to program more
+// of my meshes, a major speedup most of the time, while still easily stylizing them
+// using maps and math
 
 //fuck I'm doing it again aren't I
 //oh well at least this is shaping up to be my best pointless UI toolkit
 
 //TODO Brush entity which can take different basic shapes
 
-//TODO add IUIForm anchor/dock systems (aaaaaaaahhhHHH)
+//TODO add IUIForm anchor/dock systems (aaaaaaaahhhHHH)/ AT LEAST an on-resize action
     
-//TODO move sun/moon based lighting into its own file why is that still in State fuckin nuts
-// also still need to add a sun/moon
-
 //TODO attempt to render a scene within a scene, and if that works, attempt to set up and then automate HL2 3D skyboxen
 
 //TODO add the ability to make a bindwatcher simply ignore all bind disabling efforts, to allow for a set of global utility hotkeys
@@ -32,10 +53,6 @@ internal class TODO {
 
 //TODO finish no-overdraw shader, should be a cake walk. use it to make shadows not overlap. idk why spritebatch opaque raster mode ain't work tho 
 //TODO finish animated texture code + shader
-//TODO add stripe shader and ManagedEffect/Draw2D code for it
-// also add polkadot shader and dithered gradient shader
-// could be fun to allow the user to theme elements that use checkerboards to use stripes/dots instead
-// already want to allow full color selection so
 
 //TODO should only block binds when a SUBform has focus, and subform focus should be removed on clicking the empty space in a window
 // still also need to add tab selection/indexing hehe 
@@ -59,10 +76,6 @@ internal class TODO {
 //TODO add the rest of the XInput support
 // make sure that binds work as both digital and analog regardless of the type of input 
 
-//TODO clean up gvar names and add categorization prefixes to default engine gvars
-// e_ for engine, g_ for graphics, i_ for input? 
-// also gvars.add_newline(); might be handy depending on how big the config gets
-
 //TODO modify window manager to take mouse input (and keyboard? should be doable through Watcher classes) through functions, to make it possible to instantiate them and
 // do like DOOM3 style in-game computer screen what you can click
 
@@ -77,11 +90,6 @@ internal class TODO {
 //TODO implement proper handling for keeping windows positioned on screen when the window size changes
 // it kinda happens if you interact with a window but it should probably also happen when the game size changes
 
-//TODO fix high freq audio loop now that I actually understand what's goin on
-//TODO function queue for the high freq audio loop
-// instead of doing multiple things per loop, do one thing from the top of a queue to try to keep performance as lockstep as possible
-// (ALAP)
-
 //TODO build new broad/narrow solvers for collision detection and resolution
 // Start with a broad phase solver which runs on a thread that constantly checks a ConcurrentQueue for entities to test for collisions,
 // this solver will be unique to each scene. It will run a method in the Scene object that adds Entities to a second ConcurrentQueue,
@@ -93,8 +101,6 @@ internal class TODO {
 
 //TODO turn Raven into a basic scene editor with the ability to save and load 
 // use a combination of brush-based objects and imported mesh static objects
-
-//TODO build a UI development tool
 
 //TODO add basic physical interactions; impulse and transfer of force, angular momentum, basic friction (complex friction?? I like threading), etc. more fancy source-like stuff would be v nice
 // not like a spring is particularly hard to understand, but making 4 of them work on the same mass at the same time is uhhhh spooky
