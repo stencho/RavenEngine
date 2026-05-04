@@ -54,9 +54,10 @@ public static class State {
             
             ("toggle_console", [Keys.OemTilde]),
             ("toggle_inspector", [Keys.F1]),
-            ("screenshot", [Keys.Insert]),
             ("toggle_full_info", [Keys.F3]),
             ("switch_buffer", [Keys.F4]),
+            
+            ("screenshot", [Keys.Insert]),
             
             ("mode_windowed", [Keys.F9]),
             ("mode_borderless", [Keys.F10]),
@@ -87,8 +88,6 @@ public static class State {
     public static bool is_active => game.IsActive;
     
     public static bool running = true;
-    
-    
     
     [Flags]
    public enum SceneUseState : byte {
@@ -156,13 +155,28 @@ public static class State {
         //graphics.ToggleFullScreen();
         window.AllowUserResizing = true;
         
-        
         engine_binds = new BindWatcher(engine_bind_list);
+        engine_binds.binds["mode_windowed"].JustPressed += () => {
+            gvars.set("r_display_mode", "windowed");
+            ChangeWindowMode();
+        };
+        engine_binds.binds["mode_borderless"].JustPressed += () => {
+            gvars.set("r_display_mode", "borderless");
+            ChangeWindowMode();
+        };
+        engine_binds.binds["mode_borderless_fullscreen"].JustPressed += () => {
+            gvars.set("r_display_mode", "borderless_fullscreen");
+            ChangeWindowMode();
+        };
+        engine_binds.binds["mode_fullscreen"].JustPressed += () => {
+            gvars.set("r_display_mode", "fullscreen");
+            ChangeWindowMode();
+        };
         
         ConsoleInputRunner.build_using_list();
         
         gvars.add_gvar("g_tick_rate", gvar_data_type.INT, 60, true, "Sets the update thread's tick rate.");
-        gvars.add_gvar("g_time_scale", gvar_data_type.FLOAT, 1f, false);
+        gvars.add_gvar("g_time_scale", gvar_data_type.FLOAT, 0f, false);
         
         gvars.add_gvar("r_resolution", gvar_data_type.VECTOR2I, FindCurrentResolution(), true, "Resolution of both the game window and output buffer.");
         gvars.add_gvar("r_resolution_scale", gvar_data_type.FLOAT, 1f, true, "Set the 3D render output buffer resolution scale.\n0.5 will half the resolution, making things pixelated, 2.0 will double the resolution.\nThis will not affect the 2D layer or backbuffer.\nGoing above 1.0 will not really do anything due to how deferred rendering works.\n");
@@ -188,6 +202,7 @@ public static class State {
         gvars.add_gvar("i_mouse_sensitivity", gvar_data_type.VECTOR2, Vector2.One, true, "Sets the mouse sensitivity individually for each axis.");
 
         gvars.add_gvar("ui_focus_follows_mouse", gvar_data_type.BOOL, false, true, "Forces UI window focus to always be on the window under the mouse\n(as opposed to standard click-to-focus)");
+        gvars.add_gvar("ui_mouse_follows_focus", gvar_data_type.BOOL, false, false, "Moves the mouse over UI windows when they're opened or given focus");
         gvars.add_gvar("ui_window_shadows", gvar_data_type.BOOL, false, true, "Adds a small drop shadow to UI windows");
         
         bool read_gvars = gvars.read_gvars_from_disk();
@@ -250,8 +265,6 @@ public static class State {
 
         Draw2D.load();
         Draw3D.load();
-
-        UI = new UIWindowManager();
 
         SkyboxState.skybox_t.PrivateCreateSkyboxFromCrossImage(out SkyboxState.skybox_data, out SkyboxState.skybox_indices, 1, 0, 1, 2,
             3, 5, 4);
@@ -398,7 +411,7 @@ public static class State {
         Clock.game_time = gt;
         //Update all graphics stuff
         engine_binds.Update();
-        UI.update();
+        UIWindowManager.Manager.update_all_UIs();
         SkyboxState.sun_moon.update();
         
         //Change game resolution to match window resolution
@@ -438,7 +451,7 @@ public static class State {
         Scene.Manager.UpdateGraphics();
         //Interlocked.Exchange(ref using_scene, (int)SceneUseState.NONE);
         
-        UI.render_window_internals();
+        UIWindowManager.Manager.render_all_UI_window_internals();
         
         //Interlocked.Exchange(ref using_scene, (int)SceneUseState.RENDER);
         //render out any cameras that have a GBuffer specified 

@@ -11,6 +11,7 @@ using Raven.Graphics.Drawing2D;
 using Raven.Graphics.Effects;
 using Raven.Graphics.Geometry2D;
 using Raven.Graphics.Skybox;
+using Raven.UI;
 using Color = Microsoft.Xna.Framework.Color;
 using static Raven.Engine.State;
 
@@ -78,7 +79,7 @@ namespace Raven.Graphics.Drawing3D {
             AutoRender2D.Manager.RenderAll();
             camera.gbuffer.draw_over_game_layer();
             
-            GBuffer.Manager.DrawUIToSelectedGBuffer();
+            UIWindowManager.Manager.render_UIs_to_their_buffers();
             camera.gbuffer.draw_on_top_layer();
             
             camera.gbuffer.Compose(camera);

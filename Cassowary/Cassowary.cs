@@ -91,8 +91,7 @@ public class CassowaryGame : Game {
         var cam = free_cam.Components.GetFirst<GBufferCamera>().camera;
         cam.use_gvar_field_of_view = true;
         cam.gbuffer.enable_screen_draw_fullscreen(-1);
-        cam.gbuffer.draw_UI_to_this_buffer();
-        
+        State.UI = new UIWindowManager(cam.gbuffer);
         
         for (int i = 0; i < 10; i++) {
             var pos = (Vector3.UnitX * (RNG.rng_float_neg_one_to_one * 50)) + (Vector3.UnitZ * (RNG.rng_float_neg_one_to_one * 50));

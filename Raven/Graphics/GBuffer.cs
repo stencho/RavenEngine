@@ -38,15 +38,6 @@ namespace Raven.Graphics {
                     State.graphics_device.Clear(Color.Transparent);
                 }
             }
-
-            private static Guid gbuffer_ui_draw;
-            public static void SelectGBufferForUI(Guid buffer_id) => gbuffer_ui_draw = buffer_id;
-            public static void SelectGBufferForUI(GBuffer buffer) => gbuffer_ui_draw = buffer.managed_guid;
-
-            public static void DrawUIToSelectedGBuffer() {
-                State.graphics_device.SetRenderTarget(gbuffers[gbuffer_ui_draw].rt_2D);
-                State.UI.draw();
-            }
             
             public static void DrawAllScreenBuffers() {
                 State.graphics_device.SetRenderTarget(null);
@@ -192,10 +183,6 @@ namespace Raven.Graphics {
             Dispose(false);
         }
 
-        public void draw_UI_to_this_buffer() {
-            Manager.SelectGBufferForUI(managed_guid);
-        }
-        
         public void change_resolution(Vector2i res) {
             _width = res.X;
             _height = res.Y;
