@@ -256,13 +256,3 @@
 /processorParam:Defines=
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/terrain.fx
-
-#begin Engine/Shaders/texture_effects.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/processorParam:Defines=
-/processorParam:Version=3.8.5.0
-/build:Engine/Shaders/texture_effects.fx
-
-
