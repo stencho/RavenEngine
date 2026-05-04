@@ -6,32 +6,22 @@ using Raven.Engine.Collision.Shapes3D;
 namespace Raven.Engine.Entities;
 
 public partial class Brush : Entity {
-    shape_type shape;
+    shape_type shape => collision.shape;
     Shape3D collision;
-    
+
+    public Brush(Shape3D shape) { collision = shape; }
     public Brush(shape_type shape) {
-        this.shape = shape;
         switch (shape) {
-            case shape_type.cube:
-                break;
-            case shape_type.polyhedron:
-                break;
-            case shape_type.quad:
-                break;
-            case shape_type.tri:
-                break;
-            case shape_type.capsule:
-                break;
-            case shape_type.cylinder:
-                break;
-            case shape_type.line:
-                break;
-            case shape_type.sphere:
-                break;
-            case shape_type.dummy:
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(shape), shape, null);
+            case shape_type.cube: collision = new Cube(); break;
+            case shape_type.polyhedron: collision = new Polyhedron(); break;
+            case shape_type.quad: collision = new Quad(); break;
+            case shape_type.tri: collision = new Triangle(); break;
+            case shape_type.capsule: collision = new Capsule(); break;
+            case shape_type.cylinder: collision = new Cylinder(); break;
+            case shape_type.line: collision = new Line3D(); break;
+            case shape_type.sphere: collision = new Sphere(); break;
+            case shape_type.dummy: collision = new DummySupport(); break;
+            default: throw new ArgumentOutOfRangeException(nameof(shape), shape, null);
         }
     }
 
