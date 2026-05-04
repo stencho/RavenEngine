@@ -49,7 +49,7 @@ namespace Raven.UI  {
 
         public bool focus_follows_mouse = gvars.get_bool("ui_focus_follows_mouse");
         public bool window_shadows => gvars.get_bool("ui_window_shadows");
-        private Vector2i shadow_offset = (Vector2i.One * 2) + Vector2i.Down;
+        public Vector2i shadow_offset = (Vector2i.One * 3) + Vector2i.Down;
         
         internal MouseWatcher mouse = new MouseWatcher();
         
@@ -410,16 +410,11 @@ namespace Raven.UI  {
         public void draw() {
             //Clock.frame_probe.set("draw_window_manager");
             Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.Default);
-            if (window_shadows) {
-                foreach (IUIForm window in windows) {
-                    if (window is UIWindow && window.visible && !((window as UIWindow).RenderTargetsHidden)) {
-                        Draw2D.fill_rect(window.position + shadow_offset, window.position + window.size + shadow_offset, UIColors.Background.multiply_alpha(.5f));
-                    }
-                }
-            }
-
             
             foreach (IUIForm window in windows) {
+                if (window is UIWindow && window.visible && !((window as UIWindow).RenderTargetsHidden)) {
+                    Draw2D.fill_rect(window.position + shadow_offset, window.position + window.size + shadow_offset, Color.Black.multiply_alpha(.4f));//, Color.Transparent, 1);
+                }
                 if (window.visible)
                     window.draw();
             }

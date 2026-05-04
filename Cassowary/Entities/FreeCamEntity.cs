@@ -67,13 +67,15 @@ public partial class FreeCamEntity : Entity {
         cursor.inner_border_width = 2;
     }
 
-
+    Vector2i cursor_shadow_offset = (Vector2i.One * 3) + (Vector2i.Right * 3);
     public void Initialized() {
         var cam = Components.GetFirst<GBufferCamera>().camera;
         
         cam.gbuffer.Draw2DOnTop = (DrawShapesToSurface draw_shapes) => {
             if (!binds.MouseLocked && !binds.MouseLockedPrevious) {
                 cursor.render_position = MouseWatcher.Position;
+                if (gvars.get_bool("ui_window_shadows"))
+                    draw_shapes.draw_shape_single_color(cursor, cursor_shadow_offset, Color.Black.multiply_alpha(0.25f), Color.Transparent, 0, sdf_pattern.NONE, 1);
                 draw_shapes.draw_shape(cursor);
             } else {
                 Draw2D.fill_circle(cam.gbuffer.resolution / 2, 3f, UIColors.Foreground);

@@ -325,15 +325,73 @@ public partial class DrawShapesToSurface : ManagedEffect {
         draw(shape.render_position - shape.shape_top_left_within_border - offset + (Vector2i.Left * 1), shape.bordered_bounds.size);
     }
 
-    /*
-    public void draw_shape_single_color(Color color) {
-        
-    }
+    
+    public void draw_shape_single_color(SDFShape shape, Vector2i draw_offset, Color color_a, Color color_b, int outer_border_width, sdf_pattern pattern, int dither_res) {
+        set_param("resolution", surface_resolution);
+        set_param("fill_texture", shape.shape_texture);
+        set_param("fill_resolution", shape.bounds.size);
+        set_param("fill_position", shape.shape_top_left_within_border);
+        set_param("bordered_resolution", shape.bordered_bounds.size);
 
-    public void draw_debug_info() {
+        for (var index = 0; index < shape.points.Length; index++) {
+            shader_points[index] = shape.points[index].ToVector2();
+        }
+
+        set_param("points", shader_points);
+        set_param("point_count", shape.points.Length);
         
+        configure_region_colors(sdf_region.inner, color_a, color_b);
+        configure_region_colors(sdf_region.outer_border, color_a, color_b);
+        configure_region_colors(sdf_region.inner_border, Color.Transparent);
+
+        configure_inner_border_width(0); 
+        configure_outer_border_width(outer_border_width);
+        
+        switch (pattern) {
+            case sdf_pattern.NONE:     
+                remove_patterns(sdf_region.inner); 
+                remove_patterns(sdf_region.outer_border); 
+                break;
+            case sdf_pattern.DITHER:   
+                pattern_dither(sdf_region.inner, dither_res); 
+                pattern_dither(sdf_region.outer_border, dither_res); 
+                break;
+            case sdf_pattern.POLKADOT:
+                break;
+            case sdf_pattern.STRIPE:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+        
+        remove_patterns(sdf_region.inner_border); 
+        
+        Vector2i offset = Vector2i.Zero;
+        switch (shape.render_anchor) {
+            case render_anchor.top_left:
+                break;
+            case render_anchor.top_right:
+                offset += Vector2i.Right * shape.bounds.size.X;
+                break;
+            case render_anchor.center:
+                offset += shape.bounds.size / 2;
+                break;
+            case render_anchor.bottom_left:
+                offset += Vector2i.Down * shape.bounds.size.Y;
+                break;
+            case render_anchor.bottom_right:
+                offset += Vector2i.Right * shape.bounds.size.X;
+                offset += Vector2i.Down * shape.bounds.size.Y;
+                break;
+            case render_anchor.first_point:
+                offset += shape.points[0];
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+        
+        draw(shape.render_position - shape.shape_top_left_within_border - offset + (Vector2i.Left * 1) + draw_offset, shape.bordered_bounds.size);
     }
-    */
     
     void configure_region_colors(sdf_region region, Color color) {
         set_param($"{region.ToString()}_color", color);
