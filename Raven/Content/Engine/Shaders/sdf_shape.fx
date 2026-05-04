@@ -1,4 +1,4 @@
-#include "patterns.fx"
+#include "lib/patterns.fx"
 
 #if OPENGL
     #define SV_POSITION POSITION

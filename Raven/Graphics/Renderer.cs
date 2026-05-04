@@ -70,14 +70,12 @@ namespace Raven.Graphics.Drawing3D {
             draw_directional_lighting(camera,camera.gbuffer);
             draw_lighting(camera, camera.gbuffer);
             
-            
             render_phase = RenderPhase.render_forward;
             render_forward(camera);
             
             graphics_device.SetRenderTarget(camera.gbuffer.rt_2D);
             
             AutoRender2D.Manager.RenderAll();
-            graphics_device.SetRenderTarget(camera.gbuffer.rt_2D);
             camera.gbuffer.draw_over_game_layer();
             
             GBuffer.Manager.DrawUIToSelectedGBuffer();

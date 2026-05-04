@@ -62,7 +62,6 @@ public abstract partial class Scene {
             }
             
             if (ActiveScene != null) ActiveScene?.Stabilize();
-            
             foreach (Scene scene in scenes.Values) {
                 if (scene.always_update && scene.GUID != active_scene_id) {
                     scene.Stabilize();

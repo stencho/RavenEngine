@@ -76,8 +76,8 @@ public partial class FreeCamEntity : Entity {
                 cursor.render_position = MouseWatcher.Position;
                 draw_shapes.draw_shape(cursor);
             } else {
-                Draw2D.fill_circle(cam.gbuffer.resolution / 2, 3f, UIColors.Background);
-                Draw2D.circle(cam.gbuffer.resolution / 2, 3f, 1f, UIColors.Foreground);
+                Draw2D.fill_circle(cam.gbuffer.resolution / 2, 3f, UIColors.Foreground);
+                Draw2D.circle(cam.gbuffer.resolution / 2, 3f, 1f, UIColors.Background);
             }
             
         };

@@ -238,15 +238,15 @@ public static class State {
         var lookat = Matrix.CreateLookAt(ctestpos, Vector3.Forward,
             Vector3.Up);
 
-        e_gbuffer = Resources.GetShader("fill_gbuffer");
-        e_light_depth = Resources.GetShader("light_depth");
-        e_exp_light_depth = Resources.GetShader("exp_light_depth");
-        e_skybox = Resources.GetShader("skybox");
-        e_compositor = Resources.GetShader("compositor");
-        e_clear = Resources.GetShader("clear");
-        e_directionallight = Resources.GetShader("directionallight");
-        e_spotlight = Resources.GetShader("spotlight");
-        e_pointlight = Resources.GetShader("pointlight");
+        e_clear = Resources.GetShader("r_clear");
+        e_compositor = Resources.GetShader("r_compositor");
+        e_directionallight = Resources.GetShader("r_directional_light");
+        e_exp_light_depth = Resources.GetShader("r_exp_light_depth");
+        e_gbuffer = Resources.GetShader("r_fill_gbuffer");
+        e_light_depth = Resources.GetShader("r_light_depth");
+        e_pointlight = Resources.GetShader("r_point_light");
+        e_skybox = Resources.GetShader("r_skybox");
+        e_spotlight = Resources.GetShader("r_spot_light");
 
         Draw2D.load();
         Draw3D.load();
