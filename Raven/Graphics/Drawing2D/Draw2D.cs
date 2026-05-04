@@ -164,7 +164,6 @@ public static class Draw2D {
         //create a 1x1 white texture
         OnePXWhite = new Texture2D(State.graphics_device, 1, 1); OnePXWhite.SetData([Color.White]);
         
-        
         Resources.AddTexture("OnePXWhite", new Texture2D(State.graphics_device, 1, 1));
         Resources.GetTextureContent("OnePXWhite").Texture.SetData([Color.White]);
         
@@ -538,11 +537,11 @@ public static class Draw2D {
         sb.Draw(OnePXWhite, min.ToVector2(), null, color, 0f, Vector2.Zero, (max - min).ToVector2(), SpriteEffects.None, 0f);
     }
 
-    public static void fill_rect_dither(Vector2 min, Vector2 max, Color color_a, Color color_b, int pattern_size = 4) {
+    public static void fill_rect_dither(Vector2 min, Vector2 max, Color color_a, Color color_b, int pattern_size = 2) {
         fill_rect_dither(min.ToVector2i(), max.ToVector2i(), color_a, color_b, pattern_size);
     }
 
-    public static void fill_rect_dither(Vector2i min, Vector2i max, Color color_a, Color color_b, int pattern_size = 4) {
+    public static void fill_rect_dither(Vector2i min, Vector2i max, Color color_a, Color color_b, int pattern_size = 2) {
         if (dither_effect == null) dither_effect = new Dither(State.content_manager);
 
         dither_effect.configure_shader(min.ToVector2(), max.ToVector2(), color_a, color_b, pattern_size);

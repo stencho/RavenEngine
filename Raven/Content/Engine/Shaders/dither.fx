@@ -1,4 +1,6 @@
-﻿#if OPENGL
+﻿#include "lib/patterns.fx"
+
+#if OPENGL
 	#define SV_POSITION POSITION
 	#define VS_SHADERMODEL vs_3_0
 	#define PS_SHADERMODEL ps_3_0
@@ -12,7 +14,7 @@ float4 color_b = float4(0.5,0.5,0.5,1);
 
 float2 top_left; float2 bottom_right;
 
-int pattern_size = 2;
+int pattern_size = 1;
 
 float4x4 world; 
 
@@ -27,26 +29,7 @@ struct VertexShaderOutput
 
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
-	float2 size = bottom_right - top_left;
-	float2 px = size * input.texCoord.xy;
-
-	int2 px_i = int2(px);
-
-	float4 color = input.Color;
-    int psize = pattern_size;
-    if (psize % 2 != 0) psize -= 1;
-
-	bool x = px_i.x % psize >= (psize / 2);
-	bool y = px_i.y % psize >= (psize / 2);
-
-	if ((x && y) || (!x && !y)) {
-		color *= color_a;
-	} else { 		
-		if (clip_b) clip(-1);
-		color *= color_b;
-	}
-
-	return color;
+    return pattern_select(1, color_a, color_b, input.texCoord.xy, bottom_right - top_left, pattern_size);
 }
 
 technique SpriteDrawing

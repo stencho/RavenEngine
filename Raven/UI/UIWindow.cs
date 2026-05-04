@@ -283,7 +283,7 @@ namespace Raven.UI {
             Draw2D.fill_rect_dither(Vector2i.One , top_bar_size - (Vector2.One * 2), 
                 UIColors.Foreground75Percent.multiply_color(UIColors.focus_fade), 
                 Draw2D.ColorInterpolate(UIColors.Foreground.multiply_color(UIColors.focus_fade), UIColors.Foreground, focus_lerp.Value), 
-                (int)(top_bar_height / 3f));
+                (int)(top_bar_height / 5f));
 
             var text_background_min = (Vector2i.Right * ((top_bar_size.X / 2f) - (text_size.X / 2f) - (_text_side_gap)));
             var text_background_max = text_background_min + (text_size.X + (_text_side_gap * 2)).ToV2X() + top_bar_height.ToV2Y();
@@ -311,7 +311,7 @@ namespace Raven.UI {
                     UIColors.Background.multiply_color(UIColors.focus_fade), //unfocused
                     UIColors.Background, //focused
                     focus_lerp.Value), 
-                16);
+                8);
             
             Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None);
 
