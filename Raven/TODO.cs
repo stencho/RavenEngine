@@ -108,4 +108,8 @@ internal class TODO {
      
 //TODO idk maybe implement video playback? could be useful for japes at least
 
+
+//KNOWN ISSUES
+//Currently NO high-DPI support or UI scaling support. it probably would be viable to add 1.5x and 2x scales available
+// rendering the UI at a lower resolution and point scaling it up to the full res? but that also maybe sucks 
 }
