@@ -13,6 +13,14 @@
 
 #---------------------------------- Content ---------------------------------#
 
+#begin Engine/Fonts/bitstrom.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/processorParam:Version=3.8.5.0
+/build:Engine/Fonts/bitstrom.spritefont
+
 #begin Engine/Fonts/profont.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
@@ -121,6 +129,22 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Models/sphere.FBX
 
+#begin Engine/Shaders/dither.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/processorParam:Defines=
+/processorParam:Version=3.8.5.0
+/build:Engine/Shaders/dither.fx
+
+#begin Engine/Shaders/draw_forward.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/processorParam:Defines=
+/processorParam:Version=3.8.5.0
+/build:Engine/Shaders/draw_forward.fx
+
 #begin Engine/Shaders/r_clear.fx
 /importer:EffectImporter
 /processor:EffectProcessor
@@ -144,22 +168,6 @@
 /processorParam:Defines=
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/r_directional_light.fx
-
-#begin Engine/Shaders/dither.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/processorParam:Defines=
-/processorParam:Version=3.8.5.0
-/build:Engine/Shaders/dither.fx
-
-#begin Engine/Shaders/draw_forward.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/processorParam:Defines=
-/processorParam:Version=3.8.5.0
-/build:Engine/Shaders/draw_forward.fx
 
 #begin Engine/Shaders/r_exp_light_depth.fx
 /importer:EffectImporter
@@ -185,7 +193,7 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/r_light_depth.fx
 
-#begin Engine/Shaders/pointlight.fx
+#begin Engine/Shaders/r_point_light.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
@@ -193,13 +201,21 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/r_point_light.fx
 
-#begin Engine/Shaders/sdf_shape.fx
+#begin Engine/Shaders/r_skybox.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
 /processorParam:Defines=
 /processorParam:Version=3.8.5.0
-/build:Engine/Shaders/sdf_shape.fx
+/build:Engine/Shaders/r_skybox.fx
+
+#begin Engine/Shaders/r_spot_light.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/processorParam:Defines=
+/processorParam:Version=3.8.5.0
+/build:Engine/Shaders/r_spot_light.fx
 
 #begin Engine/Shaders/render_target_screen_pos.fx
 /importer:EffectImporter
@@ -225,6 +241,14 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/sdf_pixel.fx
 
+#begin Engine/Shaders/sdf_shape.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/processorParam:Defines=
+/processorParam:Version=3.8.5.0
+/build:Engine/Shaders/sdf_shape.fx
+
 #begin Engine/Shaders/sdf.fx
 /importer:EffectImporter
 /processor:EffectProcessor
@@ -233,22 +257,6 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/sdf.fx
 
-#begin Engine/Shaders/r_skybox.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/processorParam:Defines=
-/processorParam:Version=3.8.5.0
-/build:Engine/Shaders/r_skybox.fx
-
-#begin Engine/Shaders/r_spot_light.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/processorParam:Defines=
-/processorParam:Version=3.8.5.0
-/build:Engine/Shaders/r_spot_light.fx
-
 #begin Engine/Shaders/terrain.fx
 /importer:EffectImporter
 /processor:EffectProcessor
@@ -256,3 +264,4 @@
 /processorParam:Defines=
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/terrain.fx
+

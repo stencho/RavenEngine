@@ -810,6 +810,17 @@ public static class Draw2D {
         Draw2D.text(text, position, color_fg);
     }
 
+    public static Vector2 measure_string(string font_name, string text) {
+        return Resources.GetFont(font_name).MeasureString(text);
+        //return Vector2.One;
+        //return font_manager_profont.measure_string(text).ToVector2();
+    }
+    public static Vector2i measure_string_i(string font_name, string text) {
+        return Vector2.Ceiling(Resources.GetFont(font_name).MeasureString(text)).ToVector2i();
+        //return Vector2.One;
+        //return font_manager_profont.measure_string(text).ToVector2();
+    }
+    
     public static Vector2 measure_string_profont(string text) {
         return fnt_profont.MeasureString(text);
         //return Vector2.One;
