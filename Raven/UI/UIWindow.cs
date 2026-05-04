@@ -93,7 +93,7 @@ namespace Raven.UI {
 
         static Collision2D.Shape2D _mouse_coll_obj_child;
         Vector2i parent_pos => parent_form.position;
-
+        
         public virtual void update() {
             test_mouse();
             
@@ -203,6 +203,10 @@ namespace Raven.UI {
                 _resize_handle_R_grabbed = false;
                 _resize_handle_B_grabbed = false;
                 State.game.IsMouseVisible = true;
+
+                foreach (var subform in subforms) {
+                    subform.parent_size_changed(client_size);
+                }
             }
 
 
@@ -370,6 +374,8 @@ namespace Raven.UI {
 
             draw_action?.Invoke();
         }
+        
+        public void parent_size_changed(Vector2i new_size) { }
 
     }
 }

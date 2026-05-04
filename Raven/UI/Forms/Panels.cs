@@ -46,6 +46,8 @@ public partial class Panel : IUIForm {
         if (!visible) return;
         Draw2D.image(client_area, position + client_top_left, size);
     }
+    
+    public void parent_size_changed(Vector2i new_size) { }
 }
 
 public partial class TabbedPanel : IUIForm {
@@ -83,4 +85,6 @@ public partial class TabbedPanel : IUIForm {
     public void draw() {
         Draw2D.image(client_area, position + client_top_left, client_size);
     }
+    
+    public void parent_size_changed(Vector2i new_size) { }
 }

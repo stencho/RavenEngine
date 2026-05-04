@@ -137,7 +137,9 @@ namespace Raven.Console {
         public void render_internal() {
 
         }
-
+        
+        public void parent_size_changed(Vector2i new_size) { }
+        
         float default_x_position = 4;
         float notch_width = 3;
 

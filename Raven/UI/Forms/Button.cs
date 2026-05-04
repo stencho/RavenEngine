@@ -135,4 +135,5 @@ public partial class UIButton : IUIForm {
             1);
     }
 
+    public void parent_size_changed(Vector2i new_size) { }
 }

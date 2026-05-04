@@ -60,6 +60,7 @@ public interface IUIForm {
     void update_collision();
     void render_internal();
     void draw();
+    void parent_size_changed(Vector2i new_size);
     void recurse_all_subforms(Action<IUIForm> run_on_all_subforms);
     string list_subforms();
     int get_form_depth();
