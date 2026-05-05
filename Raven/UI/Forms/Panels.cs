@@ -9,15 +9,15 @@ using Raven.UI;
 
 namespace Raven.UI.Forms;
 
-public partial class Panel : IUIForm {
+public partial class UIPanel : IUIForm {
     public Vector2i client_size => size;
     public Vector2i client_top_left => Vector2i.Zero;
     public Vector2i client_bottom_right => size;
 
-    public Action<Panel> background_draw = null;
-    public Action<Panel> foreground_draw = null;
+    public Action<UIPanel> background_draw = null;
+    public Action<UIPanel> foreground_draw = null;
     
-    public Panel(Vector2i position, Vector2i size) {
+    public UIPanel(Vector2i position, Vector2i size) {
         setup(position.X, position.Y, size.X, size.Y);
         reconfigure_client_area();
     }
@@ -40,6 +40,7 @@ public partial class Panel : IUIForm {
         foreground_draw?.Invoke(this);
         
         Draw2D.rect(Vector2i.One, client_size, color_foreground, 1f);
+        Draw2D.end();
     }
 
     public void draw() {
@@ -50,17 +51,17 @@ public partial class Panel : IUIForm {
     public void parent_size_changed(Vector2i new_size) { }
 }
 
-public partial class TabbedPanel : IUIForm {
+public partial class UITabbedPanel : IUIForm {
     public int tab_bar_height = 20;
     
     public Vector2i client_top_left => (Vector2i.UnitY * tab_bar_height);
     public Vector2i client_size => size - (Vector2i.UnitY * tab_bar_height);
     public Vector2i client_bottom_right => client_top_left + size;
 
-    public Action<TabbedPanel> background_draw = null;
-    public Action<TabbedPanel> foreground_draw = null;
+    public Action<UITabbedPanel> background_draw = null;
+    public Action<UITabbedPanel> foreground_draw = null;
     
-    public TabbedPanel(Vector2i position, Vector2i size) {
+    public UITabbedPanel(Vector2i position, Vector2i size) {
         setup(position.X, position.Y, size.X, size.Y);
         reconfigure_client_area();
     }
@@ -80,6 +81,7 @@ public partial class TabbedPanel : IUIForm {
         draw_all_subforms();
         foreground_draw?.Invoke(this);
         Draw2D.rect(Vector2i.One, client_size, color_foreground, 1f);
+        Draw2D.end();
     }
 
     public void draw() {

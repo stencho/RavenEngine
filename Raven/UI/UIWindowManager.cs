@@ -107,6 +107,7 @@ namespace Raven.UI  {
                 State.graphics_device.SetRenderTarget(gbuffer_2d_surface);
             else
                 State.graphics_device.SetRenderTarget(render_target);
+            
             draw();
         }
         

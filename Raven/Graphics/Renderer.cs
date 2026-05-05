@@ -75,11 +75,12 @@ namespace Raven.Graphics.Drawing3D {
             render_forward(camera);
             
             graphics_device.SetRenderTarget(camera.gbuffer.rt_2D);
-            
+            graphics_device.Clear(Color.Transparent);
             AutoRender2D.Manager.RenderAll();
             camera.gbuffer.draw_over_game_layer();
             
             UIWindowManager.Manager.render_UIs_to_their_buffers();
+            graphics_device.SetRenderTarget(camera.gbuffer.rt_2D);
             camera.gbuffer.draw_on_top_layer();
             
             camera.gbuffer.Compose(camera);
