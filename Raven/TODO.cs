@@ -1,8 +1,8 @@
 namespace Raven;
 internal class TODO {
-//TODO color picker UI and UI colors saved to gvars
+//TODO color picker UI and UIColors saved to gvars
 
-//TODO locked-size windows
+//TODO locked-size windows, minimum window size options, auto-hide when mouse is locked
 
 //TODO dialog popup form
     
