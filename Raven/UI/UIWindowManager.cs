@@ -469,6 +469,8 @@ namespace Raven.UI  {
                     }
                 }
             }
+            
+            windows.SortWindows();
         }
         
         public void render_window_internals() {
