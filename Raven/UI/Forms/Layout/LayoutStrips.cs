@@ -1,11 +1,12 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Raven.Engine;
 using Raven.Graphics.Drawing2D;
 
-namespace Raven.UI.Forms.LayoutStrips;
+namespace Raven.UI.Forms.Layout;
 
-public partial class LayoutManager : IUIForm {
+public partial class LayoutStripManager : IUIForm {
     private UIWindow parent;
     
     public Vector2i client_size => size;
@@ -20,7 +21,7 @@ public partial class LayoutManager : IUIForm {
         return current_height;
     }
 
-    public LayoutManager(UIWindow parent) {
+    public LayoutStripManager(UIWindow parent) {
         this.parent = parent;
         size = parent.client_size;
         setup(position.X, position.Y, size.X, size.Y);
@@ -32,7 +33,6 @@ public partial class LayoutManager : IUIForm {
         foreach (var form in strip.subforms) {
             add_subform(form);    
         }
-        
     }
     
     public void update() {
@@ -55,15 +55,15 @@ public partial class LayoutManager : IUIForm {
 
     public void draw() {
         render_all_subform_internals();
-
+        
         var current_height = 0;
         foreach (var strip in strips) {
             Vector2i size = new Vector2i(this.size.X, strip.height);
             
             foreach (var form in strip.subforms) {
-                
                 form.draw();
             }
+            
             current_height += strip.height;
         }
         
@@ -92,8 +92,8 @@ public class LayoutStrip {
     
     public bool automatic_subform_width { get; set; } = true;
     
-    private LayoutManager parent;
-    public LayoutStrip(LayoutManager parent, params IUIForm[] subforms) {
+    private LayoutStripManager parent;
+    public LayoutStrip(LayoutStripManager parent, params IUIForm[] subforms) {
         this.parent = parent;
         this.subforms.AddRange(subforms);
     }

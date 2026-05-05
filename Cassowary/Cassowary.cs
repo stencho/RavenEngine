@@ -19,7 +19,7 @@ using Raven.Graphics.InterpolatedTypes;
 using Raven.Graphics.Skybox;
 using Raven.UI;
 using Raven.UI.Forms;
-using Raven.UI.Forms.LayoutStrips;
+using Raven.UI.Forms.Layout;
 using SoundFlow.Components;
 
 namespace Cassowary;
@@ -149,7 +149,7 @@ public class CassowaryGame : Game {
         settings_ui_panel.layer_state = ui_layer_state.on_top;
         
         var button = new UIButton(2, 2, "test", "bitstrom32");
-        var slider = new UISlider(Vector2i.One * 2, (Vector2i.Down * 23) + (Vector2i.Right * 140), 0f, 1f);
+        var slider = new UISlider(Vector2i.One * 5, (Vector2i.Down * 23) + (Vector2i.Right * 140), 0f, 1f);
         
         button.anchor = FormAnchor.TopLeft;
         
@@ -157,7 +157,7 @@ public class CassowaryGame : Game {
         
         test_window.add_subform(slider);
         
-        LayoutManager lm = new LayoutManager(inspector);
+        LayoutStripManager lm = new LayoutStripManager(inspector);
         
         lm.add_strip(new UIButton(0, 0, "test button"));
         lm.add_strip(new UIButton(0,0, "test button"), new UIButton(0,0, "test button"));
