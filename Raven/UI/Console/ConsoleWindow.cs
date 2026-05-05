@@ -108,7 +108,7 @@ namespace Raven.Console {
             //Logging.log(Logging.log_level.ERROR, "test 2");
             //Logging.log(Logging.log_level.WARNING, "test 3");
             //Logging.log("be #c:128,128,128# jhgjkhfg", log_data.default_format_text_header_source);
-            Log.log("I am farting #b_on#very#b_off# hard in this moment #b_on#so#b_off# hard in fact that my cheeks of ass are sort of lioke this: (#c:SaddleBrown#,(#c# ) !!", "FARTING!!", this.GetType().ToString(), Log.log_data.default_format_text_header_source,Log.log_level.CUSTOM, "LightGray", "SaddleBrown", "SaddleBrown", "SaddleBrown");
+            
 
         }
 

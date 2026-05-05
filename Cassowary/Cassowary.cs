@@ -164,6 +164,9 @@ public class CassowaryGame : Game {
         State.UI.add_window(test_window);
         
         State.LoadFinished();
+        
+        Log.log("I am farting #b_on#very#b_off# hard in this moment #b_on#so#b_off# hard in fact that my cheeks of ass are sort of lioke this: (#c:SaddleBrown#,(#c# ) !!", "FARTING!!", this.GetType().ToString(), Log.log_data.default_format_text_header_source,Log.log_level.CUSTOM, "LightGray", "SaddleBrown", "SaddleBrown", "SaddleBrown");
+        Log.log("I am farting #b_on#very#b_off# hard in this moment #b_on#so#b_off# hard in fact that my cheeks of ass are sort of lioke this: (#c:SaddleBrown#,(#c# ) !!", "FARTING!!", this.GetType().ToString(), Log.log_data.default_format_text_header_source,Log.log_level.CUSTOM, "LightGray", "SaddleBrown", "SaddleBrown", "SaddleBrown");
     }
 
     ~CassowaryGame() {
