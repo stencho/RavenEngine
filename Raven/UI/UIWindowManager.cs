@@ -58,6 +58,7 @@ namespace Raven.UI  {
                     wm.render_window_internals();
                 }
             }
+            
             public static void render_UIs_to_their_buffers() {
                 foreach (UIWindowManager wm in uiwindowmanagers.Values) {
                     wm.render_out_to_buffer();
