@@ -79,6 +79,7 @@ public static class State {
     
     public static Vector2i resolution => gvars.get_Vector2i("r_resolution");
     public static float super_res_scale => gvars.get_float("r_resolution_scale");
+    public static Action resolution_changed;
     
     public static Viewport viewport => graphics_device.Viewport;
     public static Scene CurrentScene => Scene.Manager.ActiveScene;
@@ -419,6 +420,7 @@ public static class State {
             gvars.set("r_resolution", window.ClientBounds.Size.ToVector2i());
             changing_window_size = false;
             time_of_last_window_size_change = 0;
+            resolution_changed?.Invoke();
         }
     }
 

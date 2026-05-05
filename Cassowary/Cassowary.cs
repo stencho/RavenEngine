@@ -46,6 +46,7 @@ public class CassowaryGame : Game {
     
     UIWindow inspector;
     UIWindow test_window;
+    Panel settings_panel;
     
     private LerpedMatrix l_mat = new LerpedMatrix(Matrix.Identity * Matrix.CreateFromAxisAngle(Vector3.UnitX, float.DegreesToRadians(-90)),
         Matrix.Identity * Matrix.CreateFromAxisAngle(Vector3.UnitX, float.DegreesToRadians(90)), 2000,
@@ -142,9 +143,10 @@ public class CassowaryGame : Game {
         inspector = new UIWindow(new Vector2i(0, State.resolution.Y - 1000), new Vector2i(400, 320));
         test_window = new UIWindow(new Vector2i(0, State.resolution.Y - 500), new Vector2i(400, 320));
 
-        test_window.draw_action += () => {
-            Draw2D.fill_circle( test_window.absolute_position + Vector2.One * 50 + (Vector2.UnitY * test_window.top_bar_size.Y), 4f, Color.Red);
-        };
+        settings_panel = new Panel(State.resolution + Vector2.One,  new Vector2i(400, 320));
+        State.resolution_changed += () => { settings_panel.position = State.resolution + Vector2.One; };
+        settings_panel.anchor = FormAnchor.BottomRight;
+        settings_panel.layer_state = ui_layer_state.on_top;
         
         var button = new UIButton(50, 50, "button_test");
 
@@ -160,6 +162,7 @@ public class CassowaryGame : Game {
         
         inspector.add_subform(lm);
         
+        State.UI.add_window(settings_panel);
         State.UI.add_window(inspector);
         State.UI.add_window(test_window);
         
