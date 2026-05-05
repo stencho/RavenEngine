@@ -96,6 +96,31 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
                         public string text => _text;
                         private string _text = "{{symbol.Name}}";
                         private Vector2i text_size; 
+                        private string font_name = "profont";
+                        public string FontName {
+                            get { return font_name; }
+                            set { font_name = value; change_text(_text); } 
+                        }
+                        public Action TextChanged;
+                        
+                        public void change_text(string text) {
+                            this._text = text;
+                            text_size = measure_string_i(text);
+                            TextChanged?.Invoke();
+                        }
+                        
+                        internal Vector2 measure_string(string text) {
+                            return Draw2D.measure_string(font_name, text);
+                        }
+                        internal Vector2i measure_string_i(string text) {
+                            return Draw2D.measure_string_i(font_name, text);
+                        }
+                        internal void draw_text(string text, Vector2i position, Color color) {
+                            Draw2D.text(font_name, text, position, color);
+                        }
+                        internal void draw_text(string text, Vector2 position, Color color) {
+                            Draw2D.text(font_name, text, position, color);
+                        }
                         
                         Vector2i _position = Vector2i.Zero;
                         public Vector2i position { 
@@ -164,11 +189,6 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
                         
                         private Color color_foreground => Draw2D.ColorInterpolate(UIColors.Foreground.multiply_color(UIColors.focus_fade), UIColors.Foreground, window_focus_lerp);
                         private Color color_background => Draw2D.ColorInterpolate(UIColors.Background.multiply_color(UIColors.focus_fade), UIColors.Background, window_focus_lerp);
-                        
-                        public void change_text(string text) {
-                            this._text = text;
-                            text_size = Draw2D.measure_string_profont_int(text);
-                        }
                         
                         public void reconfigure_client_area() {
                             _client_area = new RenderTarget2D(State.graphics_device, client_size.X, client_size.Y);
@@ -256,7 +276,8 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
                             this.position = new Vector2i(X, Y);
                             this.size = new Vector2i(width, height);
                             
-                            _collision.Add("form", new BoundingBox2D(absolute_position, size));
+                            if (_collision.ContainsKey("form")) update_collision();
+                            else _collision.Add("form", new BoundingBox2D(absolute_position, size));
                             
                         }
                         

@@ -72,16 +72,14 @@ public partial class FreeCamEntity : Entity {
     public void Initialized() {
         var cam = Components.GetFirst<GBufferCamera>().camera;
         cam.gbuffer.Draw2DOverGame += (DrawShapesToSurface draw_shapes) => {
-            if (!MouseWatcher.MouseLocked) {
-                var x = cam.gbuffer.resolution.X;
-                var y = cam.gbuffer.resolution.Y;
+            var x = cam.gbuffer.resolution.X;
+            var y = cam.gbuffer.resolution.Y;
 
-                y = 10;
-                x = (x / 2) - (Draw2D.measure_string_i("bitstrom", "[PAUSED]").X / 2);
+            y = 10;
+            x = (x / 2) - (Draw2D.measure_string_i("bitstrom16", "[PAUSED]").X / 2);
 
-                Draw2D.text("bitstrom", "[PAUSED]", new Vector2i(x, y), 
-                    UIColors.Foreground.multiply_alpha(1-time_scale_lerp.Value));
-            }
+            Draw2D.text("bitstrom16", "[PAUSED]", new Vector2i(x, y), 
+                UIColors.Foreground.multiply_alpha(1-time_scale_lerp.Value));
         };
         
         cam.gbuffer.Draw2DOnTop = (DrawShapesToSurface draw_shapes) => {

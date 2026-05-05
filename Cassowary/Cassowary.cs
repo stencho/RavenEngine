@@ -148,9 +148,11 @@ public class CassowaryGame : Game {
         settings_panel.anchor = FormAnchor.BottomRight;
         settings_panel.layer_state = ui_layer_state.on_top;
         
-        var button = new UIButton(50, 50, "button_test");
+        var button = new UIButton(2, 2, "test", "bitstrom32");
 
-        button.anchor = FormAnchor.TopCenter;
+        button.anchor = FormAnchor.TopLeft;
+        
+        button.change_text("different text actually");
         
         test_window.add_subform(button);
         

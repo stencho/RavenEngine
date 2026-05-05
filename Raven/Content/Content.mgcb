@@ -13,13 +13,37 @@
 
 #---------------------------------- Content ---------------------------------#
 
-#begin Engine/Fonts/bitstrom.spritefont
+#begin Engine/Fonts/bitstrom9.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
 /processorParam:PremultiplyAlpha=True
 /processorParam:TextureFormat=Compressed
 /processorParam:Version=3.8.5.0
-/build:Engine/Fonts/bitstrom.spritefont
+/build:Engine/Fonts/bitstrom9.spritefont
+
+#begin Engine/Fonts/bitstrom16.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/processorParam:Version=3.8.5.0
+/build:Engine/Fonts/bitstrom16.spritefont
+
+#begin Engine/Fonts/bitstrom24.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/processorParam:Version=3.8.5.0
+/build:Engine/Fonts/bitstrom24.spritefont
+
+#begin Engine/Fonts/bitstrom32.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/processorParam:Version=3.8.5.0
+/build:Engine/Fonts/bitstrom32.spritefont
 
 #begin Engine/Fonts/profont.spritefont
 /importer:FontDescriptionImporter

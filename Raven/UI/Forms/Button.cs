@@ -20,15 +20,23 @@ public partial class UIButton : IUIForm {
     Lerper mdlerp = new Lerper(0, 1, 50);
     
     private bool mouse_down_and_over = false;
-    
-    public UIButton(int X, int Y, int width, int height, string text) {
+
+    public UIButton(int X, int Y, int width, int height, string text, string font = "profont") {
+        font_name = font;
         change_text(text);
         setup(X,Y,width,height);
+        TextChanged += text_changed;
     }
     
-    public UIButton(int X, int Y, string text) {
+    public UIButton(int X, int Y, string text, string font = "profont") {
+        font_name = font;
         change_text(text);
-        setup(X,Y,text_size.X + 4, text_size.Y + 4);
+        setup(X,Y,text_size.X + 8, text_size.Y + 10);
+        TextChanged += text_changed;
+    }
+
+    void text_changed() {
+        setup(position.X, position.Y,text_size.X + 8, text_size.Y + 10);
     }
 
     [Flags]
@@ -107,7 +115,7 @@ public partial class UIButton : IUIForm {
     public void render_internal() {}
 
     public void draw() {
-        var ms = Math2D.measure_string("profont", text);
+        var ms = measure_string(text);
 
         if (mouse_over) {
             molerp.Lerp();
@@ -129,7 +137,7 @@ public partial class UIButton : IUIForm {
         //background
         Draw2D.fill_rect(top_left - mo_offset, bottom_right - mo_offset, Draw2D.ColorInterpolate(color_background, UIColors.Foreground, mdlerp.Value));
         //text
-        Draw2D.text("profont", text, position - mo_offset + (size / 2) - (ms / 2), Draw2D.ColorInterpolate(color_foreground, UIColors.Background, mdlerp.Value));
+        Draw2D.text(font_name, text, position - mo_offset + (size / 2) - (ms / 2), Draw2D.ColorInterpolate(color_foreground, UIColors.Background, mdlerp.Value));
         //border
         Draw2D.rect(top_left - mo_offset, bottom_right - mo_offset, 
             color_foreground, 
