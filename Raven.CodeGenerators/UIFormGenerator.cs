@@ -97,13 +97,36 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
                         private string _text = "{{symbol.Name}}";
                         private Vector2i text_size; 
                         
-                        public Vector2i position { get; set; } = Vector2i.Zero;
+                        Vector2i _position = Vector2i.Zero;
+                        public Vector2i position { 
+                            get => _position - anchor_offset(); 
+                            set => _position = value;
+                        }
+                        
                         public Vector2i size { get; set; } = Vector2i.One * 64;
                         
                         public Vector2i absolute_position => is_child ? parent_form.absolute_position + parent_form.client_top_left + position : position;
                         
                         public ui_layer_state layer_state { get; set; } = ui_layer_state.normal;
                         public FormAnchor anchor { get; set; } = FormAnchor.TopLeft;
+                        public Vector2i anchor_offset() {
+                            Vector2i right = Vector2i.Right * size.X;
+                            Vector2i down = Vector2i.Down * size.Y;
+                            
+                            switch (anchor) {
+                                case FormAnchor.TopLeft: return Vector2i.Zero;
+                                case FormAnchor.TopCenter: return right / 2;
+                                case FormAnchor.TopRight: return right;
+                                case FormAnchor.CenterLeft: return down / 2;
+                                case FormAnchor.Center: return (down + right) / 2;
+                                case FormAnchor.CenterRight: return (down / 2) + right;
+                                case FormAnchor.BottomLeft: return down;
+                                case FormAnchor.BottomCenter: return down + (right / 2);
+                                case FormAnchor.BottomRight: return down + right;
+                            }
+                            
+                            return Vector2i.Zero;
+                        }
                         
                         public bool has_focus { get; set; } = false;
                         public bool visible => _visible;

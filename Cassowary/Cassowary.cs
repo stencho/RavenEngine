@@ -45,6 +45,7 @@ public class CassowaryGame : Game {
     private Sine sine;
     
     UIWindow inspector;
+    UIWindow test_window;
     
     private LerpedMatrix l_mat = new LerpedMatrix(Matrix.Identity * Matrix.CreateFromAxisAngle(Vector3.UnitX, float.DegreesToRadians(-90)),
         Matrix.Identity * Matrix.CreateFromAxisAngle(Vector3.UnitX, float.DegreesToRadians(90)), 2000,
@@ -135,60 +136,22 @@ public class CassowaryGame : Game {
             Draw2D.line(tl, tl + (Vector2i.UnitY * 11), Color.Red, 1f);
             Draw2D.text_shadow($"[Environment] {(int)hour} O'clock", Vector2i.Down * 4 + (Vector2i.Right * (State.resolution.X - SkyboxState.sun_moon.lerps.debug_band.Bounds.Size.X)), Color.White, Color.Black);
             
-            //Draw2D.fill_circle(new Vector2(200 + (50 * (sine.Phase / (MathF.PI * 2))), 10), 6f, Color.IndianRed);
-            //Draw2D.fill_circle(new Vector2(200 + (50 * ), 18), 6f, Color.DarkOliveGreen);
-            //Draw2D.fill_circle(new Vector2(200 + (50 * ), 24), 6f, Color.MediumPurple);
-            
-            //Draw2D.image(cursor.white_fill, Vector2i.One * 50, Vector2i.One * 100, 0f);
-            //Draw2D.image(cursor.signed_distance_negative, Vector2i.One * 50, Vector2i.One * 100, 0f);
-            //Draw2D.rect(Vector2i.One * 50, Vector2i.One * 32 + 50, Color.Black, 1f);
-            
-            //Draw2D.rect((Vector2i.One * 100), (Vector2i.One * 100) + shapes.get("cursor").bordered_bounds.size, Color.Black, 1f);
-            
-            //test_shape.render(Vector2i.One * 50);
-            
-            //Draw2D.rect((Vector2i.One * 100)+ shapes.get("cursor").shape_top_left_within_border, (Vector2i.One * 100)  + shapes.get("cursor").shape_top_left_within_border + shapes.get("cursor").bounds.size, Color.Black, 1f);
             Draw2D.end();
-            
         };
         
-        //Oscillator test = new Oscillator(SoundFlowState.Engine, SoundFlowState.PlaybackDevice.Format) { Frequency = 220, Type = Oscillator.WaveformType.Sine};
-        
-        
-        inspector = new UIWindow(new Vector2i(0, State.resolution.Y - 700), new Vector2i(400, 320));
-        //inspector.hide();
-        /*
-        var b = new UIButton(5, 5, "fart really hard");
+        inspector = new UIWindow(new Vector2i(0, State.resolution.Y - 1000), new Vector2i(400, 320));
+        test_window = new UIWindow(new Vector2i(0, State.resolution.Y - 500), new Vector2i(400, 320));
 
-
-        var c = new UIButton(b.bottom_right.X + 2, 5, "fart even harder");
-
-        c.set_action(() => Log.log("yee"));
-        inspector.add_subform(c);
-        inspector.add_subform(b);
-
-        var d = new UIButton(5, 5, "adam sander");
-
-        var test_panel = new Panel(Vector2i.One * 25, Vector2i.One * 350);
-        var test_panel_2 = new Panel(Vector2i.One * 25, Vector2i.One * 250);
-
-        b.set_action(() => test_panel.toggle_visibility());
-        d.set_action(() => test_panel_2.toggle_visibility());
-
-        test_panel.add_subform(d);
-        test_panel.add_subform(test_panel_2);
-
-        test_panel_2.foreground_draw = p => {
-            Draw2D.image(Resources.GetTexture("adam"), Vector2i.Zero, p.client_size);
-            Draw2D.text(p.root_client_size.ToXString(), Vector2i.One * 5, Color.Black);
+        test_window.draw_action += () => {
+            Draw2D.fill_circle( test_window.absolute_position + Vector2.One * 50 + (Vector2.UnitY * test_window.top_bar_size.Y), 4f, Color.Red);
         };
-        test_panel.hide();
-        test_panel_2.hide();
+        
+        var button = new UIButton(50, 50, "button_test");
 
-        inspector.add_subform(test_panel);
-
-        */
-
+        button.anchor = FormAnchor.TopCenter;
+        
+        test_window.add_subform(button);
+        
         LayoutManager lm = new LayoutManager(inspector);
         
         lm.add_strip(new UIButton(0, 0, "test button"));
@@ -198,6 +161,7 @@ public class CassowaryGame : Game {
         inspector.add_subform(lm);
         
         State.UI.add_window(inspector);
+        State.UI.add_window(test_window);
         
         State.LoadFinished();
     }
