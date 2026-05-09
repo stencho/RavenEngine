@@ -68,7 +68,7 @@ public class EntityPosition {
         if (current_time > length) 
             current_time = length;
 
-        if (step_milliseconds == 0)            
+        if (gvars.get_float("g_time_scale") != 0f && !float.IsNaN(InterpolationPosition))            
             position_interpolated = Vector3.Lerp(position_stable_previous, position_stable, InterpolationPosition);
         else
             position_interpolated = position_stable_previous;
