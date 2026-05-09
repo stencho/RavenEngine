@@ -21,6 +21,22 @@ namespace Raven.Graphics {
             sdf_circle_effect.Parameters["size"].SetValue(Vector2.One * radius * 2);
             sdf_circle_effect.Parameters["fill"].SetValue(false);
             sdf_circle_effect.Parameters["line_width"].SetValue(line_width);
+            sdf_circle_effect.Parameters["pattern"].SetValue(0);
+            Draw2D.sb.Draw(Draw2D.OnePXWhite, position, null,
+                    color, 0f, Vector2.One * 0.5f, Vector2.One * radius * 2,
+                SpriteEffects.None, 1f);
+            Draw2D.end();
+        }
+
+        public static void draw_circle_dither(Vector2 position, float radius, float line_width, Color color, Color color_b, int dither_res) {
+            Draw2D.end();
+            Draw2D.begin(sdf_circle_effect);
+            sdf_circle_effect.Parameters["size"].SetValue(Vector2.One * radius * 2);
+            sdf_circle_effect.Parameters["fill"].SetValue(false);
+            sdf_circle_effect.Parameters["line_width"].SetValue(line_width);
+            sdf_circle_effect.Parameters["pattern"].SetValue(1);
+            sdf_circle_effect.Parameters["color_b"].SetValue(color_b.ToVector4());
+            sdf_circle_effect.Parameters["dither_res"].SetValue(dither_res);
             Draw2D.sb.Draw(Draw2D.OnePXWhite, position, null,
                     color, 0f, Vector2.One * 0.5f, Vector2.One * radius * 2,
                 SpriteEffects.None, 1f);
@@ -32,6 +48,22 @@ namespace Raven.Graphics {
             Draw2D.begin(sdf_circle_effect);
             sdf_circle_effect.Parameters["size"].SetValue(Vector2.One * radius * 2);
             sdf_circle_effect.Parameters["fill"].SetValue(true);
+            sdf_circle_effect.Parameters["pattern"].SetValue(0);
+            Draw2D.sb.Draw(Draw2D.OnePXWhite, position, null,
+                    color, 0f, Vector2.One * 0.5f, Vector2.One * radius * 2,
+                SpriteEffects.None, 1f);
+            Draw2D.end();
+        }
+        
+        public static void fill_circle_dither(Vector2 position, float radius, Color color, Color color_b, int dither_res) {
+            Draw2D.end();
+            Draw2D.begin(sdf_circle_effect);
+            sdf_circle_effect.Parameters["size"].SetValue(Vector2.One * radius * 2);
+            sdf_circle_effect.Parameters["fill"].SetValue(true);
+            sdf_circle_effect.Parameters["pattern"].SetValue(1);
+            sdf_circle_effect.Parameters["color_b"].SetValue(color_b.ToVector4());
+            sdf_circle_effect.Parameters["dither_res"].SetValue(dither_res);
+            
             Draw2D.sb.Draw(Draw2D.OnePXWhite, position, null,
                     color, 0f, Vector2.One * 0.5f, Vector2.One * radius * 2,
                 SpriteEffects.None, 1f);

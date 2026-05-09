@@ -1,4 +1,6 @@
-﻿#if OPENGL
+﻿#include "lib/patterns.fx"
+
+#if OPENGL
 	#define SV_POSITION POSITION
 	#define VS_SHADERMODEL vs_3_0
 	#define PS_SHADERMODEL ps_3_0
@@ -12,6 +14,11 @@ Texture2D SpriteTexture;
 float2 size;
 float line_width = 1;
 bool fill = false;
+int pattern = 0;
+
+float4 color_b = float4(0,0,0,0);
+
+int dither_res = 1;
 
 sampler2D SpriteTextureSampler = sampler_state
 {
@@ -22,23 +29,23 @@ struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
 	float4 Color : COLOR0;
-	float2 TextureCoordinates : TEXCOORD0;
+	float2 UV : TEXCOORD0;
 };
 
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
-	float4 c = tex2D(SpriteTextureSampler,input.TextureCoordinates) * input.Color;
+	float4 c = input.Color;
 	float2 px = 1/size;
 
-	if (length(input.TextureCoordinates - float2(0.5, 0.5)) > 0.5) {
+	if (length(input.UV - float2(0.5, 0.5)) > 0.5) {
 		clip(-1);
 	} 
 
-	if (!fill && length(input.TextureCoordinates - float2(0.5, 0.5)) < 0.5 - (px.x * line_width)){
+	if (!fill && length(input.UV - float2(0.5, 0.5)) <= 0.5 - (px.x * line_width)){
 		clip(-1);
 	} 
 
-	return c;
+	return pattern_select(pattern, c, color_b, input.UV, size, dither_res);
 }
 
 technique SpriteDrawing

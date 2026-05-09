@@ -574,6 +574,12 @@ public static class Draw2D {
     public static void fill_circle(Vector2i P, float radius, Color color) {
         SDF.fill_circle(P.ToVector2(), radius, color);
     }
+    public static void fill_circle_dither(Vector2 P, float radius, Color color, Color color_b, int pattern_size = 1) {
+        SDF.fill_circle_dither(P, radius, color, color_b, pattern_size);
+    }
+    public static void fill_circle_dither(Vector2i P, float radius, Color color, Color color_b, int pattern_size = 1) {
+        SDF.fill_circle_dither(P.ToVector2(), radius, color, color_b, pattern_size);
+    }
 
     public static void image(Texture2D image, Vector2 position, Vector2 size) {
         begin();
@@ -728,7 +734,7 @@ public static class Draw2D {
         Draw2D.text(text, position.ToVector2(), color);
     }
 
-    public static void text_centered(string text, Vector2i position, Color color) {
+    public static void text_centered(string font_name, string text, Vector2i position, Color color) {
         string line = string.Empty;
         Vector2i size = Vector2i.Zero;
         Vector2 pos = position.ToVector2();
@@ -737,8 +743,8 @@ public static class Draw2D {
 
         using (StringReader sr = new StringReader(text)) {
             while (sr.Peek() > -1) {
-                line = sr.ReadLine();
-                size = measure_string_profont_int(line);
+                line = sr.ReadLine().Trim();
+                size = measure_string_i(font_name,line);
                 if (size.X > max_w) max_w = size.X;
             }
         }
@@ -751,14 +757,14 @@ public static class Draw2D {
 
         using (StringReader sr = new StringReader(text)) {      
             while (sr.Peek() > -1) {
-                line = sr.ReadLine();
-                size = measure_string_profont_int(line);
+                line = sr.ReadLine().Trim();
+                size = measure_string_i(font_name, line);
                 
-                pos.X = (position.X) - (size.X / 2f) + 1;
+                pos.X = (position.X) - (size.X / 2f);
 
                 //Drawing.fill_circle(pos, 1f, Color.Green);
 
-                Draw2D.text(line, pos, color);
+                Draw2D.text(font_name, line, pos, color);
                 pos.Y += size.Y;
             }
         }
