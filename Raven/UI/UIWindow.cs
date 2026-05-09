@@ -60,7 +60,6 @@ namespace Raven.UI {
 
         int resize_handle_thickness = 10;
 
-
         public UIWindow(IUIForm parent_form = null) {
             parent_form = parent_form;
             setup();
@@ -268,8 +267,6 @@ namespace Raven.UI {
         public Action internal_draw_action;
         public Action draw_action;
 
-        public Lerper focus_lerp = new Lerper(0f, 1f, 200);
-
         private Color border => Draw2D.ColorInterpolate(UIColors.Foreground.multiply_color(UIColors.focus_fade), UIColors.Foreground, focus_lerp.Value);
         private Color title_bar => Draw2D.ColorInterpolate(UIColors.Foreground75Percent.multiply_color(UIColors.focus_fade), UIColors.Foreground75Percent, focus_lerp.Value);
         private Color title_text => Draw2D.ColorInterpolate(UIColors.Foreground.multiply_color(UIColors.focus_fade), UIColors.Foreground25Percent, focus_lerp.Value);
@@ -329,11 +326,6 @@ namespace Raven.UI {
         
         public void draw() {
             if (!_visible) return;
-            
-            if (has_focus) focus_lerp.Lerp();
-            else focus_lerp.LerpReverse();
-            
-            _focus_lerp =  focus_lerp.Value;
 
             //Draw the window contents if _draw_render_targets is on (this is used alongside resizing windows to prevent issues w/ resizing render targets a bunch)
             if (_draw_render_targets) {

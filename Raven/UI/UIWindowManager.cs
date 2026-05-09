@@ -27,6 +27,12 @@ namespace Raven.UI  {
         public static Color Foreground { get; set; } = Color.FromNonPremultiplied(242, 124, 248, 255);
         public static Color Background { get; set; } = Color.FromNonPremultiplied(45,30,45,255);
         
+        public static Color Emphasis { get; set; } = Color.FromNonPremultiplied(177,164,245, 255);
+        public static Color EmphasisGood { get; set; } = Color.FromNonPremultiplied(117,195,114, 255);
+        public static Color EmphasisBad { get; set; } = Color.FromNonPremultiplied(255, 94,104, 255);
+
+        public static Color Shadow { get; set; } = Color.BlueViolet.multiply_color(.25f).multiply_alpha(.5f);
+        
         public static Color Foreground75Percent => Foreground.multiply_color(.75f);
         public static Color Foreground50Percent => Foreground.multiply_color(.5f);
         public static Color Foreground25Percent => Foreground.multiply_color(.25f);
@@ -69,6 +75,9 @@ namespace Raven.UI  {
         public List<IUIForm> windows = new List<IUIForm>();
         ConsoleWindow console;
 
+        IUIForm focused_subform = null;
+        IUIForm window_on_mouse = null;
+        
         public bool focus_follows_mouse => gvars.get_bool("ui_focus_follows_mouse");
         public bool mouse_follows_focus => gvars.get_bool("ui_mouse_follows_focus");
         public bool window_shadows => gvars.get_bool("ui_window_shadows");
@@ -198,7 +207,7 @@ namespace Raven.UI  {
 
             if (windex >= 0) {
                 windows[windex].has_focus = true;
-    
+                
                 if (sindex >= 0 && windows[windex].subforms.Count > 0)
                     windows[windex].subforms[sindex].has_focus = true;
             }
@@ -244,6 +253,7 @@ namespace Raven.UI  {
                 force_focus(window);
                 if (mouse_follows_focus) move_mouse_to_form_center(window);
                 BindWatcher.global_enable = false;
+                
             } else if (!MouseWatcher.MouseLocked && !mouse_holding_window) {
                 
                 window.toggle_visibility();
@@ -286,7 +296,7 @@ namespace Raven.UI  {
             return current_leaf;
         }
 
-        public void store_focus() => stored_focus = get_focused_window();
+        public void store_focus() => stored_focus = find_focused_window();
         public void restore_focus() { if (stored_focus != null) {
             windows.BringToFront(stored_focus);
             force_focus(stored_focus);
@@ -294,7 +304,7 @@ namespace Raven.UI  {
         } }
         
         public IUIForm stored_focus;
-        IUIForm get_focused_window() {
+        IUIForm find_focused_window() {
             foreach (var w in windows) {
                 if (w.has_focus) {
                     return w;
@@ -304,8 +314,7 @@ namespace Raven.UI  {
             return null;
         }
         
-        IUIForm top_subform_under_mouse = null;
-        IUIForm window_on_mouse = null;
+        
         bool mouse_holding_window => window_on_mouse != null;
         private bool mouse_was_locked = false;
         public void update() {
@@ -348,8 +357,6 @@ namespace Raven.UI  {
                 }
             }
             
-            
-            
             //initial mouse stack and bring-to-front-on-click handling and such
             for (int i = windows.Count - 1; i >= 0; i--) {
 
@@ -369,23 +376,23 @@ namespace Raven.UI  {
                     if (!handled) {
 
                         windows[i].recurse_all_subforms(f => {
-                            f.has_focus = false;
+                            //f.has_focus = false;
                             f.top_of_mouse_stack = false;
                         });
 
                         windows[i].top_of_mouse_stack = true;
 
                         if (!mouse_holding_window) {
-                            top_subform_under_mouse = subform_find_highest(windows[i]);
+                            focused_subform = subform_find_highest(windows[i]);
 
-                            if (top_subform_under_mouse != null && top_subform_under_mouse.parent_form != null) {
-                                top_subform_under_mouse.top_of_mouse_stack = true;
+                            if (focused_subform != null && focused_subform.parent_form != null) {
+                                focused_subform.top_of_mouse_stack = true;
                             }
                         }
                         
                     } else {
                         windows[i].recurse_all_subforms(f => {
-                            f.has_focus = false;
+                            //f.has_focus = false;
                             f.top_of_mouse_stack = false;
                         });
                         windows[i].top_of_mouse_stack = false;
@@ -417,7 +424,7 @@ namespace Raven.UI  {
                         windows[i].top_of_mouse_stack = true;
                     }
                     
-                    windows[i].defocus_all_subforms();
+                    //windows[i].defocus_all_subforms();
                     break;
                 }
                 
@@ -434,10 +441,10 @@ namespace Raven.UI  {
                             windows[i].has_focus = (windows[i].mouse_over && windows[i].top_of_mouse_stack);
                         }
 
-                        if (top_subform_under_mouse != null) {
+                        if (focused_subform != null) {
                             if (mouse_button_just_pressed)
-                                top_subform_under_mouse.has_focus = true;
-                            top_subform_under_mouse.top_of_mouse_stack = true;
+                                focused_subform.has_focus = true;
+                            focused_subform.top_of_mouse_stack = true;
                         }
                         
                     } else {
@@ -446,7 +453,7 @@ namespace Raven.UI  {
                         for (int i = windows.Count - 1; i >= 0; i--) {
                             windows[i].has_focus = false;
                             windows[i].top_of_mouse_stack = false;
-                            windows[i].defocus_all_subforms();
+                            //windows[i].defocus_all_subforms();
                         }
                         
                         BindWatcher.global_enable = true;
@@ -456,7 +463,20 @@ namespace Raven.UI  {
                     //click to focus, and we just clicked
                     if (mouse_button_just_pressed) {
                         if (mouse_over_UI()) {
-                            //more or less all of this is handled above
+                            
+                            // handles subform focusing per-window. will later be used as part of the UI control system
+                            find_focused_window().recurse_all_subforms(form => {
+                                if (form.top_of_mouse_stack && form.can_be_focused) {
+                                    find_focused_window().recurse_all_subforms(form => {
+                                        if (!form.top_of_mouse_stack) {
+                                            form.has_focus = false;
+                                        }
+                                    });
+                                        
+                                    form.has_focus = true;
+                                }
+                            });
+                            
                             BindWatcher.global_enable = false;
                         } else {
                             
@@ -465,7 +485,7 @@ namespace Raven.UI  {
                             for (int i = windows.Count - 1; i >= 0; i--) {
                                 windows[i].has_focus = false;
                                 windows[i].top_of_mouse_stack = false;
-                                windows[i].defocus_all_subforms();
+                                //windows[i].defocus_all_subforms();
                             }
                         }
                     }
@@ -491,10 +511,16 @@ namespace Raven.UI  {
             
             foreach (IUIForm window in windows) {
                 if (window is UIWindow && window.visible && !((window as UIWindow).RenderTargetsHidden)) {
-                    Draw2D.fill_rect(window.position + shadow_offset, window.position + window.size + shadow_offset, Color.Black.multiply_alpha(.4f));//, Color.Transparent, 1);
+                    Draw2D.fill_rect(window.position + shadow_offset, window.position + window.size + shadow_offset, UIColors.Shadow);//, Color.Transparent, 1);
                 }
-                if (window.visible)
+
+                if (window.visible) {
+                    window.recurse_all_subforms((form) => {
+                        form.do_lerps();
+                    });
+                    window.do_lerps();
                     window.draw();
+                }
             }
             Draw2D.end();
         }
@@ -519,7 +545,7 @@ namespace Raven.UI  {
             }
             
             foreach (IUIForm subform in subforms) {
-                s += (subform.has_focus ? "[f]" : "   ") + $" [subform] {subform.name} \"{subform.text}\" [layer state] {subform.layer_state} [mouse over] {subform.mouse_over} {(subform.top_of_mouse_stack ? " <-" : "")}\n";
+                s += (subform.has_focus ? "[f]" : "   ") + $" [subform] {subform.name} \"{subform.text}\" [layer state] {subform.layer_state} [mouse over] {subform.mouse_over} {(subform.top_of_mouse_stack ? " <-" : "")} [focus] {subform.has_focus}\n";
                 foreach (var collision in subform.collision) {
                     s += $"      [coll] {collision.Key} {collision.Value.origin}\n";
                 }

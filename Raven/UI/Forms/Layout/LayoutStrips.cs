@@ -14,7 +14,7 @@ public partial class LayoutStripManager : IUIForm {
     public Vector2i client_bottom_right => bottom_right;
     
     List<LayoutStrip> strips = new();
-
+    
     private int total_height() {
         var current_height = 0;
         foreach (var strip in strips) current_height += strip.height;
@@ -25,6 +25,7 @@ public partial class LayoutStripManager : IUIForm {
         this.parent = parent;
         size = parent.client_size;
         setup(position.X, position.Y, size.X, size.Y);
+        disable_focusing();
     }
 
     public void add_strip(params IUIForm[] strip_forms) {
@@ -84,10 +85,10 @@ public class LayoutStrip {
     public int height => get_tallest() + vertical_gap_top + vertical_gap_bottom;
     public int top = 0;
     
-    public int horizontal_form_gap = 0;
+    public int horizontal_form_gap = 2;
     public int horizontal_end_gaps = 4;
     
-    public int vertical_gap_top = 0;
+    public int vertical_gap_top = 1;
     public int vertical_gap_bottom = 0;
     
     public bool automatic_subform_width { get; set; } = true;

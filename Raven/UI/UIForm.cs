@@ -42,6 +42,7 @@ public interface IUIForm {
 
     bool mouse_over { get; } 
     bool has_focus { get; set; }
+    bool can_be_focused { get; }
     bool top_of_mouse_stack { get; set; }
     bool visible { get; }
 
@@ -56,6 +57,8 @@ public interface IUIForm {
 
     bool test_mouse();
 
+    void do_lerps();
+    
     void update();
     void update_collision();
     void render_internal();

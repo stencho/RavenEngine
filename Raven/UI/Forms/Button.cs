@@ -133,11 +133,11 @@ public partial class UIButton : IUIForm {
         var mo_offset = (Vector2.One * 2) * (molerp.Value - float.Clamp(mdlerp.Value, 0f, mo_max));
         
         //shadow
-        Draw2D.fill_rect(top_left + mo_offset/2, bottom_right + mo_offset/2, Draw2D.ColorInterpolate(Color.Transparent, UIColors.Background.multiply_color(.5f), float.Clamp(molerp.Value * 2f, 0.5f, 1f)));
+        Draw2D.fill_rect(top_left + mo_offset/2, bottom_right + mo_offset/2, Draw2D.ColorInterpolate(UIColors.Shadow, Color.Transparent, float.Clamp(molerp.Value * 2f, 0.5f, 1f)));
         //background
-        Draw2D.fill_rect(top_left - mo_offset, bottom_right - mo_offset, Draw2D.ColorInterpolate(color_background, UIColors.Foreground, mdlerp.Value));
+        Draw2D.fill_rect(top_left - mo_offset, bottom_right - mo_offset, Draw2D.ColorInterpolate(color_background, color_foreground, mdlerp.Value));
         //text
-        Draw2D.text(font_name, text, position - mo_offset + (size / 2) - (ms / 2), Draw2D.ColorInterpolate(color_foreground, UIColors.Background, mdlerp.Value));
+        Draw2D.text(font_name, text, position - mo_offset + (size / 2) - (ms / 2), Draw2D.ColorInterpolate(color_foreground, color_background, mdlerp.Value));
         //border
         Draw2D.rect(top_left - mo_offset, bottom_right - mo_offset, 
             color_foreground, 

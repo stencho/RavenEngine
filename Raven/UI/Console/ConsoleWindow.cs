@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Raven.Engine;
 using Raven.Engine.Collision;
 using Raven.Graphics.Drawing2D;
+using Raven.Graphics.InterpolatedTypes;
 using Raven.UI;
 
 namespace Raven.Console {
@@ -63,6 +64,7 @@ namespace Raven.Console {
         public bool mouse_over => (mouse_interactions.Count > 0);
 
         public int top_hit_subform { get; set; } = -1;
+        public bool can_be_focused { get; } = true;
         public bool top_of_mouse_stack { get; set; } = false;
 
         public List<string> mouse_interactions => _mouse_interactions;
@@ -118,6 +120,11 @@ namespace Raven.Console {
 
         public bool test_mouse() {
             return UIStandard.test_mouse(ref _collision, ref _mouse_interactions);
+        }
+
+        
+        public void do_lerps() {
+            
         }
 
         public void update() {

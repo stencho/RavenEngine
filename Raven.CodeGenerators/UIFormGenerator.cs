@@ -83,6 +83,7 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
         sb.AppendLine("using Raven.Engine.Collision.Shapes2D;");
         sb.AppendLine("using Raven.UI;");
         sb.AppendLine("using Raven.UI.Forms;");
+        sb.AppendLine("using Raven.Graphics.InterpolatedTypes;");
         sb.AppendLine($"partial class {symbol.Name}");
         sb.AppendLine("{");
         sb.AppendLine($$"""
@@ -154,6 +155,9 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
                         }
                         
                         public bool has_focus { get; set; } = false;
+                        public bool can_be_focused => _can_be_focused;
+                        protected bool _can_be_focused = true;
+                        public void disable_focusing() { _can_be_focused = false; }
                         public bool visible => _visible;
                         bool _visible = true;
                         
@@ -184,10 +188,16 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
                         public Dictionary<string, Collision2D.Shape2D> collision => _collision;
                         Dictionary<string, Collision2D.Shape2D> _collision = new Dictionary<string, Collision2D.Shape2D>();
                         
-                        public float window_focus_lerp => parent_form != null ? parent_form.window_focus_lerp : _focus_lerp;
-                        float _focus_lerp = 1f;
+                        public float window_focus_lerp => parent_form != null ? parent_form.window_focus_lerp : focus_lerp.Value;
+                        Lerper focus_lerp =  new Lerper(0f, 1f, 200);
                         
-                        private Color color_foreground => Draw2D.ColorInterpolate(UIColors.Foreground.multiply_color(UIColors.focus_fade), UIColors.Foreground, window_focus_lerp);
+                        public void do_lerps() {
+                            if (has_focus) focus_lerp.Lerp();
+                            else focus_lerp.LerpReverse();
+                        }
+                        
+                        protected Color color_subfocus => Draw2D.ColorInterpolate(UIColors.Foreground, UIColors.Emphasis, focus_lerp.Value);
+                        private Color color_foreground => Draw2D.ColorInterpolate(color_subfocus.multiply_color(UIColors.focus_fade), color_subfocus, window_focus_lerp);
                         private Color color_background => Draw2D.ColorInterpolate(UIColors.Background.multiply_color(UIColors.focus_fade), UIColors.Background, window_focus_lerp);
                         
                         public void reconfigure_client_area() {

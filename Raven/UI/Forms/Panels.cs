@@ -20,6 +20,7 @@ public partial class UIPanel : IUIForm {
     public UIPanel(Vector2i position, Vector2i size) {
         setup(position.X, position.Y, size.X, size.Y);
         reconfigure_client_area();
+        disable_focusing();
     }
     
     public void update() {
@@ -64,6 +65,7 @@ public partial class UITabbedPanel : IUIForm {
     public UITabbedPanel(Vector2i position, Vector2i size) {
         setup(position.X, position.Y, size.X, size.Y);
         reconfigure_client_area();
+        disable_focusing();
     }
     
     public void update() {
