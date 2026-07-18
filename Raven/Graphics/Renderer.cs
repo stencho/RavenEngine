@@ -109,9 +109,7 @@ namespace Raven.Graphics.Drawing3D {
             camera.parent_scene.ClearVisibilityLists();
             camera.parent_scene.BuildVisibilityLists(camera);
             
-            
             //build shadows
-            
             
             compositor.clear_buffers(camera); 
             render_prepass(camera);
@@ -157,7 +155,7 @@ namespace Raven.Graphics.Drawing3D {
                          a => a.camera.GUID == camera.GUID)) {
                 e.entity.Components.ForAllComponentsWithFlag(ComponentFlags.Render, component => {
                     var has_opacity_data = component.TryGetData("Opacity", out float opacity);
-                    var has_forward_flag = component.TryGetData("AlwaysRenderForward", out bool always_render_foward);
+                    var has_forward_flag = component.TryGetData("HasTransparentTexture", out bool always_render_foward);
                     
                     if ((has_opacity_data && opacity < 1.0f) ||  (has_forward_flag && always_render_foward)) { 
                         prepassed_components_need_forward_render.Add((e.distance, component));

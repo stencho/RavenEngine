@@ -270,10 +270,13 @@ public static class Resources {
         public void Load() {}
     }
     
-    static Dictionary<string, IContentData> all_content = new ();
+    public static Dictionary<string, IContentData> all_content = new ();
 
     public static Texture2D GetTexture(string name) {
         return ((ContentDataTexture)all_content[$"{FolderNameFromType(ContentType.Texture)}/{name}"]).Texture;
+    }
+    public static bool GetTextureHasTransparency(string name) {
+        return ((ContentDataTexture)all_content[$"{FolderNameFromType(ContentType.Texture)}/{name}"]).HasTransparency;
     }
     public static ContentDataTexture GetTextureContent(string name) {
         return ((ContentDataTexture)all_content[$"{FolderNameFromType(ContentType.Texture)}/{name}"]);

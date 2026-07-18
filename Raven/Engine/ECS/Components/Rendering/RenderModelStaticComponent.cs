@@ -25,7 +25,7 @@ namespace Raven.Engine.Components;
 [ComponentProperty("BlendState", typeof(BlendState))]
 [ComponentProperty("RasterizerState", typeof(RasterizerState))]
 
-[ComponentProperty("AlwaysRenderForward", typeof(bool))]
+[ComponentProperty("HasTransparentTexture", typeof(bool))]
 
 public partial class RenderModelStatic : Component {
 
@@ -51,7 +51,9 @@ public partial class RenderModelStatic : Component {
 
         add_data("RasterizerState", RasterizerState.CullCounterClockwise);
         
-        add_data("AlwaysRenderForward", false);
+        add_data("HasTransparentTexture", false);
+        if (Resources.GetTextureHasTransparency(texture)) 
+            HasTransparentTexture = true;
     }
 
     public override void RenderZPrePass(Camera camera) {

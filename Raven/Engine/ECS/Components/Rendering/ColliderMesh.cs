@@ -20,7 +20,7 @@ namespace Raven.Engine.Components;
 [ComponentProperty("Orientation", typeof(Matrix))]
 [ComponentProperty("Offset", typeof(Vector3))]
 
-[ComponentProperty("AlwaysRenderForward", typeof(bool))]
+[ComponentProperty("HasTransparentTexture", typeof(bool))]
 
 public partial class ColliderMesh : Component {
     public override ComponentFlags flags => ComponentFlags.Collide | ComponentFlags.Render;
@@ -37,7 +37,7 @@ public partial class ColliderMesh : Component {
 
     public Vector3 OffsetFromParent = Vector3.Zero;
 
-    public ColliderMesh(GeneratedGeometry geometry, string texture = "OnePXWhite") {
+    public ColliderMesh(GeneratedGeometry geometry, string texture = "Missing") {
         add_data("Geometry", geometry);
         
         add_data("TextureName", texture);
@@ -49,8 +49,10 @@ public partial class ColliderMesh : Component {
         add_data("Offset", Vector3.Zero);
         add_data("Scale", 1.0f);
         add_data("Orientation", Matrix.Identity);
-
-        add_data("AlwaysRenderForward", false);
+        
+        add_data("HasTransparentTexture", false);
+        if (Resources.GetTextureHasTransparency(texture)) 
+            HasTransparentTexture = true;
     }
 
     public override void RenderZPrePass(Camera camera) {
