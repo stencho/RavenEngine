@@ -18,23 +18,21 @@ public class DrawBuffersForward : ManagedEffect {
     
     // BATCH RENDERING
     public void batch_render_setup(Camera camera) {
-        set_param("atmosphere_color", camera.environment.atmosphere_color);
-        set_param("atmosphere_intensity", 0.5f);
         
         set_param("inverse_view", Matrix.Invert(camera.view));
         
-        set_param("directional_light", camera.environment.sun_direction);
-        set_param("light_color", camera.environment.sky_color.ToVector3());
-        set_param("light_intensity", 1f);
+        set_param("directional_light_dir", camera.environment.sun_direction);
+        set_param("directional_light_color", camera.environment.sky_color.ToVector3());
         
-        set_param("near_clip", camera.near_clip);
         set_param("far_clip", camera.far_clip);
         set_param("camera_pos", camera.position);
+        
+        set_param("fullbright", false);
         
         set_param("View", camera.view);
         set_param("Projection", camera.projection);
         
-        set_param("depth_map", camera.gbuffer.rt_depth);
+        set_param("DEPTH", camera.gbuffer.rt_depth);
         set_param("resolution", State.resolution.ToVector2());
         
         camera.gbuffer.rt_composed.use();
@@ -43,7 +41,7 @@ public class DrawBuffersForward : ManagedEffect {
     public void render_step(Camera camera, VertexBuffer vertex_buffer, IndexBuffer index_buffer, Texture2D texture, Matrix world, Color tint, float opacity) {
         set_states();
         
-        set_param("texture_map", texture);
+        set_param("DIFFUSE", texture);
         set_param("opacity", opacity);
         
         set_param("World", world);

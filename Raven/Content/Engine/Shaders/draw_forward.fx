@@ -1,22 +1,18 @@
 #include "lib/general.fx"
+#include "lib/lighting.fx"
 
-sampler DiffuseSampler = sampler_state {
-	texture = <texture_map>;
+SamplerState DiffuseSampler : register(s0) { 
+    texture = <DIFFUSE>; 
+};
+
+SamplerState DepthSampler : register(s6) = sampler_state {
+    texture = <DEPTH>;
 	MINFILTER = POINT;
 	MAGFILTER = POINT;
 	MIPFILTER = POINT;
 	ADDRESSU = WRAP;
 	ADDRESSV = WRAP;
-};
-sampler DepthSampler = sampler_state {
-	texture = <depth_map>;
-	MINFILTER = POINT;
-	MAGFILTER = POINT;
-	MIPFILTER = POINT;
-	ADDRESSU = WRAP;
-	ADDRESSV = WRAP;
-};
-
+}; 
 
 struct VSI {
 	float4 Position : POSITION0;
@@ -35,21 +31,11 @@ struct VSO {
 	float4 ViewPosition : TEXCOORD6;
 };
 
-
-float3 ambient_light;
-
 matrix World;
 matrix View;
 matrix Projection;
 
 float3x3 WVIT;
-
-float far_clip = 1000;
-float near_clip = 1000;
-
-float opacity = 1.0;
-
-float4 tint = float4(1,1,1,1);
 
 VSO MainVS(in VSI input)
 {
@@ -75,70 +61,60 @@ VSO MainVS(in VSI input)
 	return output;
 }
 
+float4x4 inverse_view;
+
+float4 tint = float4(1,1,1,1);
+
+float3 directional_light_dir;
+float3 directional_light_color;
 
 float3 camera_pos;
 
-bool fog = false;
-bool fullbright = false;
-
 float2 resolution;
 
-float4x4 inverse_view;
+float far_clip = 1000;
+float opacity = 1.0;
 
-float3 atmosphere_color;
-float atmosphere_intensity;
-
-float3 directional_light;
-float3 light_color;
-float3 light_intensity;
+bool fullbright = false;
 
 float4 MainPS(VSO input) : SV_Target0 {    	
     float4 rgba = tex2D(DiffuseSampler, input.TexCoord);
     
-    //get screen pos for depth clip
+    // apply tint
+    rgba *= tint;
+    
+    // get screen pos for depth clip
 	float2 ndc = input.ViewPosition.xy / input.ViewPosition.w;	
 	float2 screenUV = ndc.x * 0.5f + 0.5f;	
     screenUV.y = 1.0f - (ndc.y * 0.5f + 0.5f);     
 	
-	// DEPTH/OCCLUSION CLIP
+	// depth clip (it goes it goes it goes)
 	float3 depth = tex2D(DepthSampler, screenUV).xyz;		    
     if (input.Depth.x/input.Depth.y > depth.x / depth.y) { clip(-1); }
-    
-    //set up normals
-    float3 Normals = encode(normalize(input.TBN[2]));	
-    float4 decoded_normal = mul(decode(Normals), inverse_view);
-    float n_dot_l = dot(directional_light, decoded_normal);
-    	
+        	
+    // build lighting
     float4 lighting = float4(0,0,0,1);
-    lighting.rgb = ((light_color.rgb) * n_dot_l);    
+    float3 Normal = encode(normalize(input.TBN[2]));	
+    
+    // directional lighting
+    lighting.rgb = Directional(directional_light_color, Normal, directional_light_dir, inverse_view);
+      
+    // dim with opacity    
     lighting *= rgba.a * opacity;	
+    	
+    // fullbright mode toggle		
+	if (fullbright) { lighting = float4(1,1,1,1); } 
+				        			
+	// final color + lighting blend
+    rgba.rgb = (lighting.rgb * 0.2) + saturate(rgba.rgb * lighting.rgb);
     
-	float d = 1;
-	float fog_start = 0.85;
-	float fog_end = 1;
-			
-	if (fullbright){
-		lighting.rgb = float3(1,1,1);
-	} 
-			
-    // FAR CLIP    
-	float dist = (distance(camera_pos, input.WorldPos)) / (far_clip);
-	if (dist >= 0.999) clip(-1);	
-	    
-	float4 tint_pow = tint;
-	//tint_pow.rgb = pow(tint.rgb, 2.2);
-	float4 Diffuse = rgba * tint_pow;
-	
-    Diffuse.rgb = (lighting.rgb * 0.2) + saturate(Diffuse.rgb * lighting.rgb);
+    // final opacity blend        
+    rgba.a = rgba.a * opacity;
     
-    //Diffuse.rgb = pow(Diffuse.rgb, 1.0/2.2);
-    Diffuse.a = rgba.a * opacity;
-    
-    return Diffuse;
-}
-	
+    return rgba;
+}	
 
-technique BasicColorDrawing
+technique render
 {
 	pass P0
 	{

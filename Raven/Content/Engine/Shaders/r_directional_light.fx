@@ -1,4 +1,5 @@
 ﻿#include "lib/general.fx"
+#include "lib/lighting.fx"
 
 sampler NORMAL : register(s0) = sampler_state {
 	MINFILTER = POINT; MAGFILTER = POINT; MIPFILTER = POINT;	
@@ -19,12 +20,6 @@ struct VSO {
 	float3 pos : TEXCOORD1;
 };
 
-//Pixel Shader Out
-struct PSO
-{
-    float4 Lighting : COLOR0;
-};
-
 //Vertex Shader
 VSO VS(VSI input)
 {
@@ -37,27 +32,33 @@ VSO VS(VSI input)
 	return output;
 }
 
-float3 light_direction = float3(0,-1,0);
-float4 light_color = float4(1,1,1,1);
-
 float4x4 inverse_view;
 
-PSO PS(VSO input)
+float4 light_color = float4(1,1,1,1);
+
+float3 light_direction = float3(0,-1,0);
+
+bool fullbright = false;
+
+float4 PS(VSO input) : SV_Target0
 {
-	PSO output = (PSO)0;
-	
-	float Depth = tex2D(DEPTH,input.TexCoord).r;
-	float3 Normal = tex2D(NORMAL,input.TexCoord).rgb;
-	
-	if (Depth == 1) clip(-1);
-	
-	float4 decodedNormal = mul(decode(Normal), inverse_view);
-	
-	float NdotL = dot(light_direction, decodedNormal);
+    float4 Lighting = float4(0,0,0,1);
     
-	output.Lighting.rgb = ((light_color.rgb) * NdotL);
+    float Depth = tex2D(DEPTH,input.TexCoord).r;
+    
+    // do nothing to lighting at max depth as that's where the skybox lives
+    if (Depth == 1) clip(-1);
+        
+    float3 Normal = tex2D(NORMAL,input.TexCoord).rgb;
+    
+	if (fullbright){
+		Lighting = float4(1,1,1,1);
+		
+	} else {	                
+        Lighting.rgb = Directional(light_color, Normal, light_direction, inverse_view);
+	}	
 	
-	return output;	
+    return Lighting;
 }
 
 technique Default

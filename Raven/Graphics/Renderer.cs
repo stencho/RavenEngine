@@ -167,6 +167,8 @@ namespace Raven.Graphics.Drawing3D {
             }
         }
         
+        //VertexBuffer deferred_batching_vertex_buffer 
+        
         static void render_deferred(Camera camera) {
             deferred.batch_render_setup(camera);
             foreach (var component in prepassed_components) {

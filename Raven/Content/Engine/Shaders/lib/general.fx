@@ -41,3 +41,39 @@ half3 encode(half3 n) {
 }
 
 float3 decode(half3 enc) { return (2.0f * enc.xyz - 1.0f); }
+
+
+float3 pomn(float3 line_a, float3 line_b, float3 a, float3 p) {
+    
+	float3 b = a + (normalize(line_a) * distance(line_a, line_b));
+	float3 ab = b - a;
+
+	float t = dot(p-a, ab) / dot(ab,ab);
+
+	if (t <= 0) { t = 0; }
+	if (t >= 1) { t = 1; }
+
+	return a + t * ab;
+}
+
+float3 pomn(float3 position, float3 direction, float clip, float3 p) {
+    
+	float3 b = position + (normalize(direction) * clip);
+	float3 ab = b - position;
+
+	float t = dot(p-position, ab) / dot(ab,ab);
+
+	if (t <= 0) { t = 0; }
+	if (t >= 1) { t = 1; }
+
+	return position + t * ab;
+}
+
+float distance(float3 A, float3 B ) {
+    float3 C = A - B;
+    return sqrt(dot( C, C ));    
+}
+float distance_squared( float3 A, float3 B ) {
+    float3 C = A - B;
+    return dot( C, C );    
+}

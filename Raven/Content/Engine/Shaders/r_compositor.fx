@@ -26,8 +26,6 @@ struct ClearPSO {
     float4 Lighting : COLOR2;
 };
 
-int buffer = -1;
-
 // SCREEN DRAW VARS
 float2 screen_resolution;
 float2 screen_draw_position;
@@ -68,6 +66,8 @@ ClearPSO ClearPS() {
 	return output;
 }
 
+int buffer = -1; //debug buffer selection variable
+ 
 float4 Compose(VSO input) : COLOR {
     float4 rgba = tex2D(DiffuseSampler, input.UV);           
     float4 l = tex2D(LightingSampler, input.UV);            
