@@ -12,7 +12,7 @@ namespace Raven.Engine.Collision.Shapes3D {
         public Vector3 A;
         public Vector3 B;
         public Vector3 C;
-
+        public Vector3[] get_all_points() => [A, B, C];
         public Vector3 normal => CollisionHelper.triangle_normal(A, B, C);
 
         public float projection_thickness = 0.01f;

@@ -101,6 +101,10 @@ namespace Raven.Engine.Collision.Shapes3D {
                 Vector3.Transform(H, world),
                 Color.MonoGameOrange);
         }
+
+        public Vector3[] get_all_points() => [A, B, C, D, E, F, G, H];
+        
+
         public Vector3 support(Vector3 direction, Vector3 sweep) {
             if (sweep != Vector3.Zero) {
                return Supports.CubeSweep(direction, this, sweep);

@@ -1,4 +1,6 @@
-﻿float4x4 World;
+﻿#include "lib/general.fx"
+
+float4x4 World;
 float4x4 LVP;
 float LightClip;
 float FarClip;
@@ -32,12 +34,7 @@ technique Technique1
 {
     pass Pass1
     {
-#if SM4
-		VertexShader = compile vs_4_0_level_9_3 VertexShaderFunction();
-		PixelShader = compile ps_4_0_level_9_3 PixelShaderFunction();
-#else
-        VertexShader = compile vs_3_0 VertexShaderFunction();
-		PixelShader = compile ps_3_0 PixelShaderFunction();
-#endif
+        VertexShader = compile VS_SHADERMODEL VertexShaderFunction();
+		PixelShader = compile PS_SHADERMODEL PixelShaderFunction();
     }
 }

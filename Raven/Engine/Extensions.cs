@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Raven.Engine.Collision;
+using Raven.Engine.Collision.Shapes3D;
 using Raven.Graphics.Drawing3D;
 using Raven.UI;
 
 namespace Raven.Engine;
-public static class Extensions {
+public static class ExtensionMethods {
     public static Vector2 OnlyX(this Vector2 v) => new Vector2(v.X, 0);
     public static Vector2 OnlyY(this Vector2 v) => new Vector2(0, v.Y);
 
@@ -36,7 +39,7 @@ public static class Extensions {
     public static Vector2i ToV2iY(this int f) => new Vector2i(0, f);
     
     public static Color multiply_color(this Color c, float multiplier) => Color.FromNonPremultiplied((int)(c.R * multiplier), (int)(c.G * multiplier), (int)(c.B * multiplier), c.A);
-    public static Color multiply_all(this Color c, float multiplier) => new Color(c.R * multiplier, c.G * multiplier, c.B * multiplier, c.A * multiplier);
+    public static Color multiply(this Color c, float multiplier) => new Color(c.R * multiplier, c.G * multiplier, c.B * multiplier, c.A * multiplier);
     public static Color multiply_alpha(this Color c, float multiplier) => Color.FromNonPremultiplied(c.R, c.G, c.B, (int)(c.A * multiplier));
     
     public static void forEach(this Vector3 vec, Action<float> action) {
@@ -44,7 +47,7 @@ public static class Extensions {
         action(vec.Y);
         action(vec.Z);
     }
-
+    
     public static string ToXString(this Vector2 v2) {
         return $"{v2.X:0.00}x{v2.Y:0.00}";
     }
@@ -440,6 +443,5 @@ public static class Extensions {
     }
 
     #endregion
-
 }
 

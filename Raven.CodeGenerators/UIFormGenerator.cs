@@ -158,11 +158,18 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
                         public bool can_be_focused => _can_be_focused;
                         protected bool _can_be_focused = true;
                         public void disable_focusing() { _can_be_focused = false; }
+                        
+                        public bool dialog => _dialog; 
+                        internal bool _dialog = false;
+                        
                         public bool visible => _visible;
                         bool _visible = true;
                         
                         public void hide() { _visible = false; }
-                        public void show() { _visible = true; }
+                        public void show() { 
+                            _visible = true; 
+                            if (dialog) State.UI.windows.BringToFront(this);
+                        }
                         public void toggle_visibility() { _visible = !_visible; }
                         public void toggle_visibility(bool toggle) { _visible = toggle; }
                         
@@ -197,8 +204,8 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
                         }
                         
                         protected Color color_subfocus => Draw2D.ColorInterpolate(UIColors.Foreground, UIColors.Emphasis, focus_lerp.Value);
-                        private Color color_foreground => Draw2D.ColorInterpolate(color_subfocus.multiply_color(UIColors.focus_fade), color_subfocus, window_focus_lerp);
-                        private Color color_background => Draw2D.ColorInterpolate(UIColors.Background.multiply_color(UIColors.focus_fade), UIColors.Background, window_focus_lerp);
+                        public Color color_foreground => Draw2D.ColorInterpolate(color_subfocus.multiply_color(UIColors.focus_fade), color_subfocus, window_focus_lerp);
+                        public Color color_background => Draw2D.ColorInterpolate(UIColors.Background.multiply_color(UIColors.focus_fade), UIColors.Background, window_focus_lerp);
                         
                         public void reconfigure_client_area() {
                             _client_area = new RenderTarget2D(State.graphics_device, client_size.X, client_size.Y);
@@ -244,6 +251,15 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
                         
                         public string list_subforms() {
                             return UIStandard.list_subforms(subforms);
+                        }
+                        
+                        public string list_collisions() {
+                            string s = "";
+                            foreach (string shape_name in collision.Keys) {
+                                var shape = collision[shape_name];
+                                s += $"      [{shape_name}] {shape.origin.ToXString()}\n"; 
+                            }
+                            return s;
                         }
                         
                         public void defocus_all_subforms() {

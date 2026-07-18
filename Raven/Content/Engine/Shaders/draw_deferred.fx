@@ -1,11 +1,4 @@
-#if OPENGL
-	#define SV_POSITION POSITION
-	#define VS_SHADERMODEL vs_3_0
-	#define PS_SHADERMODEL ps_3_0
-#else
-	#define VS_SHADERMODEL vs_4_0_level_9_1
-	#define PS_SHADERMODEL ps_4_0_level_9_1
-#endif
+#include "lib/general.fx"
 
 matrix World;
 matrix View;
@@ -13,30 +6,27 @@ matrix Projection;
 
 float3x3 WVIT;
 
-float FarClip = 1000;
-float NearClip;
-float LightBias;
+float far_clip = 1000;
 
-float3 tint = float3(1,1,1);
+float4 tint = float4(1,1,1,1);
 
-sampler DIFFUSE : register(s0);
-sampler NORMAL : register(s1);
-sampler DEPTH : register(s2);
-sampler LIGHTING : register(s3);
+SamplerState DIFFUSE : register(s0);
 
-texture DiffuseMap;
-sampler DiffuseSampler = sampler_state
-{
-	texture = <DiffuseMap>;
+//SamplerState NORMAL : register(s1);
+//SamplerState SPECULAR : register(s2);
+//SamplerState EMISSIVE : register(s3);
+
+Texture2D DEPTH;
+SamplerState DepthSampler : register(s6) = sampler_state {
+    texture = <DEPTH>;
 	MINFILTER = POINT;
 	MAGFILTER = POINT;
 	MIPFILTER = POINT;
 	ADDRESSU = WRAP;
 	ADDRESSV = WRAP;
-};
+}; 
 
-struct VertexShaderInput
-{
+struct VSI {
 	float4 Position : POSITION0;
     float3 Normal : NORMAL0;
     float2 TexCoord : TEXCOORD0;
@@ -44,8 +34,7 @@ struct VertexShaderInput
 	float3 BiTangent : BINORMAL0;
 };
 
-struct VertexShaderOutput
-{
+struct VSO {
     float4 Position : POSITION;    
     float2 TexCoord : TEXCOORD0;
     float4 Depth : TEXCOORD1;
@@ -53,61 +42,36 @@ struct VertexShaderOutput
     float3x3 TBN : TEXCOORD3;
 	float4 ViewPosition : TEXCOORD6;
 };
-struct PSO
-{
+
+struct PSO {
     float4 Diffuse : COLOR0;
     float4 Normals : COLOR1;
-    float4 Depth : COLOR2;
-    float4 Lighting : COLOR3;
+    float4 Lighting : COLOR2;
 };
-
-half3 encode(half3 n)
-{
-    n = normalize(n);
-    n.xyz = 0.5f * (n.xyz + 1.0f);
-    return n;
-}
-float3 decode(half3 enc)
-{
-    return (2.0f * enc.xyz - 1.0f);
-}
-
-float3 color_lerp(float3 a, float3 b, float position) {
-    return float3(
-                a.r + ((a.r - b.r) * position),
-                a.g + ((a.g - b.g) * position),
-                a.b + ((a.b - b.b) * position));
-}
-float4 color_lerp(float4 a, float4 b, float position)
-{
-    return float4(
-                a.r + ((b.r - a.r) * position),
-                a.g + ((b.g - a.g) * position),
-                a.b + ((b.b - a.b) * position),
-                a.a + ((b.a - a.a) * position));
-}
 
 float3 ambient_light;
 
-VertexShaderOutput MainVS(in VertexShaderInput input)
+VSO MainVS(in VSI input)
 {
-	VertexShaderOutput output = (VertexShaderOutput)0;
+	VSO output = (VSO)0;
 	
 	float4x4 wvp = mul(World, mul(View, Projection));
 		
 	output.Position = mul(input.Position, wvp);
     output.TexCoord = input.TexCoord;
 		
-    //output.Depth = 1-((output.Position.z / FarClip));
+    //output.Depth = 1-((output.Position.z / far_clip));
 
 	//output.Depth = output.Position;
     
 	output.Depth.x = output.Position.z;
 	output.Depth.y = output.Position.w;
 	output.Depth.z = mul(mul(input.Position, World),View).z;
-	
+	        
 	output.ViewPosition = output.Position;
-
+    //output.ViewPosition.x = (output.Position.x / output.Position.w) * 0.5f + 0.5f;
+    //output.ViewPosition.y = 1.0f - ((output.Position.y / output.Position.w) * 0.5f + 0.5f);
+    
 	output.WorldPos = input.Position.xyz;
 
 	output.TBN[0] = normalize(mul(input.Tangent, (float3x3)WVIT));
@@ -117,78 +81,61 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 	return output;
 }
 
-float PCF(float depth, float NdotL, float2 shadowmap_UV) {
-	
+float PCF(float depth, float NdotL, float2 shadowmap_UV) {	
 	return 0.5f;
 }
 
 float3 camera_pos;
+
 float3 atmosphere_color;
 float3 sky_color;
+
 bool fog = false;
-bool clip_trans = true;
+
 bool fullbright = false;
-bool fulldark = false;
-PSO MainPS(VertexShaderOutput input)
-{
+
+float2 resolution;
+
+PSO MainPS(VSO input) {
     PSO output = (PSO)0;
 
-    float4 rgba = tex2D(DiffuseSampler, input.TexCoord);
-	if (rgba.a < 1 && clip_trans) { clip(-1); }
-	/*
-    output.Depth.rgb = input.Depth.z/input.Depth.w;
-	output.Depth.a = 1;
-	*/
+    float4 rgba = tex2D(DIFFUSE, input.TexCoord);    
+    //rgba.rgb = pow(rgba.rgb, 2.2);
+    		
+	float2 ndc = input.ViewPosition.xy / input.ViewPosition.w;
 	
-	output.Depth.r = input.Depth.x / input.Depth.y;
-	output.Depth.gba = 1;
-	
-
-
+	float2 screenUV = ndc.x * 0.5f + 0.5f;
+	screenUV.y = 1.0f - (ndc.y * 0.5f + 0.5f); 
+    	
+	float3 depth = tex2D(DepthSampler, screenUV).xyz;
+			    
+    // depth clip
+    if (input.Depth.x/input.Depth.y > depth.x / depth.y) {
+        clip(-1);
+    }
+    
     output.Normals.rgb = encode(normalize(input.TBN[2]));
 	output.Normals.a = 1;
-
-
-	//float fog_val = 1;
-	//if (fog && exp(input.Depth.x / FarClip) > 0.5) {
-	//	fog_val = ((exp(input.Depth.x / FarClip) - 0.5) * 2);
-	//}
-	//TODO vvvUSE ALPHA CHANNEL OF LIGHTINGvvv FOR KEEPING TRACK OF SCENE ALPHA
-	// this will allow for at the very least 1 bit of alpha through obviously Lighting.w.a = 0;
-	// but also with a bit of work, well, a float is a lot of bytes, it would be possible to do stuff like storing a set of bytes in a float in the alpha, representing an ID from a list of 255 possible values
-	// I think this would allow up to 4 transparencies in a row before it'd break, and would allow individual IDs 0-255
-	// 4 8-bit ints packed into a 32-bit float, [AAAA/AAAA][BBBB/BBBB][CCCC/CCCC][DDDD/DDDD]
-	//										    0xAA,      0xBB,      0xCC,      0xDD
-
+	
+	output.Lighting = float4(1,1,1,1);	
+	
 	float d = 1;
-	float dist = (distance(camera_pos, input.WorldPos)) / (FarClip);
+	float dist = (distance(camera_pos, input.WorldPos)) / (far_clip);
 	float fog_start = 0.85;
-	float fog_end = 1;
-	float3 atmos = color_lerp(atmosphere_color.rgb, sky_color.rgb, clamp(input.WorldPos.y*0.3, 0.0, 1));
-
-	output.Lighting = float4(0,0,0,1);
-	if (fullbright){
-		output.Lighting = float4(1,1,1,1);
-	}
-	if (fulldark) {
-		output.Lighting.a = 0;
-	}
-	if (fog && dist > fog_start) {
-		d = 1 - ((dist - fog_start) * (1/(1-fog_start)));
-		output.Lighting.a = d;	
-	}
-
-    output.Diffuse = color_lerp(rgba * float4(tint, 1), float4(atmos,d), (1-(d))) ;
-	//output.Diffuse.a *= d;
+	float fog_end = 1;	
 	
-	if (dist >= 0.999) { 
-		clip(-1);
-	}
-	//output.Diffuse.a = 1-fog_val;
-
+	output.Lighting = float4(0,0,0,1);		
+	
+	float4 tint_pow = tint;
+	//tint_pow.rgb = pow(tint_pow.rgb, 2.2);
+	
+    output.Diffuse.rgb = rgba.rgb * tint_pow.rgb;
+    
+    //output.Diffuse.rgb = pow(output.Diffuse.rgb, 1.0/2.2);
+	output.Diffuse.a = 1; 
+	
 	return output;
-}
-	
+}	
 
 technique BasicColorDrawing
 {

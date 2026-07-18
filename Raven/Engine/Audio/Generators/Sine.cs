@@ -1,10 +1,10 @@
 using System;
 using System.Threading;
-using SoundFlow.Abstracts;
-using SoundFlow.Structs;
+//using SoundFlow.Abstracts;
+//using SoundFlow.Structs;
 
 namespace Raven.Engine.Audio.Generators;
-
+/*
 public class Sine : SoundComponent {
     public float Frequency { get; set; } = 440f;
     float phase = 0f;
@@ -28,4 +28,4 @@ public class Sine : SoundComponent {
             if (phase > 2 * MathF.PI) phase -= 2 * MathF.PI;
         }
     }
-}
+}*/

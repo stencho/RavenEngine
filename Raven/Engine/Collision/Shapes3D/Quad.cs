@@ -13,7 +13,9 @@ namespace Raven.Engine.Collision.Shapes3D {
         public Vector3 B;
         public Vector3 C;
         public Vector3 D;
-
+        
+        public Vector3[] get_all_points() => [A, B, C, D];
+        
         public Vector3 origin => (A + B + C + D) / 4f;
 
         public VertexBuffer debug_vertex_buffer => null;
@@ -68,7 +70,7 @@ namespace Raven.Engine.Collision.Shapes3D {
         public void draw(Camera camera, GBuffer buffer, Matrix world) {
             Draw3D.cube(camera,find_bounding_box(world), Color.Magenta);
 
-            Draw3D.fill_quad(camera, buffer, world, A, B, C, D, Color.White, "zerocool_sharper");
+            //Draw3D.fill_quad(camera, buffer, world, A, B, C, D, Color.White, "zerocool_sharper");
             Draw3D.line(camera,Vector3.Transform(A, world), Vector3.Transform(C, world), Color.Pink);
         }
         public Vector3 support(Vector3 direction, Vector3 sweep) {

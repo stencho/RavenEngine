@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Raven.Engine.Collision;
 using Raven.Engine.Collision.Shapes3D;
+using Raven.Graphics.Skybox;
 
 namespace Raven.Engine {
 
@@ -18,6 +19,21 @@ namespace Raven.Engine {
             return (vd > -.250f && vd < .250f);
         }
 
+        public static Vector3 highest_dot(VertexPositionNormalColorUv[] verts, Vector3 direction, out float dot) {
+            dot = float.MinValue;
+            Vector3 v = Vector3.Zero;
+
+            for (int i = 0; i < verts.Length; i++) {
+                float d = Vector3.Dot(direction, verts[i].Position);
+
+                if (d > dot) {
+                    dot = d;
+                    v = verts[i].Position;
+                }
+            }
+
+            return v;
+        }
         public static Vector3 highest_dot(Vector3[] verts, Vector3 direction, out float dot) {
             dot = float.MinValue;
             Vector3 v = Vector3.Zero;

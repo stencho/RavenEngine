@@ -16,6 +16,8 @@ namespace Raven.Engine.Collision.Shapes3D {
 
         public Vector3 A;
         public Vector3 B;
+        
+        public Vector3[] get_all_points() => [A, B];
 
         public float radius { get; set; } = 0f;
 

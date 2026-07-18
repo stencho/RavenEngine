@@ -1,6 +1,8 @@
 using System.Buffers.Text;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Xna.Framework;
+using Raven.Engine.Collision;
 using Raven.Graphics;
 
 namespace Raven.Engine.Components;
@@ -23,6 +25,21 @@ public partial class GBufferCamera : Component {
     private Vector2i _resolution = -Vector2i.One;
 
     private LinkedObjectPosition camera_position = new LinkedObjectPosition();
+    
+    
+    public override ComponentFlags flags => ComponentFlags.Camera;
+    
+    public override void Render(Camera camera) { }
+    public override void RenderForward(Camera camera) { }
+    public override void RenderZPrePass(Camera camera) {}
+
+    public override collision_result? TestGJKAgainstShape(Shape3D test_shape, Matrix world) {
+        return null;
+    }
+
+    public override Shape3D? GetShape() => null;
+    public override BoundingBox? GetBounds() => null;
+
     
     public float resolution_scale {
         get { return buffer.resolution_scale; }
@@ -82,4 +99,5 @@ public partial class GBufferCamera : Component {
         
         Manager.Add(this);
     }
+
 }

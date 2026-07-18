@@ -45,7 +45,8 @@ public interface IUIForm {
     bool can_be_focused { get; }
     bool top_of_mouse_stack { get; set; }
     bool visible { get; }
-
+    bool dialog { get; }
+    
     float window_focus_lerp { get; }
     
     List<IUIForm> subforms { get; set; }
@@ -66,6 +67,7 @@ public interface IUIForm {
     void parent_size_changed(Vector2i new_size);
     void recurse_all_subforms(Action<IUIForm> run_on_all_subforms);
     string list_subforms();
+    string list_collisions();
     int get_form_depth();
     void defocus_all_subforms();
 }

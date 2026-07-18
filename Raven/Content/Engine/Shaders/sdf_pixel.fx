@@ -1,4 +1,6 @@
-﻿float2 offset;
+﻿#include "lib/general.fx"
+
+float2 offset;
 
 float2 billboard_size;
 float2 draw_offset = float2(0,0);
@@ -144,7 +146,7 @@ technique Default
 {
 	pass p0
 	{
-		PixelShader = compile ps_3_0 PS();
+		PixelShader = compile PS_SHADERMODEL PS();
 	}
 }
 
@@ -152,7 +154,7 @@ technique Full
 {
 	pass p0
 	{
-		VertexShader = compile vs_3_0 VS();
-		PixelShader = compile ps_3_0 PS();
+		VertexShader = compile VS_SHADERMODEL VS();
+		PixelShader = compile PS_SHADERMODEL PS();
 	}
 }

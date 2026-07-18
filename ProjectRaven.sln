@@ -6,6 +6,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raven.CodeGenerators", "Rav
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cassowary", "Cassowary\Cassowary.csproj", "{563E5F1E-2998-471C-BAF2-2A82DEC75B87}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RavenEdit", "RavenEdit\RavenEdit.csproj", "{98A5BBE7-0EA0-4307-8873-94E55744FCC1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoGame.Effect.Compiler", "MonoGame.Effect.Compiler\MonoGame.Effect.Compiler.csproj", "{451F7231-76AE-4289-A5D4-34C68C78645C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CassowaryVK", "CassowaryVK\CassowaryVK.csproj", "{DDEFD68F-BC98-464E-A072-4D60ADA4CBA6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +30,17 @@ Global
 		{563E5F1E-2998-471C-BAF2-2A82DEC75B87}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{563E5F1E-2998-471C-BAF2-2A82DEC75B87}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{563E5F1E-2998-471C-BAF2-2A82DEC75B87}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98A5BBE7-0EA0-4307-8873-94E55744FCC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98A5BBE7-0EA0-4307-8873-94E55744FCC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98A5BBE7-0EA0-4307-8873-94E55744FCC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98A5BBE7-0EA0-4307-8873-94E55744FCC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{451F7231-76AE-4289-A5D4-34C68C78645C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{451F7231-76AE-4289-A5D4-34C68C78645C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{451F7231-76AE-4289-A5D4-34C68C78645C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{451F7231-76AE-4289-A5D4-34C68C78645C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DDEFD68F-BC98-464E-A072-4D60ADA4CBA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DDEFD68F-BC98-464E-A072-4D60ADA4CBA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DDEFD68F-BC98-464E-A072-4D60ADA4CBA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DDEFD68F-BC98-464E-A072-4D60ADA4CBA6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -1,8 +1,30 @@
 namespace Raven;
 internal class TODO {
+//TODO once 3D skyboxen are in, add a system for moving the camera very slightly within the skybox, relative to your actual movements
+    
+//TODO add interpolated orientation changes using  OrientationMatrix class 
+
+//TODO Add a Z-Buffer pre-pass, to allow clipping all non-visible geometry immediately and properly, and avoid having to run an orderby on the visibility list. instead of writing depth to rt_depth as the frame goes on,
+// do one pass which only writes solid object depth to rt_depth, then pass rt_depth into draw_deferred, and remove it from the registers/target bindings. This way, no GBuffer modifications are needed. As long as the
+// new pipeline is in use, it will works.
+
+//TODO Add foward rendering pass
+
+//TODO fix skybox shader look up make glow thingy
+
+//TODO Transparency in deferred rendering by, when building lights, if the light hits something transparent, render that thing with transparency to a texture from the light's perspective,
+// then when rendering the light, switch cookie layer based on the pixel's distance from the light. To draw the transparent object itself, draw it in totality to a render target, then composite that into scene,
+// aka forward rendering. This will require building light gbuffers and cookie stacks before all other rendering, except the z-prepass (useful for clipping unseen parts of lights and such.
+
+//TODO add rest of generated shape types, make sure they all render correctly. When adding collision resolution, add a way for entities to store a list of collisions which are properties of Components,
+// and get feedback about which ones are being collided with. Make the shape stored in test entity's colliderrendermodelstatic (rename this) matter to the collision resolver.
+// then shoot balls at them or something idk. confirm that it works, store and display data about collision checks once hits occur, to make seeing shape sweeping far easier. also lower the tick rate.
+// interpolation will need some de-janking after this
+    
+    
 //TODO color picker UI and UIColors saved to gvars
 
-//TODO locked-size windows, minimum window size options, auto-hide when mouse is locked
+//TODO locked-size windows, minimum window size options, auto-hide when mouse is lockede
 
 //TODO dialog popup form
     

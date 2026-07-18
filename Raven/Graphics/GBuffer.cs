@@ -40,32 +40,15 @@ namespace Raven.Graphics {
             }
             
             public static void DrawAllScreenBuffers() {
+                Draw2D.end();
+                
                 State.graphics_device.SetRenderTarget(null);
-                Drawing2D.Draw2D.end();
                     
-                var window_size = State.window.ClientBounds.Size.ToVector2i();
-                
-                
                 //Automatically draw all GBuffers which have draw_to_screen enabled, using their screen_draw_info
                 foreach (var gbuffer in gbuffers.Values
                              .Where(buffer => buffer.draw_to_screen)
                              .OrderBy(buffer => buffer._screen_draw_info.layer)) {
-                
-                    
-                    if (gbuffer._screen_draw_info.fullscreen) {
-                        if (State.super_res_scale <= 1.0f) Drawing2D.Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None);
-                        else Drawing2D.Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearWrap, DepthStencilState.None);
-                        
-                        Drawing2D.Draw2D.image(gbuffer.rt_final, Vector2i.Zero, window_size);
-                        
-                        
-                    } else {
-                        Drawing2D.Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None);
-                        Drawing2D.Draw2D.image(gbuffer.rt_final, gbuffer._screen_draw_info.position,
-                            gbuffer._screen_draw_info.size);
-                    }
-
-                    Drawing2D.Draw2D.end();
+                    Renderer.compositor.draw_buffer_to_screen(gbuffer);
                 }
             }
 
@@ -121,13 +104,11 @@ namespace Raven.Graphics {
         
         //public Action Draw3DOverGame;
         
-        public ManagedRT2D rt_diffuse;
+        public RenderTarget2D rt_diffuse;
         public RenderTarget2D rt_normal;
         public RenderTarget2D rt_depth;
         public RenderTarget2D rt_lighting;
         public RenderTarget2D rt_final;
-
-        public RenderTarget2D rt_composed_half;
         public RenderTarget2D rt_composed;
         public RenderTarget2D rt_2D;
 
@@ -161,6 +142,8 @@ namespace Raven.Graphics {
         public float resolution_scale => _resolution_scale;
 
         public RenderTargetBinding[] target_bindings { get; private set; }
+        public RenderTargetBinding[] target_bindings_for_clearing { get; private set; }
+        public RenderTargetBinding[] target_bindings_for_skybox { get; private set; }
         public RenderTargetBinding[] target_bindings_dl { get; private set; }
         public RenderTargetBinding[] target_bindings_dln { get; private set; }
 
@@ -173,10 +156,18 @@ namespace Raven.Graphics {
         public Guid AttachedCameraGuid => attached_camera;
         private Guid attached_camera;
 
-        public GBuffer() => managed_guid = Manager.Add(this);
-        public GBuffer(int width, int height, float res_scale = 1.0f) {
+        public GBuffer() {
             managed_guid = Manager.Add(this);
-            CreateInPlace(width, height, res_scale);
+            CreateInPlace(width, height, State.super_res_scale, false);
+        }
+
+        public GBuffer(int width, int height) {
+            managed_guid = Manager.Add(this);
+            CreateInPlace(width, height, State.super_res_scale, false);
+        }
+        public GBuffer(int width, int height, float res_scale, bool double_buffered) {
+            managed_guid = Manager.Add(this);
+            CreateInPlace(width, height, res_scale, double_buffered);
         }
 
         ~GBuffer() {
@@ -209,15 +200,24 @@ namespace Raven.Graphics {
         }
 
         public void draw_to_bindings() {
-            target_bindings[0] = !rt_diffuse.FlipFlop || !rt_diffuse.DoubleBuffered ? rt_diffuse.flip : rt_diffuse.flop;
+            target_bindings[0] = rt_diffuse;
             target_bindings[1] = rt_normal;
-            target_bindings[2] = rt_depth;
-            target_bindings[3] = rt_lighting;
+            target_bindings[2] = rt_lighting;
             State.graphics_device.SetRenderTargets(target_bindings);
         }
-
-        public void flip_diffuse() {
-            rt_diffuse.FlipTargets();    
+        
+        public void draw_to_bindings_for_skybox() {
+            target_bindings_for_skybox[0] = rt_diffuse;
+            target_bindings_for_skybox[1] = rt_lighting;
+            State.graphics_device.SetRenderTargets(target_bindings_for_skybox);
+        }
+        
+        public void draw_to_bindings_for_clear() {
+            target_bindings_for_clearing[0] = rt_diffuse;
+            target_bindings_for_clearing[1] = rt_normal;
+            target_bindings_for_clearing[2] = rt_depth;
+            target_bindings_for_clearing[3] = rt_lighting;
+            State.graphics_device.SetRenderTargets(target_bindings_for_clearing);
         }
 
         private bool screenshot = false;
@@ -236,45 +236,15 @@ namespace Raven.Graphics {
             screenshot = false;
         }
         
-        public void Compose(Camera camera) {
-            flip_diffuse();
+        private bool use_srgb = false;
+        private bool double_buffered = false;
+        
+        public void CreateInPlace(int width, int height, float res_scale = 1.0f, bool double_buffered = false) {
+            this.double_buffered = double_buffered;
             
-            State.graphics_device.SetRenderTarget(rt_composed);
-            
-            State.graphics_device.Clear(Color.Transparent);
-        
-            State.graphics_device.SetVertexBuffer(State.quad_vb);
-            State.graphics_device.Indices = State.quad_ib;
-        
-            State.graphics_device.BlendState = BlendState.AlphaBlend;
-        
-            State.e_compositor.Parameters["DiffuseLayer"].SetValue(rt_diffuse.FlipFlop || !rt_diffuse.DoubleBuffered ? rt_diffuse.flip : rt_diffuse.flop);
-            State.e_compositor.Parameters["DepthLayer"].SetValue(rt_depth);
-            State.e_compositor.Parameters["LightLayer"].SetValue(rt_lighting);
-            State.e_compositor.Parameters["NormalLayer"].SetValue(rt_normal);
-            //State.e_compositor.Parameters["sky_brightness"].SetValue(SkyboxState.sun_moon.sky_brightness);
-            //e_compositor.Parameters["atmosphere_color"].SetValue(Skybox.sun_moon.atmosphere_color.ToVector3());
-            State.e_compositor.Parameters["buffer"].SetValue(State.draw_debug_buffer);
-        
-            State.e_compositor.Techniques["draw"].Passes[0].Apply();
-            State.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
-
-            State.graphics_device.SetRenderTarget(rt_final);
-            Draw2D.end();
-        
-            Draw2D.begin(SpriteSortMode.Immediate, BlendState.Opaque, SamplerState.PointClamp, DepthStencilState.None);
-            Draw2D.image(rt_composed, Vector2i.Zero, resolution);
-            Draw2D.end();
-            
-            Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None);
-            Draw2D.image(rt_2D, Vector2i.Zero, resolution);
-            Draw2D.end();
-            
-            if (screenshot) write_screenshot();
-        }
-        
-        public void CreateInPlace(int width, int height, float res_scale = 1.0f) {
-            target_bindings = new RenderTargetBinding[4];
+            target_bindings = new RenderTargetBinding[3];
+            target_bindings_for_clearing = new RenderTargetBinding[4];
+            target_bindings_for_skybox = new RenderTargetBinding[2];
             target_bindings_dl = new RenderTargetBinding[2];
             target_bindings_dln = new RenderTargetBinding[3];
             
@@ -290,25 +260,31 @@ namespace Raven.Graphics {
             shader_size_scale = Vector2.One;
 
             if (rt_diffuse != null) {
-                ManagedRT2D.Manager.Remove(rt_diffuse.ManagedGuid);
                 rt_diffuse = null;
             }
 
-            rt_diffuse = new ManagedRT2D((int)(width * res_scale), (int)(height * res_scale), true, false, SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
-            rt_normal = new RenderTarget2D(State.graphics_device, (int)(width * res_scale), (int)(height * res_scale), false, SurfaceFormat.Vector4, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
-            rt_depth = new RenderTarget2D(State.graphics_device, (int)(width * res_scale), (int)(height * res_scale), false, SurfaceFormat.Single, DepthFormat.Depth24Stencil8, 0, RenderTargetUsage.PreserveContents);
-            rt_lighting = new RenderTarget2D(State.graphics_device, (int)(width * res_scale), (int)(height * res_scale), false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
-            rt_composed = new RenderTarget2D(State.graphics_device, (int)(width * res_scale), (int)(height * res_scale), false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
-            rt_composed_half = new RenderTarget2D(State.graphics_device, (int)(width / 2), (int)(height / 2), false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
-            rt_2D = new RenderTarget2D(State.graphics_device, (int)(width), (int)(height), false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
-            rt_final = new RenderTarget2D(State.graphics_device, (int)(width), (int)(height), false, SurfaceFormat.Color, DepthFormat.None);
-                
+            rt_diffuse = RenderTargetEx.create(width * res_scale, height * res_scale, SurfaceFormat.HalfVector4);
+            rt_lighting = RenderTargetEx.create(width * res_scale, height * res_scale, SurfaceFormat.HalfVector4);
+            rt_composed = RenderTargetEx.create(width * res_scale, height * res_scale, SurfaceFormat.HalfVector4);
+            rt_2D = RenderTargetEx.create(width * res_scale, height * res_scale, SurfaceFormat.HalfVector4);
+            rt_final = RenderTargetEx.create(width * res_scale, height * res_scale, SurfaceFormat.HalfVector4);
+            
+            rt_normal = RenderTargetEx.create(width * res_scale, height * res_scale, SurfaceFormat.Vector4);
+            rt_depth = RenderTargetEx.create(width * res_scale, height * res_scale, SurfaceFormat.Vector4, DepthFormat.Depth24Stencil8);
+            
             shape_drawing = new DrawShapesToSurface(() => rt_2D.Bounds.Size.ToVector2i());
             
-            target_bindings[0] = !rt_diffuse.FlipFlop || !rt_diffuse.DoubleBuffered ? rt_diffuse.flip : rt_diffuse.flop;
+            target_bindings[0] = rt_diffuse;
             target_bindings[1] = rt_normal;
-            target_bindings[2] = rt_depth;
-            target_bindings[3] = rt_lighting;
+            target_bindings[2] = rt_lighting;
+            
+            target_bindings_for_skybox[0] = rt_diffuse;
+            target_bindings_for_skybox[1] = rt_lighting;
+            
+            target_bindings_for_clearing[0] = rt_diffuse;
+            target_bindings_for_clearing[1] = rt_normal;
+            target_bindings_for_clearing[2] = rt_depth;
+            target_bindings_for_clearing[3] = rt_lighting;
             
             target_bindings_dl[0] = rt_depth;
             target_bindings_dl[1] = rt_lighting;
@@ -345,7 +321,6 @@ namespace Raven.Graphics {
                 rt_depth?.Dispose();
                 rt_lighting?.Dispose();
                 rt_final?.Dispose();
-                rt_composed_half?.Dispose();
                 rt_composed?.Dispose();
                 rt_2D?.Dispose();
             }

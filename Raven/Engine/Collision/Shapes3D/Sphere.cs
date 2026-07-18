@@ -11,7 +11,9 @@ namespace Raven.Engine.Collision.Shapes3D {
         public Vector3 P;
 
         public float radius { get; set; } = 1f;
-
+        
+        public Vector3[] get_all_points() => [P];
+        
         public BoundingBox sweep_bounding_box(Matrix world, Vector3 sweep) {
             if (sweep != Vector3.Zero) {
                 return CollisionHelper.BoundingBox_around_capsule(

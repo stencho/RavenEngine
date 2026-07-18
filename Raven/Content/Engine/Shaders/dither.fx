@@ -1,13 +1,5 @@
-﻿#include "lib/patterns.fx"
-
-#if OPENGL
-	#define SV_POSITION POSITION
-	#define VS_SHADERMODEL vs_3_0
-	#define PS_SHADERMODEL ps_3_0
-#else
-	#define VS_SHADERMODEL vs_4_0_level_9_1
-	#define PS_SHADERMODEL ps_4_0_level_9_1
-#endif
+﻿#include "lib/general.fx"
+#include "lib/patterns.fx"
 
 float4 color_a = float4(1,1,1,1);
 float4 color_b = float4(0.5,0.5,0.5,1);
@@ -27,8 +19,7 @@ struct VertexShaderOutput
 	float2 texCoord : TEXCOORD0;
 };
 
-float4 MainPS(VertexShaderOutput input) : COLOR
-{
+float4 MainPS(VertexShaderOutput input) : COLOR0 {
     return pattern_select(1, color_a, color_b, input.texCoord.xy, bottom_right - top_left, pattern_size);
 }
 

@@ -246,7 +246,7 @@ public partial class MouseWatcher {
         string s = $"[MOUSE]\n";
         s += $"position :: {MouseWatcher.Position.ToXString()}\n";
         s += $"locked :: {MouseWatcher.mouse_locked_global_status}\n";
-        s += $"locked prev :: {MouseWatcher.mouse_locked_global_status_previous}\n";
+        //s += $"locked prev :: {MouseWatcher.mouse_locked_global_status_previous}\n";
         
         s += $"in bounds :: {mouse_in_bounds} \n";
         s += $"buttons :: ";

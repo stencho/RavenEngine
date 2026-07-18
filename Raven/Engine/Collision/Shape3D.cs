@@ -26,5 +26,6 @@ namespace Raven.Engine.Collision {
         Vector3 support(Vector3 direction, Vector3 sweep);
 
         void draw(Camera camera, GBuffer gbuffer, Matrix world);
+        Vector3[] get_all_points();
     }  
 }

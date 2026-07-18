@@ -44,6 +44,8 @@ namespace Raven.Console {
         public float window_focus_lerp => 1f;
         bool _visible = true;
 
+        public bool dialog => false;
+        
         public Vector2i position { get; set; } = Vector2i.Zero;
         public Vector2i absolute_position => parent_form.absolute_position + position;
         public Vector2i size { get; set; } = Vector2i.One * 10;
@@ -98,6 +100,15 @@ namespace Raven.Console {
 
         ConsoleInputHandler cih;
 
+        public string list_collisions() {
+            string s = "";
+            foreach (string shape_name in collision.Keys) {
+                var shape = collision[shape_name];
+                s += $"[{shape_name}] {shape.origin.ToXString()}"; 
+            }
+            return s;
+        }
+        
         public ConsoleUI(int X, int Y, int width, int height, IUIForm parent_form = null) {
             this.parent_form = parent_form;
 

@@ -12,7 +12,6 @@ public sealed class SceneExtraGenerator : ISourceGenerator {
         context.RegisterForSyntaxNotifications(() => new Receiver());
     }
     
-    
     public void Execute(GeneratorExecutionContext context)
     {
         if (context.SyntaxReceiver is not Receiver receiver)

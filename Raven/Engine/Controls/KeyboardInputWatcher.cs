@@ -50,7 +50,7 @@ public partial class KeyboardWatcher {
     }
 
     public string state_info() {
-        string s = $"[KEYBOARD]\n";
+        string s = $"[KEYBOARD] ";
         var c = false;
 
         s += "keys :: ";

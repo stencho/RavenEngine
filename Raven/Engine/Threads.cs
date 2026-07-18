@@ -21,7 +21,7 @@ public static class Threads {
     static ConcurrentDictionary<Guid, ThreadInfo> threads = new();
     static ConcurrentQueue<ThreadRequestPacket> ThreadRequestQueue = new ();
 
-    private static TimeSpan dispatch_wait = new TimeSpan((long)1000);
+    private static TimeSpan dispatch_wait = new TimeSpan(TimeSpan.TicksPerMillisecond);
     private static int prune_wait_ms = 100;
     
     public static string list_all_active_threads {

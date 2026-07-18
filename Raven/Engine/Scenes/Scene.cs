@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework;
 using Raven.Engine.Components;
 using Raven.Graphics;
 using Raven.Graphics.Drawing3D;
+using Raven.Graphics.Drawing3D.Effects;
 using Raven.Graphics.InterpolatedTypes;
 
 namespace Raven.Engine;
@@ -19,7 +20,7 @@ public abstract partial class Scene {
     public enum SceneType {
         Basic,
         BSP, TilingBSP,
-        ChunkedXZ, ChunkedXYZ,
+        Quadtree, Octree,
         
         Basic2D, Room2D, Chunk2D
     }
@@ -101,6 +102,8 @@ public abstract partial class Scene {
     
     public bool always_update { get; set; }
     public string VisibilityString { get; set; }
+
+    public SceneEnvironment environment { get; set; }
     
     public Scene() {
         Manager.Add(this);
@@ -125,12 +128,10 @@ public abstract partial class Scene {
     public abstract void UpdateGraphics();
     public abstract void Stabilize();
 
-    internal List<EntityVisibility> render_list_deferred = new();
-    internal List<EntityVisibility> render_list_forward = new();
+    internal List<EntityVisibility> entity_visibility_list = new();
     
     internal void ClearVisibilityLists() {
-        render_list_deferred.Clear();
-        render_list_forward.Clear();
+        entity_visibility_list.Clear();
     }
     public abstract void BuildVisibilityLists(Camera camera);
 }

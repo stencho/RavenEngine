@@ -22,10 +22,13 @@ using Raven.Graphics.Drawing2D;
 using Raven.Graphics.Drawing3D;
 using Raven.Graphics.InterpolatedTypes;
 using Raven.Engine.Entities;
+using Raven.Graphics.Effects;
 using Raven.Graphics.Skybox;
 using Raven.UI;
+using Environment = System.Environment;
 
-using SoundFlow.Abstracts;
+//using SoundFlow.Abstracts;
+
 using KeyboardInput = Microsoft.Xna.Framework.Input.KeyboardInput;
 
     
@@ -59,7 +62,7 @@ public static class State {
             
             ("screenshot", [Keys.Insert]),
             
-            ("mode_windowed", [Keys.F9]),
+            ("mode_window", [Keys.F9]),
             ("mode_borderless", [Keys.F10]),
             ("mode_borderless_fullscreen", [Keys.F11]),
             ("mode_fullscreen", [Keys.F12]),
@@ -109,29 +112,13 @@ public static class State {
     public static byte buffer_count = 3;
     public static int draw_debug_buffer = -1;
     
-    internal static Effect e_gbuffer;
-    internal static Effect e_light_depth;
-    internal static Effect e_exp_light_depth;
-    internal static Effect e_skybox;
-    internal static Effect e_compositor;
-    internal static Effect e_clear;
-    internal static Effect e_directionallight;
-    internal static Effect e_spotlight;
-    internal static Effect e_pointlight;
-
-    internal static VertexBuffer quad_vb;
-    internal static IndexBuffer quad_ib;
-    
-    internal static VertexPositionTexture[] vb_data = {
-        new VertexPositionTexture(Vector3.Up + Vector3.Left,      Vector2.Zero),
-        new VertexPositionTexture(Vector3.Up + Vector3.Right,     Vector2.UnitX),
-        new VertexPositionTexture(Vector3.Down + Vector3.Left,    Vector2.UnitY),
-        new VertexPositionTexture(Vector3.Down + Vector3.Right,   Vector2.One)
-    };
-    internal static int[] ib_data = { 0, 1, 2, 1, 3, 2 };
-
-    
     public static void Initialize(Game game, ContentManager content, GraphicsDeviceManager graphics, GameWindow window) {
+        
+        ContentTypeReaderManager.AddTypeCreator(
+            "Microsoft.Xna.Framework.Content.ListReader`1[[System.Char, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]", 
+            () => new ListReader<char>()
+        );
+        
         State.game = game;
         
         graphics.GraphicsProfile = GraphicsProfile.HiDef;
@@ -155,10 +142,12 @@ public static class State {
         window.IsBorderless = false;
         //graphics.ToggleFullScreen();
         window.AllowUserResizing = true;
+
+        graphics.GraphicsProfile = GraphicsProfile.HiDef;
         
         engine_binds = new BindWatcher(engine_bind_list);
-        engine_binds.binds["mode_windowed"].JustPressed += () => {
-            gvars.set("r_display_mode", "windowed");
+        engine_binds.binds["mode_window"].JustPressed += () => {
+            gvars.set("r_display_mode", "window");
             ChangeWindowMode();
         };
         engine_binds.binds["mode_borderless"].JustPressed += () => {
@@ -189,7 +178,7 @@ public static class State {
         
         gvars.add_gvar("r_light_spot_resolution", gvar_data_type.INT, 1024, false);
         
-        gvars.add_gvar("r_display_mode", gvar_data_type.STRING, "borderless_fullscreen", true, "Sets the window style. Options are:\nfullscreen, borderless_fullscreen [default], window, borderless");
+        gvars.add_gvar("r_display_mode", gvar_data_type.STRING, "borderless", true, "Sets the window style. Options are:\nfullscreen, borderless_fullscreen [default], window, borderless");
 
         var wind_pos_comment = "Last used window position.\nMay be locked at 0x0 or -1x-1 on platforms where this is not supported (notably Wayland).";
         
@@ -205,6 +194,7 @@ public static class State {
         gvars.add_gvar("ui_focus_follows_mouse", gvar_data_type.BOOL, false, true, "Forces UI window focus to always be on the window under the mouse\n(as opposed to standard click-to-focus)");
         gvars.add_gvar("ui_mouse_follows_focus", gvar_data_type.BOOL, false, false, "Moves the mouse over UI windows when they're opened or given focus");
         gvars.add_gvar("ui_window_shadows", gvar_data_type.BOOL, false, true, "Adds a small drop shadow to UI windows");
+        gvars.add_gvar("ui_window_middle_click_close", gvar_data_type.BOOL, false, true, "Close windows by middle-clicking their title bars");
         
         bool read_gvars = gvars.read_gvars_from_disk();
         Debug.WriteLine($"{read_gvars} GVARS:\n{gvars.list_all()}");
@@ -232,58 +222,42 @@ public static class State {
         engine_binds.force_enable("screenshot");
         engine_binds.force_enable("exit");
         
-        SoundFlowState.Initialize();
+        //SoundFlowState.Initialize();
     }
 
     public static void Destroy() {
-        SoundFlowState.Destroy();
+        //SoundFlowState.Destroy();
+        State.content_manager.Unload();
     }
 
     public static void Load(ContentManager content) {
         Resources.LoadEngineContent(content);
         Resources.LoadContentList(content);
-
-        quad_vb = new VertexBuffer(graphics_device, VertexPositionTexture.VertexDeclaration, 4, BufferUsage.None);
-        quad_vb.SetData(vb_data);
-
-        quad_ib = new IndexBuffer(graphics_device, IndexElementSize.ThirtyTwoBits, 6, BufferUsage.None);
-        quad_ib.SetData(ib_data);
-
+        
+        Renderer.Load();
+        Renderer.e_directionallight = Resources.GetShader("r_directional_light");
+        
         var ctestpos = (Vector3.Backward) * 2f;
         var dir = Vector3.Normalize(-ctestpos);
         var lookat = Matrix.CreateLookAt(ctestpos, Vector3.Forward,
             Vector3.Up);
 
-        e_clear = Resources.GetShader("r_clear");
-        e_compositor = Resources.GetShader("r_compositor");
-        e_directionallight = Resources.GetShader("r_directional_light");
-        e_exp_light_depth = Resources.GetShader("r_exp_light_depth");
-        e_gbuffer = Resources.GetShader("r_fill_gbuffer");
-        e_light_depth = Resources.GetShader("r_light_depth");
-        e_pointlight = Resources.GetShader("r_point_light");
-        e_skybox = Resources.GetShader("r_skybox");
-        e_spotlight = Resources.GetShader("r_spot_light");
-
         Draw2D.load();
         Draw3D.load();
 
-        SkyboxState.skybox_t.PrivateCreateSkyboxFromCrossImage(out SkyboxState.skybox_data, out SkyboxState.skybox_indices, 1, 0, 1, 2,
+        SkyboxData.skybox_t.PrivateCreateSkyboxFromCrossImage(out SkyboxData.skybox_data, out SkyboxData.skybox_indices, 1, 0, 1, 2,
             3, 5, 4);
-        SkyboxState.skybox_t.Subdivide(SkyboxState.skybox_data, SkyboxState.skybox_indices, out SkyboxState.skybox_data,
-            out SkyboxState.skybox_indices, 16, MathHelper.Pi);
-        SkyboxState.skybox_cm = new RenderTarget2D(graphics_device, SkyboxState.skybox_face_res * 4, SkyboxState.skybox_face_res * 3,
-            false, SurfaceFormat.Rgba64, DepthFormat.Depth16);
-        SkyboxState.skybox_cm_e = new RenderTarget2D(graphics_device, SkyboxState.skybox_face_res * 4, SkyboxState.skybox_face_res * 3,
-            false, SurfaceFormat.Rgba64, DepthFormat.Depth16);
+        SkyboxData.skybox_t.Subdivide(SkyboxData.skybox_data, SkyboxData.skybox_indices, out SkyboxData.skybox_data,
+            out SkyboxData.skybox_indices, 16, MathHelper.Pi);
 
-        SkyboxState.sun_moon.time_stopped = true;
-        SkyboxState.sun_moon.set_time_of_day(0.5);
+        var top = Math3D.highest_dot(SkyboxData.skybox_data, Vector3.Up, out _); 
+        var bottom = Math3D.highest_dot(SkyboxData.skybox_data, Vector3.Down, out _);
 
-        graphics_device.SetRenderTarget(SkyboxState.skybox_cm);
-        graphics_device.Clear(SkyboxState.sun_moon.atmosphere_color);
-
-        graphics_device.SetRenderTarget(null);
-       
+        SkyboxData.skybox_height = Vector3.Distance(top, bottom);
+        
+        graphics.PreferredBackBufferFormat = SurfaceFormat.ColorSRgb;
+        graphics.PreferMultiSampling = true;
+        
         wait_for_init = true;
     }
 
@@ -297,6 +271,13 @@ public static class State {
         };
         
         Scene.Manager.StartUpdateThread();
+    }
+
+    public static void LoadFinishedNoUpdateThread() {
+        window.ClientSizeChanged += (sender, args) => {
+            changing_window_size = true;
+            time_of_last_window_size_change = Clock.game_time.TotalGameTime.TotalMilliseconds;
+        };
     }
 
     private static Vector2i FindCurrentResolution() {
@@ -340,6 +321,8 @@ public static class State {
         var wm = gvars.get_string("r_display_mode");
         switch (wm) {
             case "fullscreen":
+                window.BeginScreenDeviceChange(true);
+                
                 gvars.set("r_resolution", FindCurrentResolution());
                 graphics.IsFullScreen = true;
                 window.IsBorderless = false;
@@ -347,6 +330,8 @@ public static class State {
                 break;
                 
             case "borderless_fullscreen":
+                window.BeginScreenDeviceChange(false);
+                
                 gvars.set("r_resolution", FindCurrentResolution());
                 graphics.IsFullScreen = false;
                 window.IsBorderless = true;
@@ -354,12 +339,16 @@ public static class State {
                 break;
                 
             case "window":
+                window.BeginScreenDeviceChange(false);
+                
                 graphics.IsFullScreen = false;
                 window.IsBorderless = false;
                 window.AllowUserResizing = true;
                 break;
                 
             case "borderless":
+                window.BeginScreenDeviceChange(false);
+                
                 graphics.IsFullScreen = false;
                 window.IsBorderless = true;
                 window.AllowUserResizing = true;    
@@ -368,6 +357,9 @@ public static class State {
             default:
                 break;
         }
+
+        window.EndScreenDeviceChange(window.ScreenDeviceName);
+
     }
     
     private static void ChangeTickRate() {
@@ -413,10 +405,9 @@ public static class State {
         //Update all graphics stuff
         engine_binds.Update();
         UIWindowManager.Manager.update_all_UIs();
-        SkyboxState.sun_moon.update();
         
         //Change game resolution to match window resolution
-        if (Clock.game_time.TotalGameTime.TotalMilliseconds - time_of_last_window_size_change > 500 && changing_window_size) {
+        if (Clock.game_time.TotalGameTime.TotalMilliseconds - time_of_last_window_size_change > 16 && changing_window_size) {
             gvars.set("r_resolution", window.ClientBounds.Size.ToVector2i());
             changing_window_size = false;
             time_of_last_window_size_change = 0;
@@ -453,6 +444,10 @@ public static class State {
         Scene.Manager.UpdateGraphics();
         //Interlocked.Exchange(ref using_scene, (int)SceneUseState.NONE);
         
+        ManagedRT2D.Manager.FlipAll();
+        
+        ManagedEffect.Manager.do_updates();
+        
         UIWindowManager.Manager.render_all_UI_window_internals();
         
         //Interlocked.Exchange(ref using_scene, (int)SceneUseState.RENDER);
@@ -462,8 +457,8 @@ public static class State {
 
         //draw all GBuffers which have draw_to_screen enabled, using their screen_draw_info
         GBuffer.Manager.DrawAllScreenBuffers();
-        Interlocked.Exchange(ref using_scene, SceneUseState.NONE);
         
+        Interlocked.Exchange(ref using_scene, SceneUseState.NONE);
     }
 
     public static string engine_info() {

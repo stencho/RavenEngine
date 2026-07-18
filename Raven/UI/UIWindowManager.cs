@@ -11,6 +11,7 @@ using Microsoft.Xna.Framework.Input;
 using Raven.Console;
 using Raven.Engine;
 using Raven.Engine.Collision;
+using Raven.Engine.Collision.Shapes2D;
 using Raven.Engine.Controls;
 using Raven.Graphics;
 using Raven.Graphics.Drawing2D;
@@ -43,6 +44,7 @@ namespace Raven.UI  {
         
         public static Color QuarterGrey => Color.FromNonPremultiplied(63, 63, 63, 255);
         public static Color MiddleGrey => Color.FromNonPremultiplied(127, 127, 127, 255);
+        public static Color ThreeQuarterGrey => Color.FromNonPremultiplied(192, 192, 192, 255);
 
         public static Color MultAlpha(Color color, float multi) {
             return Color.FromNonPremultiplied(color.R, color.G, color.B, (int)(color.A * multi));
@@ -70,13 +72,21 @@ namespace Raven.UI  {
                     wm.render_out_to_buffer();
                 }
             }
+
+            public static void render_UI_for_current_buffer(Guid buffer_guid) {
+                foreach (UIWindowManager wm in uiwindowmanagers.Values) {
+                    if (wm.gbuffer_guid == buffer_guid) {
+                        wm.render_out_to_buffer();
+                    }
+                }
+            }
         }
         
         public List<IUIForm> windows = new List<IUIForm>();
         ConsoleWindow console;
 
         IUIForm focused_subform = null;
-        IUIForm window_on_mouse = null;
+        public IUIForm window_on_mouse = null;
         
         public bool focus_follows_mouse => gvars.get_bool("ui_focus_follows_mouse");
         public bool mouse_follows_focus => gvars.get_bool("ui_mouse_follows_focus");
@@ -86,7 +96,9 @@ namespace Raven.UI  {
         internal MouseWatcher mouse = new MouseWatcher();
 
         private bool use_gbuffer = true;
-        private GBuffer render_buffer;
+        GBuffer render_buffer;
+        public Guid gbuffer_guid => render_buffer.GUID;
+        
         private RenderTarget2D gbuffer_2d_surface => render_buffer.rt_2D;
 
         private RenderTarget2D render_target;
@@ -120,16 +132,63 @@ namespace Raven.UI  {
             
             draw();
         }
+
+        public void change_render_target(RenderTarget2D new_target) {
+            render_target = new_target;
+            use_gbuffer = false;
+        }
+
+        public string current_window_info() {
+            var s = "";
+
+            for (var index = 0; index < windows.Count; index++) {
+                var window = windows[index];
+                if (is_top_visible_window(window)) {
+                    s += $"[{window.name}]";
+                    
+                    if (window.dialog)
+                        s += " [DIALOG] ";
+                    
+                    s += "\n   [focused] " + window.has_focus + "\n   [visible] " + window.visible + "\n   [mouseover] " + window.top_of_mouse_stack + "\n   [pos] " + Vector2i.simple_string(window.position) + "\n   [size] " + Vector2i.simple_string(window.size) + "\n";
+                
+                    if (window.collision.Count > 0) {
+                        s += "    [collisions]\n";
+                        s += window.list_collisions();
+                    }
+                
+                    if (window.subforms.Count > 0) {
+                        s += "    [subforms]\n";
+                        s += window.list_subforms();
+                    }
+                    break;
+                }
+            }
+
+            return s;
+        }
         
         public string list_windows() {
             var s = "";
 
             foreach (IUIForm window in windows) {
-                s += "\n  [" + window.name + "]\n   [focused] " + window.has_focus + "\n   [visible] " + window.visible + "\n   [mouseover] " + window.top_of_mouse_stack + "\n   [pos] " + Vector2i.simple_string(window.position) + "\n   [size] " + Vector2i.simple_string(window.size) + "\n";
-                if (window.subforms.Count > 0)
+                s += "\n  [" + window.name + "]";
+                
+                if (window.dialog)
+                    s += " [DIALOG] ";
+                
+                s += "\n   [focused] " + window.has_focus + "\n   [visible] " + window.visible + "\n   [mouseover] " + window.top_of_mouse_stack + "\n   [pos] " + Vector2i.simple_string(window.position) + "\n   [size] " + Vector2i.simple_string(window.size) + "\n";
+                
+                if (window.collision.Count > 0) {
+                    s += "    [collisions]\n";
+                    s += window.list_collisions();
+                }
+                
+                if (window.subforms.Count > 0) {
+                    s += "    [subforms]\n";
                     s += window.list_subforms();
-                // s += "[sub] " + subform.name + " :: top of mouse stack: " + subform.top_of_mouse_stack + "\n";
+                }
 
+                // s += "[sub] " + subform.name + " :: top of mouse stack: " + subform.top_of_mouse_stack + "\n";
             }
 
             return s;
@@ -140,7 +199,7 @@ namespace Raven.UI  {
             exists = false;
             
             foreach (IUIForm w in windows) {
-                if (w == window) {
+                if (w == (window as IUIForm)) {
                     exists = true;
                     break;
                 }
@@ -154,7 +213,63 @@ namespace Raven.UI  {
                 focus_last_added();
             }
         }
+        
+        
+        public void add_window(UIWindow window) {
+            exists = false;
+            
+            foreach (IUIForm w in windows) {
+                if (w == (window as IUIForm)) {
+                    exists = true;
+                    break;
+                }
+            }
 
+            if (!exists) {
+                if (window is UIWindow) (window as UIWindow).window_manager = this;
+                
+                windows.Add(window);
+                windows.BringToFront(window);
+                focus_last_added();
+            }
+        }
+        
+        public void add_window_dialog(UIWindow window, bool force_centered) {
+            exists = false;
+            
+            foreach (IUIForm w in windows) {
+                if (w == (window as IUIForm)) {
+                    exists = true;
+                    break;
+                }
+            }
+
+            if (!exists) {
+                window.window_manager = this;
+                
+                window.show_hide_button = false;
+                window.allow_resize = false;
+                window._dialog = true;
+                
+                window.hide();
+
+                window.collision.Add("dialog_plate", new BoundingBox2D(Vector2i.Zero, State.resolution));
+                window.start_of_update += () => { ((BoundingBox2D)window.collision["dialog_plate"]).SetSize(State.resolution); };
+                
+                if (force_centered) {
+                    start_of_draw_action += () => {
+                        window.position = (State.resolution / 2) - (window.size / 2);
+                    };
+                    window.start_of_draw_action += () => {
+                        Draw2D.fill_rect_dither(Vector2i.Zero, State.resolution, UIColors.Background50Percent.multiply_alpha(.75f), UIColors.Background50Percent.multiply_color(.9f).multiply_alpha(.75f), 2);
+                        window.position = (State.resolution / 2) - (window.size / 2);
+                    };
+                }
+                
+                windows.Add(window);
+            }
+        }
+        
         void focus_last_added() {
             for (int o = 0; o < windows.Count; o++) {
                 windows[o].has_focus = false;
@@ -357,6 +472,10 @@ namespace Raven.UI  {
                 }
             }
             
+            for (int i = windows.Count - 1; i >= 0; i--) {
+                windows[i].test_mouse();
+            }
+            
             //initial mouse stack and bring-to-front-on-click handling and such
             for (int i = windows.Count - 1; i >= 0; i--) {
 
@@ -369,17 +488,19 @@ namespace Raven.UI  {
                     windows.BringToFront(windows[i]);
                     highest_hit = i;
                 }
-
+            }
+            
+            for (int i = windows.Count - 1; i >= 0; i--) {
                 windows[i].top_of_mouse_stack = false;
 
-                if (windows[i].mouse_interactions.Count > 0) {
+                if (windows[i].mouse_interactions.Count > 0 ) {
                     if (!handled) {
 
                         windows[i].recurse_all_subforms(f => {
                             //f.has_focus = false;
                             f.top_of_mouse_stack = false;
                         });
-
+                        
                         windows[i].top_of_mouse_stack = true;
 
                         if (!mouse_holding_window) {
@@ -413,6 +534,7 @@ namespace Raven.UI  {
             // a window is being held by the mouse, so regardless of focus mode, we should force
             // it to be focused, and defocus all subforms to prevent highlighting them while
             // dragging a window with the mouse close to its edge
+            
             if (mouse_holding_window) {
                 for (int i = windows.Count - 1; i >= 0; i--) {
                     if (windows[i] != window_on_mouse) {
@@ -505,13 +627,19 @@ namespace Raven.UI  {
             }
         }
 
+        Action? start_of_draw_action;
+        Action? end_of_draw_action;
+        
         public void draw() {
             //Clock.frame_probe.set("draw_window_manager");
+            
+            start_of_draw_action?.Invoke();
+            
             Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.Default);
             
             foreach (IUIForm window in windows) {
                 if (window is UIWindow && window.visible && !((window as UIWindow).RenderTargetsHidden)) {
-                    Draw2D.fill_rect(window.position + shadow_offset, window.position + window.size + shadow_offset, UIColors.Shadow);//, Color.Transparent, 1);
+                    Draw2D.fill_rect_dither(window.position + shadow_offset, window.position + window.size + shadow_offset, UIColors.Shadow, Color.Transparent, 1);
                 }
 
                 if (window.visible) {
@@ -523,6 +651,8 @@ namespace Raven.UI  {
                 }
             }
             Draw2D.end();
+            
+            end_of_draw_action?.Invoke();
         }
         
     }
@@ -536,18 +666,18 @@ namespace Raven.UI  {
         public const string bold_string_enable_pattern = "(#b_on#)";
         public const string bold_string_disable_pattern = "(#b_off#)";
         public const string bold_string_toggle_pattern = "(#b_toggle#)";
-
+        
         public static string list_subforms(List<IUIForm> subforms) {
             string s = $"";
 
             if (subforms.Count > 0) {
-                s += "    [Depth " + subforms[0].get_form_depth().ToString() + "]\n";
+                s += "      [Depth " + subforms[0].get_form_depth().ToString() + "]\n";
             }
             
             foreach (IUIForm subform in subforms) {
-                s += (subform.has_focus ? "[f]" : "   ") + $" [subform] {subform.name} \"{subform.text}\" [layer state] {subform.layer_state} [mouse over] {subform.mouse_over} {(subform.top_of_mouse_stack ? " <-" : "")} [focus] {subform.has_focus}\n";
+                s += (subform.has_focus ? "  [f]" : "     ") + $" [subform] {subform.name} \"{subform.text}\" [layer state] {subform.layer_state} [mouse over] {subform.mouse_over} {(subform.top_of_mouse_stack ? " <-" : "")} [focus] {subform.has_focus}\n";
                 foreach (var collision in subform.collision) {
-                    s += $"      [coll] {collision.Key} {collision.Value.origin}\n";
+                    s += $"        [coll] {collision.Key} {collision.Value.origin}\n";
                 }
 
                 if (subform.subforms.Count > 0) {

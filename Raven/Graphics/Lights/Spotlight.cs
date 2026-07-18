@@ -35,7 +35,7 @@ namespace Raven.Graphics.Lights {
         public float angle_cos => (float)Math.Cos(fov);
 
         public SpotLight() {
-            _depth = new RenderTarget2D(State.graphics_device, depth_map_resolution, depth_map_resolution, false, SurfaceFormat.Single, DepthFormat.Depth24);
+            _depth =  RenderTargetEx.create(depth_map_resolution, depth_map_resolution, SurfaceFormat.Single, DepthFormat.Depth24);
 
             orientation = Matrix.CreateFromAxisAngle(Vector3.Left, MathHelper.ToRadians(90f));
 
@@ -53,7 +53,7 @@ namespace Raven.Graphics.Lights {
         }
 
         public void change_depth_buffer_size() { 
-            _depth = new RenderTarget2D(State.graphics_device, depth_map_resolution, depth_map_resolution, false, SurfaceFormat.Single, DepthFormat.Depth24);
+            _depth =  RenderTargetEx.create(depth_map_resolution, depth_map_resolution, SurfaceFormat.Single, DepthFormat.Depth24);
         }
 
         public void update() {

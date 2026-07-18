@@ -545,7 +545,7 @@ public static class Draw2D {
         if (dither_effect == null) dither_effect = new Dither(State.content_manager);
 
         dither_effect.configure_shader(min.ToVector2(), max.ToVector2(), color_a, color_b, pattern_size);
-        dither_effect.begin_spritebatch(sb);
+        dither_effect.begin_spritebatch();
         sb.Draw(OnePXWhite, min.ToVector2(), null, Color.White, 0f, Vector2.Zero, (max - min).ToVector2(), SpriteEffects.None, 0f);
         end();
     }

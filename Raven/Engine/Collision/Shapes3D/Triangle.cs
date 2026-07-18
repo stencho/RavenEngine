@@ -12,7 +12,9 @@ namespace Raven.Engine.Collision.Shapes3D {
         public Vector3 A;
         public Vector3 B;
         public Vector3 C;
-
+        
+        public Vector3[] get_all_points() => [A, B, C];
+        
         public Vector3 normal => CollisionHelper.triangle_normal(A, B, C);
 
 
@@ -57,10 +59,10 @@ namespace Raven.Engine.Collision.Shapes3D {
             this.B = B;
             this.C = C;
         }
-
-        public void draw(Camera camera, GBuffer gbuffer,Matrix world) {
-            //Draw3D.fill_tri(world, A, B, C, Color.White * 0.9f);
-
+        
+        
+        
+        public void draw(Camera camera, GBuffer gbuffer, Matrix world) {
             Draw3D.lines(camera, Color.MonoGameOrange,
                 Vector3.Transform(A, world),
                 Vector3.Transform(B, world),

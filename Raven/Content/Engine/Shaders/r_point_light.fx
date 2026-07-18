@@ -1,4 +1,5 @@
-﻿
+﻿#include "lib/general.fx"
+
 float4x4 World;
 float4x4 View;
 float4x4 InverseView;
@@ -56,8 +57,8 @@ technique Default
 {
 	pass p0
 	{
-		VertexShader = compile vs_3_0 VS();
-		PixelShader = compile ps_3_0 PS();
+		VertexShader = compile VS_SHADERMODEL VS();
+		PixelShader = compile PS_SHADERMODEL PS();
 	}
 }
 

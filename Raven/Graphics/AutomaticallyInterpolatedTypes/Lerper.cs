@@ -12,12 +12,16 @@ public class Lerper {
 
     private float lerp_position = 0;
 
+    public void reset(float value) {
+        lerp_position = value;
+        position_ms = (end - start) * value;
+    }
+
     public float Start  => start;
     public float End => end;
     
     public float Value =>  float.Lerp(start, end, lerp_position);
-
-
+    
     private InterpolationType InterpolationType { get; set; } = InterpolationType.Once;
     private EngineThread Thread { get; set; } = EngineThread.Render;
     

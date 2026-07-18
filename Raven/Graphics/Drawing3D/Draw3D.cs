@@ -60,32 +60,8 @@ namespace Raven.Graphics.Drawing3D;
         }
         
         public static void lines(Camera camera, Color color, params Vector3[] points) {
-
-            line_effect = Resources.GetShader("fill_gbuffer");
-            //ContentLoader.resources["diffuse"].value_fx. = color.ToVector3();
-            line_effect.Parameters["World"].SetValue(Matrix.Identity);
-            line_effect.Parameters["View"].SetValue(camera.view);
-            line_effect.Parameters["Projection"].SetValue(camera.projection);
-            line_effect.Parameters["DiffuseMap"].SetValue(onePXWhite);
-            line_effect.Parameters["tint"].SetValue(color.ToVector3());
-            //line_effect.Parameters["FarClip"].SetValue(2000f);
-            //line_effect.Parameters["opacity"].SetValue(-1f);
-
-            VertexPositionColor[] verts = new VertexPositionColor[points.Length];
-
-            for (int i = 0; i < points.Length; i++) {
-                verts[i].Position = points[i];
-            }
-
-            State.graphics_device.BlendState = BlendState.Opaque;
-            State.graphics_device.DepthStencilState = DepthStencilState.DepthRead;
-
-            for (int i = 0; i < line_effect.CurrentTechnique.Passes.Count; i++) {
-                line_effect.CurrentTechnique.Passes[i].Apply();
-                State.graphics_device.DrawUserPrimitives(PrimitiveType.LineStrip, verts, 0, points.Length - 1);
-            }
-
-            line_effect.Parameters["tint"].SetValue(Color.White.ToVector3());
+            //if (color.A == 255) Renderer.deferred.render_lines_step(camera, color, Matrix.Identity, points);
+            //else Renderer.forward.render_lines_step(camera, color, Matrix.Identity, points);
         }
 
         public static void swept_capsule(Camera camera, float radius, Vector3 AA, Vector3 AB, Vector3 BA, Vector3 BB, Color color) {
@@ -315,248 +291,22 @@ namespace Raven.Graphics.Drawing3D;
             sb.End();
         }
 
-        public static void draw_buffers_diffuse_color(Camera camera, VertexBuffer vb, IndexBuffer ib, Color color, Matrix world) {
-
-            //ContentLoader.resources["diffuse"].value_fx. = color.ToVector3();
-            State.e_gbuffer.Parameters["World"].SetValue(world);
-            State.e_gbuffer.Parameters["View"].SetValue(camera.view);
-            State.e_gbuffer.Parameters["Projection"].SetValue(camera.projection);
-            State.e_gbuffer.Parameters["DiffuseMap"].SetValue(onePXWhite);
-            State.e_gbuffer.Parameters["tint"].SetValue(color.ToVector3());
-            State.e_gbuffer.Parameters["FarClip"].SetValue(2000f);
-            State.e_gbuffer.Parameters["opacity"].SetValue(-1f);
-
-            State.graphics_device.BlendState = BlendState.AlphaBlend;
-            State.graphics_device.DepthStencilState = DepthStencilState.Default;
-            State.graphics_device.SetVertexBuffer(vb);
-            State.graphics_device.Indices = ib;
-
-            foreach (EffectTechnique t in State.e_gbuffer.Techniques) {
-                foreach (EffectPass p in t.Passes) {
-                    p.Apply();
-                }
-            }
-
-            State.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, (vb.VertexCount));
-
-            State.graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
-
-        }
-        public static void draw_model_diffuse_color(Camera camera, Model model, Color color, Matrix world) {
-
-            //ContentLoader.resources["diffuse"].value_fx. = color.ToVector3();
-            State.e_gbuffer.Parameters["World"].SetValue(world);
-            State.e_gbuffer.Parameters["View"].SetValue(camera.view);
-            State.e_gbuffer.Parameters["Projection"].SetValue(camera.projection);
-            State.e_gbuffer.Parameters["DiffuseMap"].SetValue(onePXWhite);
-            State.e_gbuffer.Parameters["tint"].SetValue(color.ToVector3());
-            State.e_gbuffer.Parameters["FarClip"].SetValue(2000f);
-            //e_buffers.Parameters["opacity"].SetValue(-1f);
-
-            State.graphics_device.BlendState = BlendState.AlphaBlend;
-            State.graphics_device.DepthStencilState = DepthStencilState.Default;
-            State.graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
-
-            foreach (ModelMesh mesh in model.Meshes) {
-                foreach (ModelMeshPart part in mesh.MeshParts) {
-                    var vb = part.VertexBuffer;
-                    var ib =  part.IndexBuffer;
-                    
-                    State.graphics_device.SetVertexBuffer(vb);
-                    State.graphics_device.Indices = ib;
-
-                    foreach (EffectTechnique t in State.e_gbuffer.Techniques) {
-                        foreach (EffectPass p in t.Passes) {
-                            p.Apply();
-                        }
-                    }
-
-                    State.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, (vb.VertexCount));
-                }
-            }
-            
-
-        }
-
-        public static void batch_draw_setup(Camera camera, GBuffer buffer) {
-            State.graphics_device.SetRenderTargets(buffer.target_bindings);
-            
-            State.e_gbuffer.Parameters["atmosphere_color"].SetValue(SkyboxState.sun_moon.atmosphere_color.ToVector3());
-            State.e_gbuffer.Parameters["sky_color"].SetValue(SkyboxState.sun_moon.sky_color.ToVector3());
-
-            State.e_gbuffer.Parameters["FarClip"].SetValue(camera.far_clip);
-            State.e_gbuffer.Parameters["camera_pos"].SetValue(camera.position);
-            
-            State.e_gbuffer.Parameters["View"].SetValue(camera.view);
-            State.e_gbuffer.Parameters["Projection"].SetValue(camera.projection);
-            
-            State.e_gbuffer.Parameters["fullbright"].SetValue(false);
-            
-            State.graphics_device.BlendState = BlendState.AlphaBlend;
-            State.graphics_device.DepthStencilState = DepthStencilState.Default;
-            State.graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
-        }
-
-        public static void batch_draw_diffuse_texture(Camera camera, VertexBuffer vb, IndexBuffer ib,
-            Texture2D texture, Color color, Matrix world) {
-            State.e_gbuffer.Parameters["World"].SetValue(world);
-            State.e_gbuffer.Parameters["WVIT"].SetValue(Matrix.Transpose(Matrix.Invert(world * camera.view)));
-            
-            State.e_gbuffer.Parameters["DiffuseMap"].SetValue(texture);
-            State.e_gbuffer.Parameters["tint"].SetValue(color.ToVector3());
-            State.graphics_device.SetVertexBuffer(vb);
-            State.graphics_device.Indices = ib;
-            
-            State.e_gbuffer.Techniques["BasicColorDrawing"].Passes[0].Apply();
-            State.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, (vb.VertexCount));
-
-            State.e_gbuffer.Parameters["tint"].SetValue(Color.White.ToVector3());
-        }
-        
-        public static void draw_buffers_diffuse_texture(Camera camera, GBuffer buffer, VertexBuffer vb, IndexBuffer ib, Texture2D texture, Color color, Matrix world) {
-            State.graphics_device.SetRenderTargets(buffer.target_bindings);
-            
-            State.e_gbuffer.Parameters["atmosphere_color"].SetValue(SkyboxState.sun_moon.atmosphere_color.ToVector3());
-            State.e_gbuffer.Parameters["sky_color"].SetValue(SkyboxState.sun_moon.sky_color.ToVector3());
-
-            State.e_gbuffer.Parameters["FarClip"].SetValue(camera.far_clip);
-            State.e_gbuffer.Parameters["camera_pos"].SetValue(camera.position);
-
-            
-            //ContentLoader.resources["diffuse"].value_fx. = color.ToVector3();
-            State.e_gbuffer.Parameters["World"].SetValue(world);
-            State.e_gbuffer.Parameters["View"].SetValue(camera.view);
-            State.e_gbuffer.Parameters["Projection"].SetValue(camera.projection);
-            State.e_gbuffer.Parameters["WVIT"].SetValue(Matrix.Transpose(Matrix.Invert(world * camera.view)));
-
-            State.e_gbuffer.Parameters["fullbright"].SetValue(false);
-            //e_diffuse.Parameters["FarClip"].SetValue(2000f);
-            //State.e_gbuffer.Parameters["opacity"].SetValue(1f);
-
-            State.graphics_device.BlendState = BlendState.AlphaBlend;
-//            State.graphics_device.DepthStencilState = DepthStencilState.Default;
-            
-            State.e_gbuffer.Parameters["DiffuseMap"].SetValue(texture);
-            State.e_gbuffer.Parameters["tint"].SetValue(color.ToVector3());
-            State.graphics_device.SetVertexBuffer(vb);
-            State.graphics_device.Indices = ib;
-
-            State.e_gbuffer.Techniques["BasicColorDrawing"].Passes[0].Apply();
-
-            State.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, (vb.VertexCount));
-            
-            State.e_gbuffer.Parameters["tint"].SetValue(Color.White.ToVector3());
-            State.e_gbuffer.Parameters["fog"].SetValue(false);
-            State.e_gbuffer.Parameters["fullbright"].SetValue(false);
-
-            State.graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
-        }
-
-
-        public static void draw_buffers(Camera camera, VertexBuffer vb, IndexBuffer ib, Matrix world, Color color) {
-            load();
-
-            if (basic_effect == null) {
-                basic_effect = new BasicEffect(State.graphics_device);
-                basic_effect.World = Matrix.Identity;
-            }
-
-            State.graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
-            State.graphics_device.BlendState = BlendState.AlphaBlend;
-            //gd.RasterizerState = RasterizerState.CullNone;
-            float a = color.A/255f;
-            basic_effect.DiffuseColor = color.ToVector3();
-            basic_effect.Alpha = a;
-            basic_effect.TextureEnabled = true;
-            basic_effect.Texture = onePXWhite;
-
-            basic_effect.World = world;
-            basic_effect.View = camera.view;
-            basic_effect.Projection = camera.projection;
-            basic_effect.EnableDefaultLighting();
-
-            State.graphics_device.SetVertexBuffer(vb, 0);
-            State.graphics_device.Indices = ib;
-
-            foreach (EffectTechnique t in basic_effect.Techniques) {
-                foreach (EffectPass p in t.Passes) {
-                    p.Apply();
-                }
-            }
-
-            State.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, (vb.VertexCount));
-
-            basic_effect.World = Matrix.Identity;
-        }
-
-        public static VertexPositionNormalTexture[]quad = new VertexPositionNormalTexture[4] {
-                new VertexPositionNormalTexture(new Vector3(-1, 1, 0), -Vector3.UnitZ, new Vector2(0, 0)),
-                new VertexPositionNormalTexture(new Vector3(1, 1, 0), -Vector3.UnitZ, new Vector2(1, 0)),
-                new VertexPositionNormalTexture(new Vector3(1, -1, 0), -Vector3.UnitZ, new Vector2(1, 1)),
-                new VertexPositionNormalTexture(new Vector3(-1, -1, 0), -Vector3.UnitZ, new Vector2(0, 1))
-            };
-
-        public static ushort[] q_indices = { 0, 1, 2, 2, 3, 0 };
-
-        public static VertexPositionNormalTexture[] tri = new VertexPositionNormalTexture[3] {
-                new VertexPositionNormalTexture(new Vector3(0, 1, 0), -Vector3.UnitZ, new Vector2(0, 0)),
-                new VertexPositionNormalTexture(new Vector3(-1, -1, 0), -Vector3.UnitZ, new Vector2(1, 0)),
-                new VertexPositionNormalTexture(new Vector3(1, -1, 0), -Vector3.UnitZ, new Vector2(1, 1))
-            };
-        static ushort[] t_indices = { 0, 2, 1 };
-
-        static VertexBuffer t_vertex_buffer;
-        static IndexBuffer t_index_buffer;
-        static VertexBuffer q_vertex_buffer;
-        static IndexBuffer q_index_buffer;
-
         static string[] q_textures = new string[] { "OnePXWhite" };
 
         public static void triangle(Camera camera, Vector3 A, Vector3 B, Vector3 C, Color color) {
             lines(camera, color, A, B, C, A);
         }
 
-        public static void fill_tri(Camera camera, Matrix world, Vector3 A, Vector3 B, Vector3 C, Color color) {
-            State.graphics_device.RasterizerState = RasterizerState.CullNone;
-            if (t_index_buffer == null) {
-                t_index_buffer = new IndexBuffer(State.graphics_device, IndexElementSize.SixteenBits, t_indices.Length, BufferUsage.None);
-                t_index_buffer.SetData<ushort>(t_indices);
-            
-                tri = new VertexPositionNormalTexture[3] {
-                    new VertexPositionNormalTexture(A, -Vector3.UnitZ, new Vector2(0, 0)),
-                    new VertexPositionNormalTexture(B, -Vector3.UnitZ, new Vector2(1, 0)),
-                    new VertexPositionNormalTexture(C, -Vector3.UnitZ, new Vector2(1, 1))
-                };
-
-                t_vertex_buffer = new VertexBuffer(State.graphics_device, VertexPositionNormalTexture.VertexDeclaration, tri.Length, BufferUsage.None);
-                t_vertex_buffer.SetData<VertexPositionNormalTexture>(tri);
-            }
-            
-            draw_buffers(camera, t_vertex_buffer, t_index_buffer, world, color);
-        }
-
+        
         public static void fill_quad(Camera camera, GBuffer buffer, Matrix world, Vector3 A, Vector3 B, Vector3 C, Vector3 D, Color color, string texture = "OnePXWhite") {
             State.graphics_device.RasterizerState = RasterizerState.CullNone;
-            //Renderer.graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
-            if (q_index_buffer == null) {
-                q_index_buffer = new IndexBuffer(State.graphics_device, IndexElementSize.SixteenBits, q_indices.Length, BufferUsage.None);
-                q_index_buffer.SetData<ushort>(q_indices);
-            }
-            quad = new VertexPositionNormalTexture[4] {
-                new VertexPositionNormalTexture(A, -Vector3.UnitZ, new Vector2(0, 0)),
-                new VertexPositionNormalTexture(B, -Vector3.UnitZ, new Vector2(1, 0)),
-                new VertexPositionNormalTexture(C, -Vector3.UnitZ, new Vector2(1, 1)),
-                new VertexPositionNormalTexture(D, -Vector3.UnitZ, new Vector2(0, 1))
-            };
 
-            q_vertex_buffer = new VertexBuffer(State.graphics_device, VertexPositionNormalTexture.VertexDeclaration, quad.Length, BufferUsage.None);
-            q_vertex_buffer.SetData<VertexPositionNormalTexture>(quad);
-
-            draw_buffers_diffuse_texture(camera, buffer, q_vertex_buffer, q_index_buffer, Resources.GetTexture(texture), color, world); 
+            Renderer.deferred.render_step(camera, Renderer.fullscreen_quad.vertex_buffer, Renderer.fullscreen_quad.index_buffer, Resources.GetTexture(texture), world, color); 
+            
             State.graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
             //draw_buffers(gd, q_vertex_buffer, q_index_buffer, world, color, Renderer.camera.view, Renderer.camera.projection);
         }
-
+        
 
         public static void arrow(Camera camera, Vector3 A, Vector3 B, float chevron_distance_percent, Vector3 color) { arrow(camera, A, B, chevron_distance_percent, Color.FromNonPremultiplied(new Vector4(color, 1.0f))); }
 

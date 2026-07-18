@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Raven.Graphics;
 using Raven.Graphics.Drawing3D;
 using Raven.Engine;
+using Raven.Engine.Collision;
 
 namespace Raven.Engine.Components;
 
@@ -26,6 +28,9 @@ namespace Raven.Engine.Components;
 [ComponentProperty("AlwaysRenderForward", typeof(bool))]
 
 public partial class RenderModelStatic : Component {
+
+    public override ComponentFlags flags => ComponentFlags.Render;
+    
     public Matrix WorldMatrix => Matrix.CreateScale(Scale) * Orientation * Matrix.CreateTranslation(parent.position.position_interpolated + OffsetFromParent);
     
     public Model Model => Resources.GetModel(ModelName);
@@ -44,24 +49,41 @@ public partial class RenderModelStatic : Component {
         add_data("Scale", 1.0f);
         add_data("Orientation", Matrix.Identity);
 
-        add_data("BlendState", BlendState.AlphaBlend);
         add_data("RasterizerState", RasterizerState.CullCounterClockwise);
         
         add_data("AlwaysRenderForward", false);
     }
 
-    public void ForAllMeshParts(Action<VertexBuffer, IndexBuffer> action) {
-        for (int mesh_index = 0; mesh_index < Model.Meshes.Count; mesh_index++) {
-            for (int part_index = 0; part_index < Model.Meshes[mesh_index].MeshParts.Count; part_index++) {
-                action(Model.Meshes[mesh_index].MeshParts[part_index].VertexBuffer,
-                    Model.Meshes[mesh_index].MeshParts[part_index].IndexBuffer);
-            }
-        }
-    }
-
-    public void DrawBasic(Camera camera, GBuffer buffer) {
-        ForAllMeshParts((VertexBuffer VertexBuffer, IndexBuffer IndexBuffer) => {
-            Draw3D.batch_draw_diffuse_texture(camera, VertexBuffer, IndexBuffer, Texture, Color.White, WorldMatrix);
+    public override void RenderZPrePass(Camera camera) {
+        Model.ForAllMeshParts((VertexBuffer VertexBuffer, IndexBuffer IndexBuffer) => {
+            Renderer.z_prepass.render_batch_step(
+                camera,
+                VertexBuffer, IndexBuffer,
+                Texture, WorldMatrix, Tint);
         });
+    }
+    
+    public override void Render(Camera camera) {
+        Model.ForAllMeshParts((VertexBuffer VertexBuffer, IndexBuffer IndexBuffer) => {
+            Renderer.deferred.render_step(
+                camera,
+                VertexBuffer, IndexBuffer, 
+                Texture, WorldMatrix, Tint);
+        });
+    }
+    public override void RenderForward(Camera camera) {
+        Model.ForAllMeshParts((VertexBuffer VertexBuffer, IndexBuffer IndexBuffer) => {
+            Renderer.forward.render_step(
+                camera,
+                VertexBuffer, IndexBuffer, 
+                Texture, WorldMatrix, Tint, Opacity);
+        });
+    }
+    
+    public override Shape3D? GetShape() => null;
+    public override collision_result? TestGJKAgainstShape(Shape3D test_shape, Matrix world) => null;
+
+    public override BoundingBox? GetBounds() {
+        return new BoundingBox();
     }
 }

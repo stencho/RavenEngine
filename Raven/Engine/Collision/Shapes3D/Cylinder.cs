@@ -13,6 +13,8 @@ namespace Raven.Engine.Collision.Shapes3D {
         public Vector3 A { get; set; } = Vector3.Zero;
         public Vector3 B { get; set; } = Vector3.One;
 
+        public Vector3[] get_all_points() => [A, B];
+        
         public shape_type shape { get; } = shape_type.cylinder;
 
         public float radius { get; set; } = 1f;

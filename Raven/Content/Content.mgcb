@@ -13,14 +13,6 @@
 
 #---------------------------------- Content ---------------------------------#
 
-#begin Engine/Fonts/bitstrom9.spritefont
-/importer:FontDescriptionImporter
-/processor:FontDescriptionProcessor
-/processorParam:PremultiplyAlpha=True
-/processorParam:TextureFormat=Compressed
-/processorParam:Version=3.8.5.0
-/build:Engine/Fonts/bitstrom9.spritefont
-
 #begin Engine/Fonts/bitstrom16.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
@@ -44,6 +36,22 @@
 /processorParam:TextureFormat=Compressed
 /processorParam:Version=3.8.5.0
 /build:Engine/Fonts/bitstrom32.spritefont
+
+#begin Engine/Fonts/bitstrom9.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/processorParam:Version=3.8.5.0
+/build:Engine/Fonts/bitstrom9.spritefont
+
+#begin Engine/Fonts/mouse.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/processorParam:Version=3.8.5.0
+/build:Engine/Fonts/mouse.spritefont
 
 #begin Engine/Fonts/profont.spritefont
 /importer:FontDescriptionImporter
@@ -169,13 +177,13 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/draw_forward.fx
 
-#begin Engine/Shaders/r_clear.fx
+#begin Engine/Shaders/draw_deferred.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
 /processorParam:Defines=
 /processorParam:Version=3.8.5.0
-/build:Engine/Shaders/r_clear.fx
+/build:Engine/Shaders/draw_deferred.fx
 
 #begin Engine/Shaders/r_compositor.fx
 /importer:EffectImporter
@@ -201,14 +209,6 @@
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/r_exp_light_depth.fx
 
-#begin Engine/Shaders/r_fill_gbuffer.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/processorParam:Defines=
-/processorParam:Version=3.8.5.0
-/build:Engine/Shaders/r_fill_gbuffer.fx
-
 #begin Engine/Shaders/r_light_depth.fx
 /importer:EffectImporter
 /processor:EffectProcessor
@@ -216,6 +216,14 @@
 /processorParam:Defines=
 /processorParam:Version=3.8.5.0
 /build:Engine/Shaders/r_light_depth.fx
+
+#begin Engine/Shaders/r_depth.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/processorParam:Defines=
+/processorParam:Version=3.8.5.0
+/build:Engine/Shaders/r_depth.fx
 
 #begin Engine/Shaders/r_point_light.fx
 /importer:EffectImporter

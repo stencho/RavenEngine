@@ -43,6 +43,7 @@ public static class Resources {
         public void Unload() {
             content_manager_parent.UnloadAsset(FullName);
             Loaded = false;
+            Debug.WriteLine($"Content unloaded: {Name} :: {FullName} :: {Type.ToString()}");
         }
 
         public static string NormalizePath(string path) {
@@ -60,6 +61,8 @@ public static class Resources {
         double _last_access_time = -1;
         
         public bool Loaded { get; set; } = false;
+        bool _transparency = false;
+        public bool HasTransparency => _transparency;
         
         public ContentManager content_manager_parent { get; set; }
         
@@ -89,12 +92,14 @@ public static class Resources {
             _texture = texture;
             DataType = DataType.Procedural;
             Loaded = true;
-            
-            Debug.WriteLine($"Content added: {Name} :: {FullName} :: {Type.ToString()}");
+            _transparency = _texture.contains_transparency();
+            Debug.WriteLine($"Content added & loaded: {Name} :: {FullName} :: {Type.ToString()} :: has_trans:{HasTransparency.ToString().ToLower()}");
         }
 
         public void Load() {
             _texture = content_manager_parent.Load<Texture2D>(FullName);
+            _transparency = _texture.contains_transparency();
+            Debug.WriteLine($"Content loaded: {Name} :: {FullName} :: {Type.ToString()} :: has_trans:{HasTransparency.ToString().ToLower()}");
             Loaded = true;
         }
     }
@@ -350,7 +355,7 @@ public static class Resources {
     internal static void LoadEngineContent(ContentManager content) {
         engine_content = new ContentManager(content.ServiceProvider, content.RootDirectory + "/Engine");
         
-        var path_crop_length = Environment.CurrentDirectory.Length + 1;
+        var path_crop_length = System.Environment.CurrentDirectory.Length + 1;
         path_crop_length += engine_content.RootDirectory.Length;
         
         add_content_of_type(engine_content, ContentType.Texture, path_crop_length);
@@ -360,7 +365,7 @@ public static class Resources {
     }
     
     public static void LoadContentList(ContentManager content) {
-        var path_crop_length = Environment.CurrentDirectory.Length + 1;
+        var path_crop_length = System.Environment.CurrentDirectory.Length + 1;
         path_crop_length += content.RootDirectory.Length;
         
         add_content_of_type(content, ContentType.Texture, path_crop_length);

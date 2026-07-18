@@ -3,10 +3,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-
+using Raven.Engine.Collision.Shapes3D;
 using Raven.Graphics;
 using Raven.Graphics.Drawing2D;
 using Raven.Graphics.Drawing3D;
+using Raven.Graphics.Drawing3D.Effects;
 
 namespace Raven.Engine {
     [GuidManaged]
@@ -39,7 +40,7 @@ namespace Raven.Engine {
                 foreach (var camera in cameras.Values) {
                     if (camera.using_gbuffer) {
                         current_render_camera = camera;
-                        Renderer.render_scene_to_gbuffer();
+                        Renderer.render_scene_to_gbuffer(camera);
                     }
                 }
 
@@ -63,12 +64,14 @@ namespace Raven.Engine {
         public Vector3 lookat_offset { get; set; } = Vector3.Zero;
 
         public BoundingFrustum frustum { get; set; } = new BoundingFrustum(Matrix.Identity);
-
+        private Polyhedron _frustum_shape;
+        public Polyhedron frustum_shape => _frustum_shape; 
         public Matrix frustum_view { get; set; }
         public Matrix frustum_projection { get; set; }
 
         public float near_clip { get; set; } = 0.1f;
-        public float far_clip { get; set; } = 10000f;
+        public float far_clip { get; set; } = 1000f;
+        public const float far_clip_default = 1000f;
 
         public bool use_gvar_field_of_view { get; set; }= false;
         public float field_of_view => use_gvar_field_of_view ? gvars.get_float("r_field_of_view") : _field_of_view;
@@ -98,6 +101,8 @@ namespace Raven.Engine {
         public GBuffer gbuffer;
         public RenderTarget2D render_target;
 
+        public SceneEnvironment environment => parent_scene.environment;
+        
         protected Guid managed_guid;
         public Guid ManagedGuid => managed_guid;
 
@@ -105,34 +110,36 @@ namespace Raven.Engine {
 
         public LinkedObjectPosition LinkedObjectPosition;
         public EntityPosition current_camera_chunk => LinkedObjectPosition.child_position;
-
-        private bool linked_to_object => LinkedObjectPosition != null;
         
-        public Entity parent_entity => LinkedObjectPosition.parent;
+        private bool linked_to_object => LinkedObjectPosition != null;
+        public Entity manual_parent = null;
+        
+        public Entity parent_entity => manual_parent != null ? manual_parent : LinkedObjectPosition.parent;
         public Scene parent_scene => parent_entity.parent_scene;
         
-        public Camera() {
-            init();
+        public Camera(Entity parent = null) {
+            init(parent);
         }
         
-        public Camera(Vector3 position) {
+        public Camera(Vector3 position, Entity parent = null) {
             this.position = position;
-            init();
+            init(parent);
         }
 
-        public Camera(Vector3 position, Vector3 facing) {
+        public Camera(Vector3 position, Vector3 facing, Entity parent = null) {
             this.position = position;
             this.orientation = Matrix.CreateLookAt(position, position + facing, Vector3.Up);
-            init();
+            init(parent);
         }
 
-        public Camera(Vector3 position, Matrix orientation) {
+        public Camera(Vector3 position, Matrix orientation, Entity parent = null) {
             this.position = position;
             this.orientation = orientation;
-            init();
+            init(parent);
         }
 
-        void init() {
+        void init(Entity parent) {
+            this.manual_parent = parent;
             this.position = position;
             
             frustum = new BoundingFrustum(view * projection);
@@ -145,8 +152,8 @@ namespace Raven.Engine {
             Dispose(false);
         }
 
-        public void enable_gbuffer(int width, int height, float res_scale = 1f) {
-            gbuffer = new GBuffer(width, height, res_scale);
+        public void enable_gbuffer(int width, int height, float res_scale = 1f, bool double_buffered = true) {
+            gbuffer = new GBuffer(width, height, res_scale, double_buffered);
             
             using_gbuffer = true;
             gbuffer.AttachCamera(this);
@@ -166,6 +173,10 @@ namespace Raven.Engine {
             else
                 frustum_projection = Matrix.CreatePerspectiveFieldOfView(
                     MathHelper.ToRadians(field_of_view * aspect_ratio), aspect_ratio, near_clip, far_clip);
+            
+            frustum = new BoundingFrustum(view * projection);
+
+            _frustum_shape = frustum.ToShape3D();
         }
 
         public void update_projection() {

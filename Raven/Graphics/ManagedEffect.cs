@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Raven.Engine;
 using Raven.Graphics.Drawing2D;
+using Raven.Graphics.Drawing3D;
 
 namespace Raven.Graphics.Effects {
 
@@ -20,6 +21,15 @@ namespace Raven.Graphics.Effects {
             public static void do_updates() {
                 foreach (var effect in registered_effects_update) {
                     effect.update();
+                }
+            }
+
+            public static void set_param_on_all_effects_of_same_type<E, P>(E managed_effect, string param, P data) {
+                if (!(managed_effect is ManagedEffect)) return;
+                foreach (ManagedEffect me in registered_effects_update) {
+                    if (me.GetType() == typeof(E)) {
+                        me.set_param(param, data);
+                    }
                 }
             }
         }
@@ -38,21 +48,29 @@ namespace Raven.Graphics.Effects {
         public ManagedEffect() {
             build_basic_effect();
             Manager.register_for_update(this);
+            
+            post_init();
         }
         public ManagedEffect(Effect effect) {
             _effect = effect;
             build_basic_effect();
             Manager.register_for_update(this);
+            
+            post_init();
         }
         public ManagedEffect(ContentManager content, string effect_name) {
             load_shader_file(content, effect_name);
             build_basic_effect();
             Manager.register_for_update(this);
+            
+            post_init();
         }
 
         ~ManagedEffect() {
             Manager.unregister_for_update(this);
         }
+        
+        internal virtual void post_init() {}
         
         void build_basic_effect() {
             if (basic_effect == null) {
@@ -110,7 +128,6 @@ namespace Raven.Graphics.Effects {
             else { throw new Exception("Bad shader object type"); }
         }
 
-
         public virtual void begin_spritebatch() {
             if (Draw2D.sb_drawing) Draw2D.sb.End();
             Draw2D.sb.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointWrap, null, null, effect, null);
@@ -132,47 +149,23 @@ namespace Raven.Graphics.Effects {
             Draw2D.sb_drawing = true;
         }
 
-        public virtual void begin_spritebatch(SpriteBatch sb) {
-            if (Draw2D.sb_drawing) Draw2D.sb.End();
-            sb.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointWrap, null, null, effect, null);
-            Draw2D.sb_drawing = true;
-        }
-        public virtual void begin_spritebatch(SpriteBatch sb, BlendState blend_state) {
-            if (Draw2D.sb_drawing) Draw2D.sb.End();
-            sb.Begin(SpriteSortMode.Immediate, blend_state, SamplerState.PointWrap, null, null, effect, null);
-            Draw2D.sb_drawing = true;
-        }
-        public virtual void begin_spritebatch(SpriteBatch sb, SamplerState sampler_state) {
-            if (Draw2D.sb_drawing) Draw2D.sb.End();
-            sb.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, sampler_state, null, null, effect, null);
-            Draw2D.sb_drawing = true;
-        }
-        public virtual void begin_spritebatch(SpriteBatch sb, BlendState blend_state, SamplerState sampler_state) {
-            if (Draw2D.sb_drawing) Draw2D.sb.End();
-            sb.Begin(SpriteSortMode.Immediate, blend_state, sampler_state, null, null, effect, null);
-            Draw2D.sb_drawing = true;
-        }
-
-
         public virtual void draw(Vector2i position, Vector2i size) {
-            begin_spritebatch();
             Draw2D.sb.Draw(Draw2D.OnePXWhite, new Rectangle(position.ToPoint(), size.ToPoint()), Color.Transparent);
-            Draw2D.end();
         }
         public virtual void draw_texture(Texture2D texture, Vector2i position, Vector2i size) {
-            begin_spritebatch();
             Draw2D.sb.Draw(texture, new Rectangle(position.ToPoint(), size.ToPoint()), Color.White);
-            Draw2D.end();
         }
         public virtual void draw_texture(Texture2D texture, Vector2i position, Vector2i size, Vector2i crop_position, Vector2i crop_size) {
-            begin_spritebatch();
             Draw2D.sb.Draw(texture, 
                 new Rectangle(position.ToPoint(), size.ToPoint()),
                 new Rectangle(crop_position.X, crop_position.Y, crop_size.X, crop_size.Y),
                 Color.White);
-            Draw2D.end();
         }
 
+        public virtual void end_spritebatch() {
+            Draw2D.end();
+        }
+        
         /// <summary>
         /// Apply all passes from the current technique
         /// </summary>
@@ -195,69 +188,15 @@ namespace Raven.Graphics.Effects {
             _effect.CurrentTechnique = _effect.Techniques[technique];
         }
 
-        /// <summary>
-        /// <para>Uses the BasicEffect to set up the vertices and paint a base white texture,
-        /// then uses the selected effect's pixel shader to draw its texture</para>
-        /// <para></para>
-        /// <para>Useful for drawing a 3D mesh with an appearance entirely determined by a pixel shader</para>
-        /// </summary>
-        /// <param name="vb">The vertex buffer of the mesh</param>
-        /// <param name="ib">The index buffer of the mesh</param>
-        /// <param name="world">World matrix</param>
-        /// <param name="view">View matrix</param>
-        /// <param name="projection">Projection matrix</param>
-        public virtual void draw_buffers_basic_effect_first_pass(VertexBuffer vb, IndexBuffer ib, Matrix world, Matrix view, Matrix projection) {
-            if (_effect == null) return;
-
-            basic_effect.World = world;
-            basic_effect.View = view;
-            basic_effect.Projection = projection;
-            basic_effect.Texture = Draw2D.OnePXWhite;
-
-            State.graphics_device.SetVertexBuffer(vb);
-            State.graphics_device.Indices = ib;
-
-            apply_passes();
-
-            State.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
+        private int current_vb_vert_count = 0;
+        public virtual void set_vertex_buffer(VertexBuffer vertex_buffer, IndexBuffer index_buffer) {
+            State.graphics_device.SetVertexBuffer(vertex_buffer);
+            State.graphics_device.Indices = index_buffer;
+            current_vb_vert_count = vertex_buffer.VertexCount;
         }
-
-        /// <summary>
-        /// <para>Uses the BasicEffect to set up the vertices and paint a base white texture, 
-        /// then uses the selected effect's pixel shader to draw its texture</para>
-        /// <para></para>
-        /// <para>Useful for drawing a 3D mesh with an appearance entirely determined by a pixel shader</para>
-        /// <para>This call assumes you have already set up the vertex and index buffers</para>
-        /// </summary>
-        /// <param name="world">World matrix</param>
-        /// <param name="view">View matrix</param>
-        /// <param name="projection">Projection matrix</param>
-        public virtual void draw_buffers_basic_effect_first_pass(Matrix world, Matrix view, Matrix projection) {
-            if (_effect == null) return;
-            
-            basic_effect.World = world;
-            basic_effect.View = view;
-            basic_effect.Projection = projection;
-
-            apply_passes();    
-
-            State.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
-        }
-
-        /// <summary>
-        /// <para>Uses the BasicEffect to set up the vertices and paint a base white texture, 
-        /// then uses the selected effect's pixel shader to draw its texture</para>
-        /// <para></para>
-        /// <para>Useful for drawing a 3D mesh with an appearance entirely determined by a pixel shader</para>
-        /// <para>This call assumes you have already set up the vertex and index buffers using GraphicsDevice,
-        /// as well as the BasicEffect's WVP using the basic_effect_world/view/projection properties </para>
-        /// </summary>
-        public virtual void draw_buffers_basic_effect_first_pass() {
-            if (_effect == null) return;
-            
-            apply_passes();   
-
-            State.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
+        
+        public virtual void render_vertex_buffer() {
+            State.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, current_vb_vert_count);
         }
     }
 }

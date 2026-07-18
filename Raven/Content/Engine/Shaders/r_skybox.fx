@@ -1,120 +1,94 @@
-﻿#if OPENGL
-#define SV_POSITION POSITION
-#define VS_SHADERMODEL vs_3_0
-#define PS_SHADERMODEL ps_3_0
-#else
-#define VS_SHADERMODEL vs_4_0_level_9_1
-#define PS_SHADERMODEL ps_4_0_level_9_1
-#endif
+﻿#include "lib/general.fx"
 
+sampler2D SkyboxLerpSampler = sampler_state { texture = <SkyboxLerp>; };
 
-sampler2D cubeS = sampler_state
-{
-    texture = <cubemap>;
-    magfilter = ANISOTROPIC;
-    minfilter = ANISOTROPIC;
-    mipfilter = ANISOTROPIC;
-    MaxAnisotropy = 16;
-    ADDRESSU = MIRROR;
-    ADDRESSV = MIRROR;
+struct VSI {
+	float4 Position : POSITION0;
+	float2 UV : TEXCOORD0;
 };
-sampler2D cubeSE = sampler_state
-{
-    texture = <cubemap_emissive>;
-    magfilter = ANISOTROPIC;
-    minfilter = ANISOTROPIC;
-    mipfilter = ANISOTROPIC;
-    MaxAnisotropy = 16;
-    ADDRESSU = MIRROR;
-    ADDRESSV = MIRROR;
+struct VSO {
+	float4 Position : POSITION0;
+	float2 UV : TEXCOORD0;
+    float4 Pos3d : TEXCOORD1;
 };
-
-struct VSI
-{
-    float4 Position : POSITION0;
-    float2 UV : TEXCOORD0;
-};
-
-struct VSO
-{
-    float4 Position : POSITION0;
-    float2 UV : TEXCOORD0;
-    float3 Pos3d : TEXCOORD1;
-};
-
-struct PSO
-{
+struct SkyboxPSO {
     float4 Diffuse : COLOR0;
-    float4 Normals : COLOR1;
-    float4 Depth : COLOR2;
-    float4 Lighting : COLOR3;
+    float4 Lighting : COLOR1;
 };
 
-bool draw_2d = true;
-float2 offset = float2(0, 0);
-
-float4x4 World;
-float4x4 View;
-float4x4 Projection;
-
-float3 cam_dir;
-
-VSO MainVS(VSI input)
-{
-    VSO output = (VSO) 0;
-    float4x4 wvp = mul(World, mul(View, Projection));
-    output.Position = mul(input.Position, wvp);
-    output.Pos3d = input.Position.xyz;
-    output.UV = input.UV;
-
-    return output;
-}
-
-float3 color_lerp(float3 a, float3 b, float position) {
-    return float3(
-                a.r - ((a.r - b.r) * position),
-                a.g - ((a.g - b.g) * position),
-                a.b - ((a.b - b.b) * position));
-}
-float4 color_lerp(float4 a, float4 b, float position)
-{
-    return float4(
-                a.r + ((b.r - a.r) * position),
-                a.g + ((b.g - a.g) * position),
-                a.b + ((b.b - a.b) * position),
-                a.a + ((b.a - a.a) * position));
-}
-
-bool fog = false;
-
-float4 sky_color;
 float4 atmosphere_color;
+float4 max_sky_darkness;
 
-PSO clear_sky(VSO input)
-{
-    PSO output = (PSO) 0;
-        
-    float4 rgba = tex2D(cubeS, input.UV);
+float skybox_height;
+float day_position;
 
-    float4 rgba_final = sky_color;
+float4x4 skybox_world;
+float4x4 skybox_view;
+float4x4 skybox_projection;
+
+VSO SkyboxVS(VSI input) {
+    VSO output = (VSO) 0;    
+    float4x4 wvp = mul(skybox_world, mul(skybox_view, skybox_projection));
     
-    //draw fade from atmosphere up to full on sky colour
-    rgba_final.rgb = color_lerp(atmosphere_color.rgb, sky_color.rgb, clamp((1-input.Pos3d.y)*0.2, 0.0, 1));
-    rgba_final.a = 1;
-    output.Lighting.rgb = rgba_final * 0.35;
-    output.Lighting.a = 1;
-    output.Normals = 0;
-    output.Diffuse = rgba_final;
-    output.Depth.rgb = 1;
-    output.Depth.a = 1;
+    float3 scaled_pos = mul(input.Position, wvp).xyz;
+    scaled_pos *= 1.0 / skybox_height;
+     
+    output.Position = mul(input.Position, wvp);
+    output.Pos3d = input.Position;
+    output.UV = input.UV;
+    
     return output;
-};
+}
 
-technique draw
-{
-    pass P0
-    {
-        VertexShader = compile VS_SHADERMODEL MainVS();
-        PixelShader = compile PS_SHADERMODEL clear_sky();
+SkyboxPSO Skybox(VSO input) {
+    SkyboxPSO output = (SkyboxPSO)0;
+        
+    float open_sky = 0.25;    
+    float horizon_point = 0.55;
+    float dark_point = 1;
+                
+    float y = input.Pos3d.y;
+    y = (y + (skybox_height / 2)) / (skybox_height);
+    float y_all_pos = y;
+    y = (y * 2) - 1;
+    
+    float x = input.Pos3d.x;
+    x = (x + (skybox_height / 2)) / (skybox_height);
+                
+    float3 atmos = (atmosphere_color.rgb * 0.8);
+    float3 dark = (max_sky_darkness.rgb);
+        
+    float4 rgba = float4(1,1,1,1); // = tex2D(cubeS, input.UV);
+    
+    float atmos_glow = slerp(0, 1, x, 0, 0.5);
+    atmos_glow = slerp(0, 1, x, 0.5, 1);
+    
+    float sky_glow = day_position;
+    if (sky_glow > 0.5) {
+        sky_glow = 0.5 - (sky_glow-0.5);
     }
-};
+    sky_glow *= 2;
+    
+    float atmos_glow_vertical_offset = 0;
+    
+    // sky color
+    float distance_from_tip = 1 - y_all_pos;
+      
+    atmos = slerp(float3(0.3,0.2,0.7) * sky_glow, atmos * atmos_glow, distance_from_tip, open_sky, 1);
+    rgba.rgb = slerp(atmos, dark, distance_from_tip, horizon_point, dark_point);   
+     
+    output.Lighting.rgb = (rgba.rgb);
+    output.Lighting.a = 1;
+    
+    output.Diffuse.rgb = 1;
+    output.Diffuse.a = 1;
+    
+    return output;
+}
+
+technique skybox {
+	pass P0	{
+		VertexShader = compile VS_SHADERMODEL SkyboxVS();
+		PixelShader = compile PS_SHADERMODEL Skybox();
+	}
+}

@@ -10,6 +10,9 @@ namespace Raven.Engine.Collision.Shapes3D {
         public shape_type shape { get; } = shape_type.polyhedron;
 
         public Vector3[] verts;
+
+        public Vector3[] get_all_points() => verts;
+        
         Vector3 find_center() {
             return Vector3.Zero;
         }

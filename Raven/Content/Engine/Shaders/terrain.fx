@@ -1,11 +1,4 @@
-﻿#if OPENGL
-	#define SV_POSITION POSITION
-	#define VS_SHADERMODEL vs_3_0
-	#define PS_SHADERMODEL ps_3_0
-#else
-	#define VS_SHADERMODEL vs_4_0_level_9_1
-	#define PS_SHADERMODEL ps_4_0_level_9_1
-#endif
+﻿#include "lib/general.fx"
 
 float4x4 View;
 float4x4 Projection;
@@ -84,18 +77,6 @@ struct PSO
     float4 Depth : COLOR2;
     float4 Lighting : COLOR3;
 };
-
-half3 encode(half3 n)
-{
-	n = normalize(n);
-	n.xyz = 0.5f * (n.xyz + 1.0f);
-	return n;
-}
-
-half3 decode(half3 enc)
-{
-	return (2.0f * enc.xyz - 1.0f);
-}
 
 float logzbuf(float z, float w)
 {
@@ -261,10 +242,6 @@ PSO Diffuse(VSO input)
     
     return output ;
 };
-
-
-
-
 
 technique BasicColorDrawing
 {

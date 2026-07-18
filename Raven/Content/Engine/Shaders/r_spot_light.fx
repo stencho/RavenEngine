@@ -1,4 +1,6 @@
-﻿float4x4 World;
+﻿#include "lib/general.fx"
+
+float4x4 World;
 float4x4 View;
 float4x4 InverseView;
 float4x4 Projection;

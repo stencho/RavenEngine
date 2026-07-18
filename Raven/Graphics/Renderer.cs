@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Raven.Engine;
 using Raven.Engine.Collision;
 using Raven.Engine.Collision.Shapes3D;
 using Raven.Engine.Components;
+using Raven.Engine.Geometry3D;
 using Raven.Graphics.Drawing2D;
+using Raven.Graphics.Drawing3D.Effects;
 using Raven.Graphics.Effects;
 using Raven.Graphics.Geometry2D;
 using Raven.Graphics.Skybox;
@@ -17,9 +21,25 @@ using static Raven.Engine.State;
 
 namespace Raven.Graphics.Drawing3D {
     public static class Renderer {
+        public static Effect e_directionallight;
         static volatile List<light> visible_lights = new List<light>();
         static volatile List<Entity> visible_entities = new List<Entity>();
 
+        public static ZPrepass z_prepass = new ZPrepass();
+        public static DrawBuffersDeferred deferred = new DrawBuffersDeferred();
+        public static DrawBuffersForward forward = new DrawBuffersForward();
+        public static Compositor compositor = new Compositor();
+        
+        public static BlendState light_accumulation_blend_state = new BlendState {
+            ColorSourceBlend = Blend.One,
+            ColorDestinationBlend = Blend.One,
+            ColorBlendFunction = BlendFunction.Add,
+
+            AlphaSourceBlend = Blend.Zero,
+            AlphaDestinationBlend = Blend.One, 
+            AlphaBlendFunction = BlendFunction.Add
+        };
+        
         enum RenderPhase {
             build_visibility,
             build_lighting,
@@ -47,6 +67,39 @@ namespace Raven.Graphics.Drawing3D {
 
         private static Camera camera => Camera.current_render_camera;
 
+        public static class fullscreen_quad {
+            static VertexPositionTexture[] vb_data = {
+                new VertexPositionTexture(Vector3.Up + Vector3.Left, Vector2.Zero),
+                new VertexPositionTexture(Vector3.Up + Vector3.Right, Vector2.UnitX),
+                new VertexPositionTexture(Vector3.Down + Vector3.Left, Vector2.UnitY),
+                new VertexPositionTexture(Vector3.Down + Vector3.Right, Vector2.One)
+            };
+            static int[] ib_data = { 0, 1, 2, 1, 3, 2 };
+            
+            static VertexBuffer quad_vb;
+            static IndexBuffer quad_ib;
+
+            public static VertexBuffer vertex_buffer => quad_vb;
+            public static IndexBuffer index_buffer => quad_ib;
+            
+            public static void Load() {
+                quad_vb = new VertexBuffer(graphics_device, VertexPositionTexture.VertexDeclaration, 4, BufferUsage.None);
+                quad_ib = new IndexBuffer(graphics_device, IndexElementSize.ThirtyTwoBits, 6, BufferUsage.None);
+                
+                quad_vb.SetData(vb_data);
+                quad_ib.SetData(ib_data);
+            }
+
+            public static void UseBuffers() {
+                graphics_device.SetVertexBuffer(vertex_buffer);
+                graphics_device.Indices = index_buffer;
+            }
+        }
+
+        public static void Load() {
+            fullscreen_quad.Load();
+        }
+        
         public static void render_scene_to_gbuffer() {
             render_scene_to_gbuffer(camera);    
         }
@@ -56,49 +109,81 @@ namespace Raven.Graphics.Drawing3D {
             camera.parent_scene.ClearVisibilityLists();
             camera.parent_scene.BuildVisibilityLists(camera);
             
-            build_lighting(camera, camera.gbuffer);
+            
+            //build shadows
+            
+            
+            compositor.clear_buffers(camera); 
+            render_prepass(camera);
             
             render_phase = RenderPhase.draw_skybox;
-            
-            clear_buffers(camera.gbuffer); 
-            clear_to_skybox(camera, camera.gbuffer);
+
+            camera.environment.skybox.render(camera);
             
             render_phase = RenderPhase.render_deferred;
-            ManagedEffect.Manager.do_updates();
-            
             render_deferred(camera);
             
-            draw_directional_lighting(camera,camera.gbuffer);
-            draw_lighting(camera, camera.gbuffer);
+            camera.environment.sunlight.draw_lighting(camera);
+            
+            //draw deferred lighting here
+            
+            compositor.compose(camera);
             
             render_phase = RenderPhase.render_forward;
             render_forward(camera);
             
-            graphics_device.SetRenderTarget(camera.gbuffer.rt_2D);
-            graphics_device.Clear(Color.Transparent);
-            AutoRender2D.Manager.RenderAll();
             camera.gbuffer.draw_over_game_layer();
             
-            UIWindowManager.Manager.render_UIs_to_their_buffers();
+            render_phase = RenderPhase.render_forward;
+            
             graphics_device.SetRenderTarget(camera.gbuffer.rt_2D);
+            graphics_device.Clear(Color.Transparent);
+            
+            UIWindowManager.Manager.render_UI_for_current_buffer(camera.gbuffer.GUID);
             camera.gbuffer.draw_on_top_layer();
             
-            camera.gbuffer.Compose(camera);
+            compositor.finalize(camera);
+        }
+        
+        static List<Component> prepassed_components = new List<Component>();
+        static List<(float distance, Component c)> prepassed_components_need_forward_render = new();
+
+        static void render_prepass(Camera camera) {
+            prepassed_components.Clear();
+            prepassed_components_need_forward_render.Clear();
+            
+            z_prepass.batch_render_setup(camera);
+            foreach (var e in camera.parent_scene.entity_visibility_list.Where(
+                         a => a.camera.GUID == camera.GUID)) {
+                e.entity.Components.ForAllComponentsWithFlag(ComponentFlags.Render, component => {
+                    var has_opacity_data = component.TryGetData("Opacity", out float opacity);
+                    var has_forward_flag = component.TryGetData("AlwaysRenderForward", out bool always_render_foward);
+                    
+                    if ((has_opacity_data && opacity < 1.0f) ||  (has_forward_flag && always_render_foward)) { 
+                        prepassed_components_need_forward_render.Add((e.distance, component));
+                    } else {
+                        component.RenderZPrePass(camera);
+                        prepassed_components.Add(component);
+                    }
+                });
+            }
         }
         
         static void render_deferred(Camera camera) {
-            Draw3D.batch_draw_setup(camera, camera.gbuffer);
-        
-            foreach (var e in camera.parent_scene.render_list_deferred.Where(
-                         a => a.camera.GUID == camera.GUID)) {
-                if (e.entity.Components.HasComponentOfType<RenderModelStatic>(out var rm)) {
-                    rm.DrawBasic(camera, camera.gbuffer);
-                }
+            deferred.batch_render_setup(camera);
+            foreach (var component in prepassed_components) {
+                component.Render(camera);                
             }
         }
 
         static void render_forward(Camera camera) {
+            prepassed_components_need_forward_render = 
+                prepassed_components_need_forward_render.OrderByDescending(a => a.distance).ToList();
             
+            forward.batch_render_setup(camera);
+            foreach (var component in prepassed_components_need_forward_render) {
+                component.c.RenderForward(camera);                
+            }
         }
         
         public static void render_entity() {
@@ -108,49 +193,7 @@ namespace Raven.Graphics.Drawing3D {
                 
             }
         }
-
-        private static void clear_buffers(GBuffer gbuffer) {
-            graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
-            graphics_device.DepthStencilState = DepthStencilState.None;
-            
-            ManagedRT2D.Manager.FlipAll();
-            gbuffer.draw_to_bindings();
-            
-            foreach (var rtb in gbuffer.target_bindings) {
-                graphics_device.SetRenderTarget((RenderTarget2D)rtb.RenderTarget);
-                graphics_device.Clear(Color.Transparent);
-            }
-
-            e_clear.Parameters["color"].SetValue(SkyboxState.sun_moon.atmosphere_color.ToVector4());
-            e_clear.Techniques["Default"].Passes[0].Apply();
-
-            graphics_device.SetVertexBuffer(quad_vb);
-            graphics_device.Indices = quad_ib;
-
-            graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);
-        }
         
-        private static void clear_to_skybox(Camera camera, GBuffer gbuffer) {       
-            graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
-            graphics_device.BlendState = BlendState.AlphaBlend;
-            
-            gbuffer.draw_to_bindings();
-            
-            e_skybox.Parameters["atmosphere_color"].SetValue(SkyboxState.sun_moon.atmosphere_color.ToVector4());
-            e_skybox.Parameters["sky_color"].SetValue(SkyboxState.sun_moon.sky_color.ToVector4());
-
-            e_skybox.Parameters["World"].SetValue(Matrix.CreateScale(1f) * Matrix.Identity);
-            e_skybox.Parameters["View"].SetValue(Matrix.CreateLookAt(Vector3.Zero, camera.direction, camera.up_direction));
-            e_skybox.Parameters["Projection"].SetValue(camera.projection);
-
-            e_skybox.Techniques["draw"].Passes[0].Apply();
-
-            graphics_device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, SkyboxState.skybox_data, 0, 2, SkyboxState.skybox_indices, 0, SkyboxState.skybox_indices.Length / 3, VertexPositionNormalColorUv.VertexDeclaration);
-
-            graphics_device.DepthStencilState = DepthStencilState.Default;
-        }
-
-
         public static void update_point_light(ref light l, Camera camera) {
             l.world = Matrix.CreateScale(l.point_info.radius) * Matrix.CreateTranslation(l.point_info.position);
         }
@@ -175,10 +218,7 @@ namespace Raven.Graphics.Drawing3D {
         }
 
         
-        private static void build_lighting(Camera camera, GBuffer buffer) {
-            graphics_device.SetRenderTarget(buffer.rt_lighting);
-            graphics_device.Clear(SkyboxState.sun_moon.atmosphere_color);
-
+        private static void build_shadows(Camera camera) {
             foreach (light light in visible_lights) {
                 // need to iterate through each light's visibility list
                 // and render out their depth textures
@@ -210,34 +250,8 @@ namespace Raven.Graphics.Drawing3D {
                 }*/
             }
         }
-
-        private static void draw_directional_lighting(Camera camera, GBuffer gbuffer) {
-            graphics_device.SetRenderTarget(gbuffer.rt_lighting);
-
-            e_pointlight.Parameters["View"].SetValue(camera.view);
-            e_pointlight.Parameters["Projection"].SetValue(camera.projection);
-            e_pointlight.Parameters["InverseView"].SetValue(Matrix.Invert(camera.view));
-            e_pointlight.Parameters["InverseViewProjection"].SetValue(Matrix.Invert(camera.view * camera.projection));
-
-            e_spotlight.Parameters["View"].SetValue(camera.view);
-            e_spotlight.Parameters["Projection"].SetValue(camera.projection);
-            e_spotlight.Parameters["InverseView"].SetValue(Matrix.Invert(camera.view));
-            e_spotlight.Parameters["InverseViewProjection"].SetValue(Matrix.Invert(camera.view * camera.projection));
-
-            graphics_device.BlendState = BlendState.AlphaBlend;
-            graphics_device.DepthStencilState = DepthStencilState.DepthRead;
-
-            graphics_device.SetVertexBuffer(quad_vb);
-            graphics_device.Indices = quad_ib;
-
-            SkyboxState.sun_moon.configure_dlight_shader(camera, gbuffer, e_directionallight);
-            
-        }
-        private static void draw_lighting(Camera camera, GBuffer gbuffer) {
-
-            graphics_device.BlendState = DynamicLightRequirements.blend_state;
-            graphics_device.DepthStencilState = DepthStencilState.DepthRead;
-            
+        
+        private static void draw_lighting(Camera camera) {
             foreach(light light in visible_lights) {
                 /* TURN E_SPOTLIGHT AND E_POINTLIGHT INTO MANAGEDEFFECTS
                     ALSO ADD SHADOWS TO POINT LIGHTS

@@ -6,6 +6,9 @@ namespace Raven.Engine.Collision.Shapes3D {
     class DummySupport : Shape3D {
         public Vector3 start_point => Vector3.Zero;
         public Vector3 center => Vector3.Zero;
+        
+        public Vector3[] get_all_points() => [center];
+        
         public shape_type shape => shape_type.dummy;
 
         public void draw(Camera camera, GBuffer gbuffer,Matrix world) {}
