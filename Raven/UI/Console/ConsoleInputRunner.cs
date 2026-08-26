@@ -63,8 +63,6 @@ public class Script {
                 
                 script.Func();
 
-                
-
             } catch (Exception ex) {
                 string message = ex.Message.Remove(0, ex.Message.IndexOf(":") + 1);
                 message = message.Remove(0, message.IndexOf(":") + 1);

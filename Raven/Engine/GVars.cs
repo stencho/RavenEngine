@@ -436,7 +436,7 @@ namespace Raven.Engine {
                 }
             }
 
-            using (FileStream fs = new FileStream("gvars", FileMode.Create)) {
+            using (FileStream fs = new FileStream(Path.Combine(AppContext.BaseDirectory + "gvars"), FileMode.Create)) {
                 fs.Write(Encoding.UTF8.GetBytes(sb.ToString()), 0, sb.Length);
             }
             
@@ -491,7 +491,7 @@ namespace Raven.Engine {
         }
         public static bool read_gvars_from_disk() {
             try {
-                using (FileStream filestream = new FileStream("gvars", FileMode.Open)) {
+                using (FileStream filestream = new FileStream(Path.Combine(AppContext.BaseDirectory + "gvars"), FileMode.Open)) {
                     byte[] buffer = new byte[filestream.Length];
                     filestream.Read(buffer, 0, (int)filestream.Length);
 
