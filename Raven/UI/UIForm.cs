@@ -49,7 +49,7 @@ public interface IUIForm {
     
     float window_focus_lerp { get; }
     
-    List<IUIForm> subforms { get; set; }
+    ConcurrentList<IUIForm> subforms { get; set; }
     Dictionary<string, Collision2D.Shape2D> collision { get; }
 
     IUIForm parent_form { get; set; }

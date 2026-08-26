@@ -37,8 +37,7 @@ matrix Projection;
 
 float3x3 WVIT;
 
-VSO MainVS(in VSI input)
-{
+VSO MainVS(in VSI input) {
 	VSO output = (VSO)0;
 	
 	float4x4 wvp = mul(World, mul(View, Projection));
@@ -76,6 +75,7 @@ float far_clip = 1000;
 float opacity = 1.0;
 
 bool fullbright = false;
+bool ignore_depth = false;
 
 float4 MainPS(VSO input) : SV_Target0 {    	
     float4 rgba = tex2D(DiffuseSampler, input.TexCoord);
@@ -90,7 +90,7 @@ float4 MainPS(VSO input) : SV_Target0 {
 	
 	// depth clip (it goes it goes it goes)
 	float3 depth = tex2D(DepthSampler, screenUV).xyz;		    
-    if (input.Depth.x/input.Depth.y > depth.x / depth.y) { clip(-1); }
+    if (!ignore_depth && (input.Depth.x/input.Depth.y > depth.x / depth.y)) { clip(-1); }
         	
     // build lighting
     float4 lighting = float4(0,0,0,1);
@@ -101,25 +101,26 @@ float4 MainPS(VSO input) : SV_Target0 {
       
     // dim with opacity    
     lighting *= rgba.a * opacity;	
-    	
-    // fullbright mode toggle		
-	if (fullbright) { lighting = float4(1,1,1,1); } 
-				        			
-	// final color + lighting blend
-    rgba.rgb = (lighting.rgb * 0.2) + saturate(rgba.rgb * lighting.rgb);
     
+    // fullbright mode toggle		
+	if (fullbright) { 
+        rgba.rgb = saturate(rgba.rgb);	  
+           
+	} else { // final color + lighting blend
+        rgba.rgb = (lighting.rgb * 0.2) + saturate(rgba.rgb * lighting.rgb);
+    }
+	
     // final opacity blend        
     rgba.a = rgba.a * opacity;
     
     return rgba;
 }	
 
-technique render
-{
-	pass P0
-	{
+
+
+technique render {
+	pass P0 {
 		VertexShader = compile VS_SHADERMODEL MainVS();
 		PixelShader = compile PS_SHADERMODEL MainPS();
 	}
 };
-	

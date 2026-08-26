@@ -109,7 +109,7 @@ namespace Raven.Engine {
 
 
         public static void add_change_action(string name, Action action) {
-            _gvars[name].changed = action;
+            _gvars[name].changed += action;
         }
 
         #region GET/SET
@@ -445,7 +445,8 @@ namespace Raven.Engine {
         
         public static void string_set(string name, gvar_data_type type, string data) {
             if (!exists(name)) throw new Exception($"key \"{name}\" does not exist");
-            else if (_gvars[name].data_type != type) throw new Exception($"key \"{name}\" is not type {type.ToString()}");
+            //if (_gvars[name].data_type != type) throw new Exception($"key \"{name}\" is not type {type.ToString()}");
+            if (_gvars[name].data_type != type) return;
             
             switch (type) {
                 case gvar_data_type.BOOL:

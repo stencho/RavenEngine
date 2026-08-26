@@ -24,17 +24,14 @@ using Raven.UI;
 using Raven.UI.Forms;
 using Raven.UI.Forms.Layout;
 using SoundFlow.Components;
+using WaterTrans.GlyphLoader;
 
 namespace Cassowary;
 
-//TODO thoguths lol
-/*
-    Try to get IK going and add a cool little guy what runs around creepily on two legs + a tail also w/ IK
-  
- */
-
 public class CassowaryGame : Microsoft.Xna.Framework.Game {
     private GraphicsDeviceManager _graphics;
+
+    private Typeface test_typeface;
 
     public static Scene scene;
     
@@ -102,12 +99,12 @@ public class CassowaryGame : Microsoft.Xna.Framework.Game {
         cam.gbuffer.enable_screen_draw_fullscreen(-1);
         State.UI = new UIWindowManager(cam.gbuffer);
 
-        var floor = new Brush(shape_type.cube);
+        var floor = new Brush(shape_type.cone, "adam");
         
         State.CurrentScene.Spawn(floor);
         
-        for (int i = 0; i < 50; i++) {
-            var pos = (Vector3.UnitX * (RNG.rng_float_neg_one_to_one * 25)) + (Vector3.UnitZ * (RNG.rng_float_neg_one_to_one * 25));
+        for (int i = 0; i < 500; i++) {
+            var pos = (Vector3.UnitX * (RNG.rng_float_neg_one_to_one * 200)) + (Vector3.UnitZ * (RNG.rng_float_neg_one_to_one * 200));
             var ent = new TestEntity(pos);
             
             State.CurrentScene.Spawn(ent);
@@ -145,9 +142,12 @@ public class CassowaryGame : Microsoft.Xna.Framework.Game {
 
             Draw2D.image(cam.environment.sky_color_cycle.debug_band, Vector2i.Down * 24 + (Vector2i.Right * (State.resolution.X - cam.environment.sky_color_cycle.debug_band.Bounds.Size.X)),
                 cam.environment.sky_color_cycle.debug_band.Bounds.Size.ToVector2i() + (Vector2i.UnitY * 10));
+            Draw2D.image(cam.environment.atmosphere_color_cycle.debug_band, Vector2i.Down * 34 + (Vector2i.Right * (State.resolution.X - cam.environment.atmosphere_color_cycle.debug_band.Bounds.Size.X)),
+                cam.environment.atmosphere_color_cycle.debug_band.Bounds.Size.ToVector2i() + (Vector2i.UnitY * 10));
+            
             var tl = (Vector2i.Down * 24) + (Vector2i.Right * (State.resolution.X - cam.environment.sky_color_cycle.debug_band.Bounds.Size.X)) +
                                             (cam.environment.sky_color_cycle.debug_band.Bounds.Size.ToVector2i() * (float)dayper);
-            Draw2D.line(tl, tl + (Vector2i.UnitY * 11), Color.Red, 1f);
+            Draw2D.line(tl, tl + (Vector2i.UnitY * 22), Color.Red, 1f);
             Draw2D.text_shadow($"[Environment] {(int)hour} O'clock", Vector2i.Down * 4 + (Vector2i.Right * (State.resolution.X - cam.environment.sky_color_cycle.debug_band.Bounds.Size.X)), Color.White, Color.Black);
             
             Draw2D.end();
@@ -177,6 +177,10 @@ public class CassowaryGame : Microsoft.Xna.Framework.Game {
             Exit();
         }
         
+        if (State.engine_binds.double_tapped("test")) {
+            cam.environment.set_time_of_day(0.5f);    
+            
+        } 
         State.UpdateGraphics(gameTime);
         
         skull_rotate += 0.001f;
@@ -185,11 +189,7 @@ public class CassowaryGame : Microsoft.Xna.Framework.Game {
         }
         
         var time = cam.environment.current_day_value;
-        
-        if (State.engine_binds.double_tapped("test")) {
-            cam.environment.set_time_of_day(0.5f);    
-            
-        } else if (State.engine_binds.pressed("test")) {
+         if (State.engine_binds.pressed("test")) {
             if (State.engine_binds.just_pressed("scroll_up")) {
                 time += 0.005f;
                 if (time > 1.0) time -= 1.0f;

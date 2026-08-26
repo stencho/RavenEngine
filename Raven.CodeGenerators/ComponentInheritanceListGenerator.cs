@@ -87,7 +87,7 @@ public class EntityInheritanceListGenerator : IIncrementalGenerator {
             
         foreach (var type in classes) {
             
-        sb.AppendLine($"        {{ \"{type}\", () => Entity.Create<{type}>(null, null) }},");
+        sb.AppendLine($"        {{ \"{type}\", () => Entity.CreateInstance<{type}>(null, null) }},");
         }
             
         sb.AppendLine("    };");
@@ -196,7 +196,7 @@ public class ComponentInheritanceListGenerator : IIncrementalGenerator {
         sb.AppendLine("public static partial class Inherited {");
         sb.AppendLine("    public static readonly Dictionary<string, Func<object>> Components = new() {");
         foreach (var type in classes) { 
-        sb.AppendLine($"        {{ \"{type}\", () => ComponentManager.Create<{type}>(null, null) }},");
+        sb.AppendLine($"        {{ \"{type}\", () => ComponentManager.CreateInstance<{type}>(null, null) }},");
         }
         sb.AppendLine("    };");
         sb.AppendLine();

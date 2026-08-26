@@ -128,27 +128,29 @@ namespace Raven.Graphics.Drawing3D {
             compositor.compose(camera);
             
             render_phase = RenderPhase.render_forward;
-            render_forward(camera);
             
-            camera.gbuffer.draw_over_game_layer();
-            
-            render_phase = RenderPhase.render_forward;
+            //NewGenDraw3D.render(camera);
+            render_forward(camera); 
+            NewGenDraw3D.render(camera);
             
             graphics_device.SetRenderTarget(camera.gbuffer.rt_2D);
             graphics_device.Clear(Color.Transparent);
             
+            camera.gbuffer.draw_over_game_layer();
+            
             UIWindowManager.Manager.render_UI_for_current_buffer(camera.gbuffer.GUID);
+            
             camera.gbuffer.draw_on_top_layer();
             
             compositor.finalize(camera);
         }
         
         static List<Component> prepassed_components = new List<Component>();
-        static List<(float distance, Component c)> prepassed_components_need_forward_render = new();
+        static List<(float distance, Component c)> prepassed_components_forward_render = new();
 
         static void render_prepass(Camera camera) {
             prepassed_components.Clear();
-            prepassed_components_need_forward_render.Clear();
+            prepassed_components_forward_render.Clear();
             
             z_prepass.batch_render_setup(camera);
             foreach (var e in camera.parent_scene.entity_visibility_list.Where(
@@ -157,40 +159,41 @@ namespace Raven.Graphics.Drawing3D {
                     var has_opacity_data = component.TryGetData("Opacity", out float opacity);
                     var has_forward_flag = component.TryGetData("HasTransparentTexture", out bool always_render_foward);
                     
-                    if ((has_opacity_data && opacity < 1.0f) ||  (has_forward_flag && always_render_foward)) { 
-                        prepassed_components_need_forward_render.Add((e.distance, component));
+                    if (component.force_forward_rendering) always_render_foward = true;
+                    
+                    if ((has_opacity_data && opacity < 1.0f) || always_render_foward) { 
+                        prepassed_components_forward_render.Add((e.distance, component));
+                        
                     } else {
-                        component.RenderZPrePass(camera);
+                        if (component.OverrideRenderZPrepass != null) component.OverrideRenderZPrepass();
+                        else component.RenderZPrepass(camera);
+                        
                         prepassed_components.Add(component);
                     }
                 });
             }
+            
+            prepassed_components_forward_render = 
+                prepassed_components_forward_render.OrderByDescending(a => a.distance).ToList();
         }
-        
-        //VertexBuffer deferred_batching_vertex_buffer 
         
         static void render_deferred(Camera camera) {
             deferred.batch_render_setup(camera);
+            
             foreach (var component in prepassed_components) {
-                component.Render(camera);                
+                if (component.OverrideRenderDeferred != null) component.OverrideRenderDeferred();
+                else component.RenderDeferred(camera);                
             }
         }
 
         static void render_forward(Camera camera) {
-            prepassed_components_need_forward_render = 
-                prepassed_components_need_forward_render.OrderByDescending(a => a.distance).ToList();
-            
             forward.batch_render_setup(camera);
-            foreach (var component in prepassed_components_need_forward_render) {
-                component.c.RenderForward(camera);                
-            }
-        }
-        
-        public static void render_entity() {
-            if (render_phase == RenderPhase.render_deferred) {
-                
-            } else if (render_phase == RenderPhase.render_forward) {
-                
+            
+            foreach (var component in prepassed_components) component.RenderBeforeForwardPass?.Invoke();
+            
+            foreach (var component in prepassed_components_forward_render) {
+                if (component.c.OverrideRenderForward != null) component.c.OverrideRenderForward();
+                else component.c.RenderForward(camera);                
             }
         }
         
@@ -201,22 +204,18 @@ namespace Raven.Graphics.Drawing3D {
         public static void update_spot_light(ref light l, Camera camera) {
             spot_info si = l.spot_info;
 
-            si.view
-                = Matrix.CreateLookAt(l.position, l.position + si.orientation.Forward, si.orientation.Up);
-            si.projection
-                = Matrix.CreatePerspectiveFieldOfView(si.fov, 1f, si.near_clip, si.far_clip);
+            si.view = Matrix.CreateLookAt(l.position, l.position + si.orientation.Forward, si.orientation.Up);
+            si.projection = Matrix.CreatePerspectiveFieldOfView(si.fov, 1f, si.near_clip, si.far_clip);
 
             si.radial_scale = (float)Math.Tan((double)si.fov) * si.far_clip;
 
             si.actual_scale = Matrix.CreateScale(si.radial_scale, si.radial_scale, si.far_clip);
-
 
             si.bounds = new BoundingFrustum(si.view * si.projection);
 
             l.spot_info = si;
             l.world = si.actual_scale * si.orientation * Matrix.CreateTranslation(si.position);
         }
-
         
         private static void build_shadows(Camera camera) {
             foreach (light light in visible_lights) {

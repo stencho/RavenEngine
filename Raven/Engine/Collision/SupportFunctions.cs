@@ -55,6 +55,15 @@ namespace Raven.Engine.Collision {
         public static Vector3 Quad(Vector3 direction, Vector3 A, Vector3 B, Vector3 C, Vector3 D) { 
             return Math3D.highest_dot(new Vector3[4] { A,B,C,D }, direction, out _);
         }
+        public static Vector3 Cone(Vector3 direction, Cone cone) { 
+            return Math3D.highest_dot(cone.points, direction, out _);
+        }
+        public static Vector3 ConeSweep(Vector3 direction, Cone cone, Vector3 sweep) { 
+            var a = Math3D.highest_dot(cone.points, direction, out var dot_a);
+            var b = Math3D.highest_dot_add_sweep(cone.points, direction, sweep, out var dot_b);
+            if (dot_a > dot_b) return a;
+            return b;
+        }
 
         public static Vector3 Cube(Vector3 direction, Cube cube) {
             return GetFarthestPointInDirection(direction, cube);

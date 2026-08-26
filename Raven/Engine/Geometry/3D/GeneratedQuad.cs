@@ -17,22 +17,14 @@ public class GeneratedQuad : GeneratedGeometry {
     private RenderPackage _render_info = new RenderPackage();
     public override RenderPackage render_info => _render_info;
     
-    public GeneratedQuad() {
-        generate(
-            GeneratedBases.Collision.quad.A, 
-            GeneratedBases.Collision.quad.B, 
-            GeneratedBases.Collision.quad.C, 
-            GeneratedBases.Collision.quad.D, 
-            Color.White, null, null);
-    }
-    public GeneratedQuad(Vector3 A, Vector3 B, Vector3 C, Vector3 D) {
-        generate(A, B, C, D, Color.White, null, null);
-    }
-    public GeneratedQuad(Vector3 A, Vector3 B, Vector3 C, Vector3 D, Color color, Texture2D texture = null, ManagedEffect effect = null) {
-        generate(A, B, C,  D, color, texture, effect);
-    }
+    public GeneratedQuad(Vector3 A, Vector3 B, Vector3 C, Vector3 D) => generate(A, B, C,  D);
+    public GeneratedQuad() => generate(
+            Geometry.Collision.quad.A, 
+            Geometry.Collision.quad.B, 
+            Geometry.Collision.quad.C, 
+            Geometry.Collision.quad.D);
     
-    public void generate(Vector3 A, Vector3 B, Vector3 C, Vector3 D, Color color, Texture2D texture = null, ManagedEffect effect = null) {
+    public void generate(Vector3 A, Vector3 B, Vector3 C, Vector3 D) {
         _collision = new Quad(A,B,C,D);
         
         render_info.build_vertex_buffer(
@@ -43,25 +35,12 @@ public class GeneratedQuad : GeneratedGeometry {
         );
         
         render_info.build_index_buffer(0,1,2, 0,2,3);
-        
-        render_info.color = color;
         render_info.rasterizer_state = RasterizerState.CullNone;
-        
-        if (texture != null) {
-            render_info.texture = texture;
-        } else {
-            render_info.texture = Resources.GetTexture("OnePXWhite");
-        }
     }
 }
 
-public static partial class GeneratedBases {
+public static partial class Geometry {
     public static partial class Collision {
-        public static Quad quad = new Quad(
-            (Vector3.Up + Vector3.Left) * 0.5f,
-            (Vector3.Up + Vector3.Right) * 0.5f,
-            (Vector3.Down + Vector3.Right) * 0.5f,
-            (Vector3.Down + Vector3.Left) * 0.5f
-        );
+        public static Quad quad = new();
     }
 } 

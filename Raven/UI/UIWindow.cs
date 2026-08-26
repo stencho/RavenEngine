@@ -382,7 +382,7 @@ namespace Raven.UI {
                     );
 
                     // LINE
-                    Draw2D.line_rounded_ends(
+                    Draw2D.line(
                         top_bar_size + Vector2i.Left + (Vector2i.Up * 6) + (Vector2i.Left * top_bar_height * 0.3f),
                         top_bar_size + Vector2i.Left + (Vector2i.Up * 6) + (Vector2i.Left * top_bar_height * 0.7f),
 
@@ -420,7 +420,7 @@ namespace Raven.UI {
                     );
 
                     // LINE WITH MOUSE DOWN
-                    Draw2D.line_rounded_ends(
+                    Draw2D.line(
                         top_bar_size + Vector2i.Left + (Vector2i.Up * 6) + (Vector2i.Left * top_bar_height * 0.3f),
                         top_bar_size + Vector2i.Left + (Vector2i.Up * 6) + (Vector2i.Left * top_bar_height * 0.7f),
 

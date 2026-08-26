@@ -6,20 +6,13 @@ namespace Raven.Engine.Collision.Shapes3D {
     public class Line3D : Shape3D {
         public Vector3 start_point => A;
         public Vector3 center => (A + B) / 2f;
-        public shape_type shape { get; } = shape_type.line;
+        public shape_type type { get; } = shape_type.line;
 
         public Vector3 A;
         public Vector3 B;
 
         public Vector3[] get_all_points() => [A, B];
 
-        public BoundingBox sweep_bounding_box(Matrix world, Vector3 sweep) {
-            if (sweep != Vector3.Zero) {
-                return CollisionHelper.BoundingBox_around_points(A,B,A+sweep,B+sweep);
-            } else {
-                return find_bounding_box(world);
-            }
-        }
         public BoundingBox find_bounding_box(Matrix world) {
             return CollisionHelper.BoundingBox_around_points(A,B);
         }

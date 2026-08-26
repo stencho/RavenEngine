@@ -14,51 +14,32 @@ public class GeneratedTri : GeneratedGeometry {
     private Shape3D _collision;
     public override Shape3D collision => _collision;
 
-    private RenderPackage _render_info = new RenderPackage();
+    private RenderPackage _render_info = new();
     public override RenderPackage render_info => _render_info;
     
-    public GeneratedTri() {
-        generate(
-            GeneratedBases.Collision.triangle.A, 
-            GeneratedBases.Collision.triangle.B, 
-            GeneratedBases.Collision.triangle.C, 
-            Color.White, null);
-    }
-    public GeneratedTri(Vector3 A, Vector3 B, Vector3 C) {
-        generate(A, B, C, Color.White, null);
-    }
-    public GeneratedTri(Vector3 A, Vector3 B, Vector3 C, Color color, Texture2D texture = null, ManagedEffect effect = null) {
-        generate(A, B, C,  color, texture);
-    }
+    public GeneratedTri() => generate(
+            Geometry.Collision.triangle.A, 
+            Geometry.Collision.triangle.B, 
+            Geometry.Collision.triangle.C);
     
-    public void generate(Vector3 A, Vector3 B, Vector3 C, Color color, Texture2D texture = null) {
+    public GeneratedTri(Vector3 A, Vector3 B, Vector3 C) {
+        generate(A, B, C);
+    }
+    public void generate(Vector3 A, Vector3 B, Vector3 C) {
         _collision = new Triangle(A,B,C);
         
         render_info.build_vertex_buffer(
             new VertexPositionColorTexture(shape.A, Color.White, (Vector2.UnitX * 0.5f)),
             new VertexPositionColorTexture(shape.B, Color.White, Vector2.UnitY),
-            new VertexPositionColorTexture(shape.C, Color.White, Vector2.One)
-            );
+            new VertexPositionColorTexture(shape.C, Color.White, Vector2.One));
         
         render_info.build_index_buffer(0,1,2);
-        
-        render_info.color = color;
         render_info.rasterizer_state = RasterizerState.CullNone;
-        
-        if (texture != null) {
-            render_info.texture = texture;
-        } else {
-            render_info.texture = Resources.GetTexture("OnePXWhite");
-        }
     }
 }
 
-public static partial class GeneratedBases {
+public static partial class Geometry {
     public static partial class Collision {
-        public static Triangle triangle = new Triangle(
-            Vector3.Up * 0.5f,
-            (Vector3.Down * 0.5f) + (Vector3.Right * 0.5f),
-            (Vector3.Down * 0.5f) + (Vector3.Left * 0.5f)
-        );
+        public static Triangle triangle = new();
     }
 } 

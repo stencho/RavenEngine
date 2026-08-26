@@ -7,7 +7,7 @@ namespace Raven.Engine.Collision.Shapes3D {
     public class Polyhedron : Shape3D {
         public Vector3 start_point => verts[0];
         public Vector3 center => find_center();
-        public shape_type shape { get; } = shape_type.polyhedron;
+        public shape_type type { get; } = shape_type.polyhedron;
 
         public Vector3[] verts;
 
@@ -16,16 +16,7 @@ namespace Raven.Engine.Collision.Shapes3D {
         Vector3 find_center() {
             return Vector3.Zero;
         }
-        public BoundingBox sweep_bounding_box(Matrix world, Vector3 sweep) {
-            if (sweep != Vector3.Zero) {
-                return CollisionHelper.BoundingBox_around_BoundingBoxes(
-                    find_bounding_box(world),
-                    find_bounding_box(world * Matrix.CreateTranslation(sweep))
-                );
-            } else {
-                return find_bounding_box(world);
-            }
-        }
+        
         public BoundingBox find_bounding_box(Matrix world) {
             return CollisionHelper.BoundingBox_around_transformed_points(world, verts);
         }

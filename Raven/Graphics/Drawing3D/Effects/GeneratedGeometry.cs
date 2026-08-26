@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Raven.Engine;
 using Raven.Engine.Collision;
+using Raven.Graphics.Drawing3D;
 using Raven.Graphics.Effects;
 
 namespace Raven.Engine.Geometry3D;
@@ -18,27 +19,18 @@ public class RenderPackage {
     
     public IndexBuffer index_buffer;
     public uint[] index_buffer_data;
-
-    public Matrix world_transform;
-
-    public Color color = Color.White;
-    public Texture2D texture;
-
+    
     public RasterizerState rasterizer_state;
-    public SamplerState sampler_state;
+    public SamplerState diffuse_sampler_state;
 
     public RenderPackage() {
-        texture = Resources.GetTexture("OnePXWhite");
-
         rasterizer_state = RasterizerState.CullCounterClockwise;
-        sampler_state = SamplerState.PointClamp;
+        diffuse_sampler_state = SamplerState.PointWrap;
     }
     
     public RenderPackage(Texture2D texture, RasterizerState cull_mode, SamplerState sampler_mode) {
-        this.texture = texture;
-
         rasterizer_state = cull_mode;
-        sampler_state = sampler_mode;
+        diffuse_sampler_state = sampler_mode;
     }
     
     public void build_vertex_buffer(params VertexPositionColorTexture[] data) {
@@ -52,9 +44,5 @@ public class RenderPackage {
         index_buffer = new IndexBuffer(State.graphics_device, IndexElementSize.ThirtyTwoBits, indices.Length, BufferUsage.None);
         index_buffer_data = indices;
         index_buffer.SetData(index_buffer_data);
-    }
-    
-    public void draw_forward() {
-        
     }
 }

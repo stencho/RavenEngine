@@ -15,8 +15,6 @@ namespace Raven.Graphics.Effects {
         public void set_states() {
             State.graphics_device.DepthStencilState = DepthStencilState.None;
             State.graphics_device.BlendState = BlendState.Opaque; 
-            State.graphics_device.SamplerStates[0] = SamplerState.LinearWrap;
-            State.graphics_device.SamplerStates[1] = SamplerState.PointClamp;
         }
 
         // BATCH RENDERING
@@ -36,30 +34,28 @@ namespace Raven.Graphics.Effects {
             
             camera.gbuffer.draw_to_bindings();
         }
-        
-        public void render_step(Camera camera, VertexBuffer vertex_buffer, IndexBuffer index_buffer, Texture2D texture, Matrix world, Color tint) {
-            
-            
+
+        public void setup_step(Camera camera, Texture2D texture, Matrix world, Color tint) {
             set_param("DIFFUSE", texture);
             
             set_param("World", world);
             set_param("WVIT", Matrix.Transpose(Matrix.Invert(world * camera.view)));
             
             set_param("tint", tint.ToVector4());
-            
+        }
+
+        public void render_step(VertexBuffer vertex_buffer, IndexBuffer index_buffer) {            
+            set_states();
             set_vertex_buffer(vertex_buffer, index_buffer);
             apply_passes();
-            set_states();
             render_vertex_buffer();
-            
-            set_param("tint", Color.White.ToVector4());
         }
         
         // FULL RENDER, SET ALL PARAMS
         public void render(Camera camera, VertexBuffer vertex_buffer, IndexBuffer index_buffer, Texture2D texture, Matrix world, Color tint) {
             set_states();
             
-            set_param("texture_map", texture);
+            set_param("DIFFUSE", texture);
 
             set_param("World", world);
             set_param("View", camera.view);

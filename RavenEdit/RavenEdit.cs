@@ -9,6 +9,7 @@ using Raven.Engine;
 using Raven.Engine.Scene3D;
 using Raven.Graphics.Drawing2D;
 using Raven.UI;
+using WaterTrans.GlyphLoader;
 
 namespace RavenEdit;
 
@@ -16,6 +17,8 @@ public class RavenEditGame : Game {
     private GraphicsDeviceManager _graphics;
     private bool windows = true;
 
+    private Typeface test_typeface;
+    
     public static FullResolutionRenderTarget output_render_target;
 
     Canvas current_canvas;
@@ -36,6 +39,12 @@ public class RavenEditGame : Game {
         State.Load(Content);
         
         Interface.Load();
+        
+        string fontPath = System.IO.Path.Combine(Environment.CurrentDirectory, "Content/BitstromWeraNerdFontMono-Regular.ttf");
+
+        using (var fontStream = System.IO.File.OpenRead(fontPath)) {
+            test_typeface = new Typeface(fontStream);
+        }
         
         output_render_target = new FullResolutionRenderTarget();
         
@@ -67,6 +76,7 @@ public class RavenEditGame : Game {
         
         // compose layers
         State.graphics_device.SetRenderTarget(output_render_target.rt2D);
+        
         Draw2D.image(current_canvas.render_target.rt2D, Vector2i.Zero, State.resolution);
         Draw2D.image(Interface.render_target.rt2D, Vector2i.Zero, State.resolution);
         

@@ -9,13 +9,10 @@ namespace Raven.Engine.Collision.Shapes3D {
         
         public Vector3[] get_all_points() => [center];
         
-        public shape_type shape => shape_type.dummy;
+        public shape_type type => shape_type.dummy;
 
         public void draw(Camera camera, GBuffer gbuffer,Matrix world) {}
 
-        public BoundingBox sweep_bounding_box(Matrix world, Vector3 sweep) {
-            return new BoundingBox(Vector3.Zero, Vector3.Zero);
-        }
         public BoundingBox find_bounding_box(Matrix world) {
             return new BoundingBox(Vector3.Zero, Vector3.Zero);
         }

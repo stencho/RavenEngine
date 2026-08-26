@@ -44,6 +44,7 @@ public static class RenderTargetEx {
         ) => create(resolution.X, resolution.Y, format, depth_format, usage, multisample, shared);
     
     public static void use(this RenderTarget2D RT2D) {
+        State.graphics_device.SetRenderTargets(null);
         State.graphics_device.SetRenderTarget(RT2D);
     }
     
@@ -62,11 +63,10 @@ public static class RenderTargetEx {
 }
 
 public static class Extensions3D {
-    public static void ForAllMeshParts(this Model model, Action<VertexBuffer, IndexBuffer> action) {
+    public static void ForAllMeshParts(this Model model, Action<ModelMesh, ModelMeshPart> action) {
         for (int mesh_index = 0; mesh_index < model.Meshes.Count; mesh_index++) {
             for (int part_index = 0; part_index < model.Meshes[mesh_index].MeshParts.Count; part_index++) {
-                action(model.Meshes[mesh_index].MeshParts[part_index].VertexBuffer,
-                    model.Meshes[mesh_index].MeshParts[part_index].IndexBuffer);
+                action(model.Meshes[mesh_index], model.Meshes[mesh_index].MeshParts[part_index]);
             }
         }
     }

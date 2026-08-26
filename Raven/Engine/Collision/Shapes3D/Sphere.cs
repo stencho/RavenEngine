@@ -6,7 +6,7 @@ namespace Raven.Engine.Collision.Shapes3D {
     public class Sphere : Shape3D {
         public Vector3 start_point => P;
         public Vector3 center => P;
-        public shape_type shape { get; } = shape_type.sphere;
+        public shape_type type { get; } = shape_type.sphere;
 
         public Vector3 P;
 
@@ -14,16 +14,6 @@ namespace Raven.Engine.Collision.Shapes3D {
         
         public Vector3[] get_all_points() => [P];
         
-        public BoundingBox sweep_bounding_box(Matrix world, Vector3 sweep) {
-            if (sweep != Vector3.Zero) {
-                return CollisionHelper.BoundingBox_around_capsule(
-                    Vector3.Transform(P, world),
-                    Vector3.Transform(P+sweep, world), 
-                    radius);
-            } else {
-                return find_bounding_box(world);
-            }
-        }
         public BoundingBox find_bounding_box(Matrix world) {
             return CollisionHelper.BoundingBox_around_sphere(radius + Math3D.big_epsilon, world);
         }

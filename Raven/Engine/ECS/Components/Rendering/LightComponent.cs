@@ -13,9 +13,9 @@ public partial class LightComponent : Component {
     
     public override ComponentFlags flags => ComponentFlags.Light;
     
-    public override void Render(Camera camera) { }
+    public override void RenderDeferred(Camera camera) { }
     public override void RenderForward(Camera camera) { }
-    public override void RenderZPrePass(Camera camera) {}
+    public override void RenderZPrepass(Camera camera) {}
 
     public override Shape3D? GetShape() => null;
     public override BoundingBox? GetBounds() => null;

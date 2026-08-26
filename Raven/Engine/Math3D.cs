@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Raven.Engine.Collision;
 using Raven.Engine.Collision.Shapes3D;
 using Raven.Graphics.Skybox;
@@ -19,7 +20,7 @@ namespace Raven.Engine {
             return (vd > -.250f && vd < .250f);
         }
 
-        public static Vector3 highest_dot(VertexPositionNormalColorUv[] verts, Vector3 direction, out float dot) {
+        public static Vector3 highest_dot(VertexPositionColorNormalTexture[] verts, Vector3 direction, out float dot) {
             dot = float.MinValue;
             Vector3 v = Vector3.Zero;
 
@@ -52,6 +53,22 @@ namespace Raven.Engine {
 
         public static Vector3 CrossCross(this Vector3 a, Vector3 b) {
             return Vector3.Cross(Vector3.Cross(a, b), a);
+        }
+    
+        public static Vector3 highest_dot_add_sweep(Vector3[] verts, Vector3 direction, Vector3 sweep, out float dot) {
+            dot = float.MinValue;
+            Vector3 v = Vector3.Zero;
+
+            for (int i = 0; i < verts.Length; i++) {
+                float d = Vector3.Dot(direction, verts[i]);
+
+                if (d > dot) {
+                    dot = d;
+                    v = verts[i];
+                }
+            }
+
+            return v;
         }
     }
 
@@ -780,6 +797,7 @@ namespace Raven.Engine {
 
                 return new BoundingBox(min, max);
             }
+            
             public static BoundingBox BoundingBox_around_points(params Vector3[] points) {
                 Vector3 min = Vector3.One * float.MaxValue, max = Vector3.One * float.MinValue;
 
@@ -801,8 +819,9 @@ namespace Raven.Engine {
 
                 return new BoundingBox(min, max);
             }
+            
             public static BoundingBox BoundingBox_around_transformed_points(Matrix world, params Vector3[] points) {
-                Vector3 min = Vector3.One * float.MaxValue, max = Vector3.One * float.MinValue;
+                Vector3 min = Vector3.One * float.PositiveInfinity, max = Vector3.One * float.NegativeInfinity;
 
                 foreach (Vector3 point in points) {
                     var p = Vector3.Transform(point, world);
@@ -821,8 +840,8 @@ namespace Raven.Engine {
                     if (p.Z > max.Z)
                         max.Z = p.Z;
                 }
-
-                return new BoundingBox(min, max);
+                var bb =  new BoundingBox(min, max);
+                return bb;
             }
             public static BoundingBox BoundingBox_around_transformed_points(Matrix world, List<Vector3> points) {
                 Vector3 min = Vector3.One * float.MaxValue, max = Vector3.One * float.MinValue;

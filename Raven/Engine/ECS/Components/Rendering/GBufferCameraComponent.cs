@@ -1,3 +1,4 @@
+using System;
 using System.Buffers.Text;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -29,10 +30,10 @@ public partial class GBufferCamera : Component {
     
     public override ComponentFlags flags => ComponentFlags.Camera;
     
-    public override void Render(Camera camera) { }
+    public override void RenderDeferred(Camera camera) { }
     public override void RenderForward(Camera camera) { }
-    public override void RenderZPrePass(Camera camera) {}
-
+    public override void RenderZPrepass(Camera camera) {}
+    
     public override collision_result? TestGJKAgainstShape(Shape3D test_shape, Matrix world) {
         return null;
     }

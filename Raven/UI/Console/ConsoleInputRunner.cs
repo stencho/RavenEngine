@@ -15,7 +15,7 @@ namespace Raven.Console {
             return children.ToArray();
         }
 
-        private static string using_list = "";
+        public static string using_list = "";
         internal static void build_using_list() {
             var nslist = ConsoleInputRunner.list_all_namespaces_in_assembly("Raven");
 

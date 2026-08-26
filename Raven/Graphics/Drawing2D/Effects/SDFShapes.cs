@@ -407,7 +407,7 @@ public partial class DrawShapesToSurface : ManagedEffect {
     
     public DrawShapesToSurface(Vector2i surface_resolution) : base(Resources.GetShaderInstance("sdf_shape")) {
         set_param("resolution", surface_resolution);
-        Manager.register_for_update(this);
+        Manager.Add(this);
     }
     public DrawShapesToSurface(Func<Vector2i> surface_resolution_method) : base(Resources.GetShaderInstance("sdf_shape")) {
         this.surface_resolution_method = surface_resolution_method;

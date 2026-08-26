@@ -140,7 +140,9 @@ namespace Raven.Graphics.Drawing3D;
             }
 
             for (int i = 0; i < subdivs; i++) {
-                verts[i] = p + (Vector3.Transform(cross, Matrix.CreateFromAxisAngle(normal, MathHelper.ToRadians(((float)i / (subdivs - 1)) * 360f))) * (radius));
+                verts[i] = p + (Vector3.Transform(cross, 
+                    Matrix.CreateFromAxisAngle(normal, 
+                        MathHelper.ToRadians(((float)i / (subdivs - 1)) * 360f))) * (radius));
             }
 
             lines(camera, color, verts);
@@ -301,7 +303,7 @@ namespace Raven.Graphics.Drawing3D;
         public static void fill_quad(Camera camera, GBuffer buffer, Matrix world, Vector3 A, Vector3 B, Vector3 C, Vector3 D, Color color, string texture = "OnePXWhite") {
             State.graphics_device.RasterizerState = RasterizerState.CullNone;
 
-            Renderer.deferred.render_step(camera, Renderer.fullscreen_quad.vertex_buffer, Renderer.fullscreen_quad.index_buffer, Resources.GetTexture(texture), world, color); 
+            //Renderer.deferred.render_step(camera, Renderer.fullscreen_quad.vertex_buffer, Renderer.fullscreen_quad.index_buffer, Resources.GetTexture(texture), world, color); 
             
             State.graphics_device.RasterizerState = RasterizerState.CullCounterClockwise;
             //draw_buffers(gd, q_vertex_buffer, q_index_buffer, world, color, Renderer.camera.view, Renderer.camera.projection);
@@ -343,5 +345,4 @@ namespace Raven.Graphics.Drawing3D;
 
             line_effect.Parameters["tint"].SetValue(Color.White.ToVector3());
         }
-
     }

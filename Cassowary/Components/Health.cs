@@ -15,8 +15,8 @@ public partial class HealthComponent : Component {
         add_data("Health", starting_health);
     }
 
-    public override void RenderZPrePass(Camera camera) { }
-    public override void Render(Camera camera) { }
+    public override void RenderZPrepass(Camera camera) { }
+    public override void RenderDeferred(Camera camera) { }
     public override void RenderForward(Camera camera) {}
     
     public override Shape3D GetShape() => null;

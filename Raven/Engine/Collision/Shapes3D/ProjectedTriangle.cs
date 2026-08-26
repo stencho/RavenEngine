@@ -7,7 +7,7 @@ namespace Raven.Engine.Collision.Shapes3D {
 
         public Vector3 start_point => A;
         public Vector3 center => (A + B+C) / 8f;
-        public shape_type shape { get; } = shape_type.tri;
+        public shape_type type { get; } = shape_type.tri;
 
         public Vector3 A;
         public Vector3 B;
@@ -17,19 +17,6 @@ namespace Raven.Engine.Collision.Shapes3D {
 
         public float projection_thickness = 0.01f;
         public Vector3 projection_direction = Vector3.Down;
-
-        public BoundingBox sweep_bounding_box(Matrix world, Vector3 sweep) {
-
-            if (sweep != Vector3.Zero) {
-                return CollisionHelper.BoundingBox_around_points(
-                    Vector3.Transform(A, world),
-                    Vector3.Transform(B, world),
-                    Vector3.Transform(C, world),
-                    Vector3.Transform(A + sweep, world),
-                    Vector3.Transform(B + sweep, world),
-                    Vector3.Transform(C + sweep, world));
-            } else return find_bounding_box(world);
-        }
 
         public BoundingBox find_bounding_box(Matrix world) {
             return CollisionHelper.BoundingBox_around_points(

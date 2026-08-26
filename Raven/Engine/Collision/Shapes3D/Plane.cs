@@ -14,11 +14,7 @@ public class Plane : Shape3D {
         throw new System.NotImplementedException();
     }
 
-    public BoundingBox sweep_bounding_box(Matrix world, Vector3 sweep) {
-        throw new System.NotImplementedException();
-    }
-
-    public shape_type shape { get; }
+    public shape_type type { get; }
     public Vector3 support(Vector3 direction, Vector3 sweep) {
         throw new System.NotImplementedException();
     }

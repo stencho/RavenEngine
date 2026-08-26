@@ -16,7 +16,6 @@ struct VSI {
 struct VSO {
 	float4 Position : POSITION0;
 	float2 UV : TEXCOORD0;
-    float4 Pos3d : TEXCOORD1;
 };
 
 struct ClearPSO {
@@ -35,7 +34,6 @@ float2 screen_draw_size;
 VSO FullscreenVS(VSI input) {
 	VSO output = (VSO)0;
     output.Position = input.Position;    
-    output.Pos3d = input.Position;
 	output.UV = input.UV;
 	return output;
 }
@@ -49,9 +47,7 @@ VSO ScreenVS(VSI input) {
     
     output.Position = float4(input.Position + float3(screen_offset, 0), 1);
     output.Position.xy *= screen_size;
-    
-    output.Pos3d = input.Position;
-    
+        
     output.UV = input.UV;
     return output;    
 }
@@ -78,7 +74,7 @@ float4 Compose(VSO input) : COLOR {
     else if (buffer == 1) return n; //normals
     else if (buffer == 2) return float4(d.x,d.y,d.z, 1) ; //depth
     else if (buffer == 3) return l; //lighting
-	else return float4((l.rgb * 0.2) + saturate((rgba.rgb * (l.rgb))), 1);       
+	else return float4(saturate(rgba.rgb * l.rgb), 1);       
 }
 
 float4 Finalize(VSO input) : COLOR {

@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -39,8 +40,8 @@ public partial class Billboard : Component {
         render_target.draw_to(render_target => draw_to_render_target?.Invoke(render_target));
     }
     
-    public override void RenderZPrePass(Camera camera) {}
-    public override void Render(Camera camera) {}
+    public override void RenderZPrepass(Camera camera) {}
+    public override void RenderDeferred(Camera camera) {}
     public override void RenderForward(Camera camera) {}
 
     public override Shape3D GetShape() {

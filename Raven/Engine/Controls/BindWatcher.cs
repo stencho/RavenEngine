@@ -92,7 +92,7 @@ public class BindWatcher {
         foreach (var b in binds.Values) {
             //if (!b.released()) {
                 if (c) s += "\n"; else c = true;
-                s += $"[{b.Name}] P:{b.pressed()} D:{b.DigitalState} A:{b.AnalogState} -> ";
+                s += $"[{b.Name}] P:{b.pressed()} D:{b.digital_state} A:{b.AnalogState} -> ";
                 var cc = false;
                 foreach (var i in b.Inputs) {
                     if (cc) s += " | "; else cc = true;
@@ -128,14 +128,73 @@ public class BindWatcher {
         }
         return s + "\n\n";
     }
+
+    public bool cares_about_UI_focus = false;
     
     public void Update() {
         Mouse.UpdateDeltas();
         Keyboard.Update();
         XInput.Update();
+
+        var focused_window = State.UI.find_focused_window();
+        
+        foreach (var bind in binds.Values) {
+            bind.end_of_update();
+            if (cares_about_UI_focus && focused_window != null) continue;
+
+            foreach (var d_bind in bind.Inputs) {
+                switch (d_bind.InputType) {
+                    case InputBinds.InputType.Keyboard:
+                        var k = d_bind as InputBinds.KeyInput;
+                        if (Keyboard.just_pressed(k.Key) && bind.released()) {
+                            bind.press();
+                            bind.JustPressed?.Invoke();
+                            bind.ActiveInput = d_bind;
+                            goto next_bind;
+                        }
+
+                        if (Keyboard.just_released(k.Key) && bind.pressed()) {
+                            bind.release();
+                            bind.JustReleased?.Invoke();
+                            bind.ActiveInput = null;
+                            goto next_bind;
+                        }
+
+                        break;
+                    case InputBinds.InputType.Mouse:
+                        var m = d_bind as InputBinds.MouseInput;
+                        if (Mouse.just_pressed(m.MouseButton) && bind.released()) {
+                            bind.press();
+                            bind.JustPressed?.Invoke();
+                            bind.ActiveInput = d_bind;
+                            goto next_bind;
+                        }
+
+                        if (Mouse.just_released(m.MouseButton) && bind.pressed()) {
+                            bind.release();
+                            bind.JustReleased?.Invoke();
+                            bind.ActiveInput = null;
+                            goto next_bind;
+                        }
+
+                        break;
+                    case InputBinds.InputType.XInput:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+
+            next_bind:
+            continue;
+        }
+        
+
+        return;
         
         // go through each bind known to this bind watcher
         foreach (var bind in binds.Values) {
+            
             // handle releasing digital state
             if (bind.pressed()) {
                 // go through each of the inputs and check if any are pressed
@@ -215,11 +274,6 @@ public class BindWatcher {
     }
     
     public void UpdateEnd() {
-        foreach (var b in binds.Values) {
-            b.end_of_update();
-        }
-        
-        Keyboard.UpdateEnd();
     }
 
     private bool bind_enabled(string bind_name) {
@@ -256,22 +310,22 @@ public class BindWatcher {
     }
 
     public bool held(string bind_name) {
-        if (bind_enabled(bind_name)) return binds[bind_name].DigitalState == InputBinds.PressedState.Held;
+        if (bind_enabled(bind_name)) return binds[bind_name].digital_state == InputBinds.PressedState.Held;
         return false;
     }
     
     public bool double_pressed(string bind_name) {
-        if (bind_enabled(bind_name)) return binds[bind_name].DigitalState == InputBinds.PressedState.DoublePressed;
+        if (bind_enabled(bind_name)) return binds[bind_name].digital_state == InputBinds.PressedState.DoublePressed;
         return false;
     }
     
     public bool tapped(string bind_name) {
-        if (bind_enabled(bind_name)) return binds[bind_name].DigitalState == InputBinds.PressedState.Tapped;
+        if (bind_enabled(bind_name)) return binds[bind_name].digital_state == InputBinds.PressedState.Tapped;
         return false;
     }
     
     public bool double_tapped(string bind_name) {
-        if (bind_enabled(bind_name)) return binds[bind_name].DigitalState == InputBinds.PressedState.DoubleTapped;
+        if (bind_enabled(bind_name)) return binds[bind_name].digital_state == InputBinds.PressedState.DoubleTapped;
         return false;
     }
 
@@ -306,8 +360,8 @@ public static class InputBinds {
 
         public bool AlwaysEnabled { get; set; } = false;
 
-        private PressedState digital_state = PressedState.Released;
-        public PressedState DigitalState => digital_state;
+        public PressedState digital_state = PressedState.Released;
+        
 
         private float analog_state = 0f;
         public float AnalogState => analog_state;
@@ -382,7 +436,7 @@ public static class InputBinds {
         }
         
         internal void release() {
-            digital_state = PressedState.JustReleased;                
+            digital_state = PressedState.JustReleased;
             analog_state = 0f;
         }
 

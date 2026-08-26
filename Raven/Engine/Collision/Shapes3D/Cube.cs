@@ -6,7 +6,7 @@ namespace Raven.Engine.Collision.Shapes3D {
     public class Cube : Shape3D {
         public Vector3 start_point => A;
         public Vector3 center => (A+B+C+D+E+F+G+H) / 8f;
-        public shape_type shape { get; } = shape_type.cube;
+        public shape_type type => shape_type.cube;
 
         public Vector3 A => obb.A;
         public Vector3 B => obb.B;
@@ -16,20 +16,9 @@ namespace Raven.Engine.Collision.Shapes3D {
         public Vector3 F => obb.F;
         public Vector3 G => obb.G;
         public Vector3 H => obb.H;
-                
+        
         OBB obb;
         public Vector3 half_scale;
-
-        public BoundingBox sweep_bounding_box(Matrix world, Vector3 sweep) {
-            if (sweep != Vector3.Zero) {
-                return CollisionHelper.BoundingBox_around_BoundingBoxes(
-                    find_bounding_box(world),
-                    find_bounding_box(world * Matrix.CreateTranslation(sweep))
-                );
-            } else {
-                return find_bounding_box(world);
-            }
-        }
 
         public BoundingBox find_bounding_box(Matrix world) {
             return CollisionHelper.BoundingBox_around_OBB(obb, world);
@@ -90,16 +79,6 @@ namespace Raven.Engine.Collision.Shapes3D {
         }
         
         public void draw(Camera camera, GBuffer gbuffer, Matrix world) {
-            Draw3D.cube(camera, 
-                Vector3.Transform(A, world),
-                Vector3.Transform(B, world),
-                Vector3.Transform(C, world),
-                Vector3.Transform(D, world),
-                Vector3.Transform(E, world),
-                Vector3.Transform(F, world),
-                Vector3.Transform(G, world),
-                Vector3.Transform(H, world),
-                Color.MonoGameOrange);
         }
 
         public Vector3[] get_all_points() => [A, B, C, D, E, F, G, H];

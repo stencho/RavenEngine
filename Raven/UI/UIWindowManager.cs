@@ -4,7 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.XPath;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -82,7 +84,7 @@ namespace Raven.UI  {
             }
         }
         
-        public List<IUIForm> windows = new List<IUIForm>();
+        public ConcurrentList<IUIForm> windows = new ConcurrentList<IUIForm>();
         ConsoleWindow console;
 
         IUIForm focused_subform = null;
@@ -358,16 +360,16 @@ namespace Raven.UI  {
         
         public void toggle_window(UIWindow window) {
             if (mouse_holding_window) return;
-
+            
             if (window.visible && !MouseWatcher.MouseLocked) {
                 if (MouseWatcher.MouseLocked) return;
-
+                
                 if (window.has_focus) window.toggle_visibility();
 
                 windows.BringToFront(window);
                 force_focus(window);
                 if (mouse_follows_focus) move_mouse_to_form_center(window);
-                BindWatcher.global_enable = false;
+                //BindWatcher.global_enable = false;
                 
             } else if (!MouseWatcher.MouseLocked && !mouse_holding_window) {
                 
@@ -376,18 +378,19 @@ namespace Raven.UI  {
                 windows.BringToFront(window);
                 force_focus(window);
                 if (mouse_follows_focus) move_mouse_to_form_center(window);
-
                 
-                BindWatcher.global_enable = true;
-
+                
+                //BindWatcher.global_enable = true;
+                
             } else if (MouseWatcher.MouseLocked) {
                 window.toggle_visibility();
                 if (window.visible) stored_focus = window;
+                
             }
         }
     
 
-        IUIForm find_top_subform(List<IUIForm> subforms) {
+        IUIForm find_top_subform(ConcurrentList<IUIForm> subforms) {
             for (int i = subforms.Count - 1; i >= 0; i--) {
                 subforms[i].test_mouse();
                 if (subforms[i].mouse_interactions.Count > 0) {
@@ -412,20 +415,25 @@ namespace Raven.UI  {
         }
 
         public void store_focus() => stored_focus = find_focused_window();
-        public void restore_focus() { if (stored_focus != null) {
-            windows.BringToFront(stored_focus);
-            force_focus(stored_focus);
-            BindWatcher.global_enable = false;
-        } }
+        public void restore_focus() { 
+            if (stored_focus != null) {
+                windows.BringToFront(stored_focus);
+                force_focus(stored_focus);
+                //BindWatcher.global_enable = false;
+            } 
+        }
         
         public IUIForm stored_focus;
-        IUIForm find_focused_window() {
+        bool _finding_window = false;
+        public bool finding_window => _finding_window;
+        
+        public IUIForm find_focused_window() {
             foreach (var w in windows) {
+                if (w == null) continue;
                 if (w.has_focus) {
                     return w;
                 }
             }
-
             return null;
         }
         
@@ -557,7 +565,7 @@ namespace Raven.UI  {
                 if (focus_follows_mouse) {
                     // mouse is over the UI so all we really need to do is focus the window and subform under it
                     if (mouse_over_UI()) {
-                        BindWatcher.global_enable = false;
+                        //BindWatcher.global_enable = false;
                         
                         for (int i = windows.Count - 1; i >= 0; i--) {
                             windows[i].has_focus = (windows[i].mouse_over && windows[i].top_of_mouse_stack);
@@ -599,7 +607,7 @@ namespace Raven.UI  {
                                 }
                             });
                             
-                            BindWatcher.global_enable = false;
+                            //BindWatcher.global_enable = false;
                         } else {
                             
                             //mouse not over UI, and we clicked, so defocus all
@@ -638,7 +646,7 @@ namespace Raven.UI  {
             Draw2D.begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.Default);
             
             foreach (IUIForm window in windows) {
-                if (window is UIWindow && window.visible && !((window as UIWindow).RenderTargetsHidden)) {
+                if (window_shadows && window is UIWindow && window.visible && !((window as UIWindow).RenderTargetsHidden)) {
                     Draw2D.fill_rect_dither(window.position + shadow_offset, window.position + window.size + shadow_offset, UIColors.Shadow, Color.Transparent, 1);
                 }
 
@@ -667,7 +675,7 @@ namespace Raven.UI  {
         public const string bold_string_disable_pattern = "(#b_off#)";
         public const string bold_string_toggle_pattern = "(#b_toggle#)";
         
-        public static string list_subforms(List<IUIForm> subforms) {
+        public static string list_subforms(ConcurrentList<IUIForm> subforms) {
             string s = $"";
 
             if (subforms.Count > 0) {

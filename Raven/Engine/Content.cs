@@ -323,15 +323,19 @@ public static class Resources {
         all_content.Add($"{FolderNameFromType(ContentType.GBuffer)}/{name}", new ContentDataGBuffer(name, buffer));
     }
     
-    static void add_content_of_type(ContentManager content, ContentType type, int path_crop_length) {
-        if (Directory.Exists(content.RootDirectory + "/" + FolderNameFromType(type))) {
-            foreach (var file in Directory.GetFiles(content.RootDirectory + "/" + FolderNameFromType(type), "*.xnb", SearchOption.AllDirectories)) {
+    static void add_content_of_type(ContentManager content, ContentType type) {
+        var path_crop_length = AppContext.BaseDirectory.Length + 1;
+        path_crop_length += content.RootDirectory.Length;
+        
+        if (Directory.Exists(AppContext.BaseDirectory + content.RootDirectory + "/" + FolderNameFromType(type))) {
+            foreach (var file in Directory.GetFiles(AppContext.BaseDirectory + content.RootDirectory + "/" + FolderNameFromType(type), "*.xnb", SearchOption.AllDirectories)) {
                 var fi = new FileInfo(file);
+                
                 var rp = fi.FullName.Remove(0, path_crop_length);
                 rp = IContentData.NormalizePath(rp.Remove(rp.Length - 4));
 
                 if (rp.StartsWith('/')) rp = rp.Remove(0, 1);
-                
+                System.Console.WriteLine(rp);
                 switch (type) {
                     case ContentType.Texture:
                         all_content.Add(rp, new ContentDataTexture(rp, content));
@@ -358,23 +362,17 @@ public static class Resources {
     internal static void LoadEngineContent(ContentManager content) {
         engine_content = new ContentManager(content.ServiceProvider, content.RootDirectory + "/Engine");
         
-        var path_crop_length = System.Environment.CurrentDirectory.Length + 1;
-        path_crop_length += engine_content.RootDirectory.Length;
-        
-        add_content_of_type(engine_content, ContentType.Texture, path_crop_length);
-        add_content_of_type(engine_content, ContentType.Shader, path_crop_length);
-        add_content_of_type(engine_content, ContentType.Model, path_crop_length);
-        add_content_of_type(engine_content, ContentType.Font, path_crop_length);
+        add_content_of_type(engine_content, ContentType.Texture);
+        add_content_of_type(engine_content, ContentType.Shader);
+        add_content_of_type(engine_content, ContentType.Model);
+        add_content_of_type(engine_content, ContentType.Font);
     }
     
     public static void LoadContentList(ContentManager content) {
-        var path_crop_length = System.Environment.CurrentDirectory.Length + 1;
-        path_crop_length += content.RootDirectory.Length;
-        
-        add_content_of_type(content, ContentType.Texture, path_crop_length);
-        add_content_of_type(content, ContentType.Shader, path_crop_length);
-        add_content_of_type(content, ContentType.Model, path_crop_length);
-        add_content_of_type(content, ContentType.Font, path_crop_length);
+        add_content_of_type(content, ContentType.Texture);
+        add_content_of_type(content, ContentType.Shader);
+        add_content_of_type(content, ContentType.Model);
+        add_content_of_type(content, ContentType.Font);
     }
 
     public static string ListAllContent() {

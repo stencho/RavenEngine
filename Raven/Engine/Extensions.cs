@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
+using CSScripting;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Raven.Engine.Collision;
@@ -37,6 +40,15 @@ public static class ExtensionMethods {
     
     public static Vector2i ToV2iX(this int f) => new Vector2i(f, 0);
     public static Vector2i ToV2iY(this int f) => new Vector2i(0, f);
+
+    public static Vector3 closest_point(this Vector3[] array, Matrix world, Vector3 position) {
+        return Math3D.highest_dot(array, position - world.Translation, out _);
+    }
+    
+    public static float shortest_distance_to_camera(this Vector3[] array, Matrix world, Vector3 camera_position) {
+        var dot = Math3D.highest_dot(array, camera_position - world.Translation, out _);
+        return Vector3.Distance(camera_position, dot);
+    }
     
     public static Color multiply_color(this Color c, float multiplier) => Color.FromNonPremultiplied((int)(c.R * multiplier), (int)(c.G * multiplier), (int)(c.B * multiplier), c.A);
     public static Color multiply(this Color c, float multiplier) => new Color(c.R * multiplier, c.G * multiplier, c.B * multiplier, c.A * multiplier);
@@ -49,6 +61,8 @@ public static class ExtensionMethods {
     }
     
     public static string ToXString(this Vector2 v2) {
+        ConcurrentDictionary<Guid, string> test = new();
+        test.AddItem(new KeyValuePair<Guid, string>());
         return $"{v2.X:0.00}x{v2.Y:0.00}";
     }
     public static string ToXString(this Vector3 v3) {
@@ -124,17 +138,14 @@ public static class ExtensionMethods {
         return new Vector2i(v); 
     }
 
-    public static Vector3 A (this BoundingBox bb) { return bb.center() + bb.half_size(); }
-    public static Vector3 B (this BoundingBox bb) { return bb.center() + (bb.half_size() * Vector3.One - (Vector3.UnitX * 2)); }
-
-    public static Vector3 C (this BoundingBox bb) { return bb.center() + (bb.half_size() * Vector3.One - (Vector3.UnitY * 2)); }
-    public static Vector3 D (this BoundingBox bb) { return bb.center() + (bb.half_size() * Vector3.One - (Vector3.UnitX * 2) - (Vector3.UnitY * 2)); }
-
-    public static Vector3 E (this BoundingBox bb) { return bb.center() + (bb.half_size() * Vector3.One - (Vector3.UnitZ * 2)); }
-    public static Vector3 F (this BoundingBox bb) { return bb.center() + (bb.half_size() * Vector3.One - (Vector3.UnitX * 2) - (Vector3.UnitZ * 2)); }
-                            
-    public static Vector3 G (this BoundingBox bb) { return bb.center() + (bb.half_size() * Vector3.One - (Vector3.UnitZ * 2) - (Vector3.UnitY * 2)); }
-    public static Vector3 H (this BoundingBox bb) { return bb.center() + (bb.half_size() * Vector3.One - (Vector3.UnitX * 2) - (Vector3.UnitY * 2) - (Vector3.UnitZ * 2)); }
+    public static Vector3 A(this BoundingBox bb) { return bb.center() + (bb.half_size() * (Vector3.Left + Vector3.Up + Vector3.Forward)); }
+    public static Vector3 B (this BoundingBox bb) { return bb.center() + (bb.half_size() * (Vector3.Right + Vector3.Up + Vector3.Forward)); }
+    public static Vector3 C (this BoundingBox bb) { return bb.center() + (bb.half_size() * (Vector3.Right + Vector3.Down + Vector3.Forward)); }
+    public static Vector3 D (this BoundingBox bb) { return bb.center() + (bb.half_size() * (Vector3.Left + Vector3.Down + Vector3.Forward)); }
+    public static Vector3 E (this BoundingBox bb) { return bb.center() + (bb.half_size() * (Vector3.Left + Vector3.Up + Vector3.Backward)); }
+    public static Vector3 F (this BoundingBox bb) { return bb.center() + (bb.half_size() * (Vector3.Right + Vector3.Up + Vector3.Backward)); }
+    public static Vector3 G (this BoundingBox bb) { return bb.center() + (bb.half_size() * (Vector3.Right + Vector3.Down + Vector3.Backward)); }
+    public static Vector3 H (this BoundingBox bb) { return bb.center() + (bb.half_size() * (Vector3.Left + Vector3.Down + Vector3.Backward)); }
 
     public static bool Intersects(this Rectangle rect, Vector2i point) {
 
@@ -157,38 +168,7 @@ public static class ExtensionMethods {
             return new string('.', str.Length);
     }
 
-    public static void SortWindows(this List<IUIForm> list) {
-        /*
-        tmp_top.Clear();
-        tmp_floating.Clear();
-        tmp_bottom.Clear();
-        tmp_list.Clear();
-
-        foreach (IUIForm f in list) {
-            if (f.layer_state == ui_layer_state.on_bottom) {
-                tmp_bottom.Add(f);
-            } else if (f.layer_state == ui_layer_state.on_top) {
-                tmp_top.Add(f);
-            } else {
-                tmp_floating.Add(f);
-            }
-        }
-
-        foreach (IUIForm f in tmp_bottom) {
-            tmp_list.Add(f);
-        }
-
-        foreach (IUIForm f in tmp_floating) {
-            tmp_list.Add(f);
-        }
-
-        foreach (IUIForm f in tmp_top) {
-            tmp_list.Add(f);
-        }
-
-        return tmp_list;
-        */
-
+    public static void SortWindows(this ConcurrentList<IUIForm> list) {
         int c = 0;
         int low = 0;
         int norm = 0;
@@ -237,10 +217,15 @@ public static class ExtensionMethods {
                 list.Add(tmp_list[i]);
             }
         }
+        
     }
-    
-    public static void BringToFront(this List<IUIForm> list, IUIForm window) {
-        if (list.Count <= 1) { list[0].has_focus = true;  return; }
+
+    public static void BringToFront(this ConcurrentList<IUIForm> list, IUIForm window) {
+        if (list.Count <= 1) {
+            list[0].has_focus = true;  
+            
+            return;
+        }
         if (window == list[list.Count - 1]) {
             
             for (int i = 0; i < list.Count-1; i++) {
@@ -248,6 +233,7 @@ public static class ExtensionMethods {
             }
 
             list[list.Count - 1].has_focus = true;
+            
             return;
         }
 
@@ -271,6 +257,7 @@ public static class ExtensionMethods {
                 return;
             }
         }
+        
     }
     
     private static UInt128 sqrt128(UInt128 n) {

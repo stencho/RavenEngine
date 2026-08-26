@@ -152,6 +152,7 @@ public sealed class GuidDictionaryManagedGenerator : ISourceGenerator
         sb.AppendLine($"using System.Collections.Generic;");
         sb.AppendLine($"using System.Collections.Concurrent;");
         sb.AppendLine($"using System;");
+        sb.AppendLine($"using CSScripting;");
         sb.AppendLine($"");
         sb.AppendLine($"public partial class {className} {{");
         sb.AppendLine($"public static ConcurrentDictionary<Guid, {className}> All{className}s => {managerName}.{className.ToLower()}s;");
@@ -164,6 +165,7 @@ public sealed class GuidDictionaryManagedGenerator : ISourceGenerator
         sb.AppendLine($"    public static Guid Add({className} instance)");
         sb.AppendLine("    {");
         sb.AppendLine("        var g = Guid.NewGuid();");
+        //sb.AppendLine($"       {className.ToLower()}s.AddItem(new KeyValuePair<Guid, {className}>());");
         sb.AppendLine($"       {className.ToLower()}s[g] = instance;");
         sb.AppendLine($"       {className.ToLower()}s[g].GUID = g;");
         sb.AppendLine("        return g;");

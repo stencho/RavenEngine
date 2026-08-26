@@ -1,18 +1,20 @@
 using System;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Raven.Engine;
 using Raven.Graphics.Drawing2D;
 using Raven.Graphics.Drawing3D;
 using Raven.Graphics.Drawing3D.Effects;
 using Raven.Graphics.Skybox;
 using static Raven.Engine.State;
+using DirectionalLight = Raven.Graphics.Drawing3D.Effects.DirectionalLight;
 
 namespace Raven.Graphics;
 
 public static class SkyboxData {
     public static SkyBoxTesselator skybox_t = new SkyBoxTesselator();
     
-    public static VertexPositionNormalColorUv[] skybox_data;
+    public static VertexPositionColorNormalTexture[] skybox_data;
     public static int[] skybox_indices;
     
     public static float skybox_height = 0f;
@@ -34,12 +36,13 @@ public class SceneEnvironment : GameSystem {
     
     public Vector3 sun_direction => Vector3.Normalize(Vector3.One);
     
-    public Color sky_maximum_darkness = Color.FromNonPremultiplied(2,2,2, 255);
-    public Color atmosphere_color = Color.FromNonPremultiplied(120, 100, 200, 255);
+    public Color sky_maximum_darkness = Color.FromNonPremultiplied(7, 5, 9, 255);
     
     public Draw2D.GradientLineGenerator sky_color_cycle;
+    public Draw2D.GradientLineGenerator atmosphere_color_cycle;
 
     public Color sky_color => sky_color_cycle.get_color_at(current_day_value);
+    public Color atmosphere_color  => atmosphere_color_cycle.get_color_at(current_day_value);
 
     public SceneEnvironment() : base() {
         skybox = new SkyboxRenderer(this);
@@ -47,33 +50,39 @@ public class SceneEnvironment : GameSystem {
         
         sky_color_cycle = new Draw2D.GradientLineGenerator(sky_maximum_darkness);
         sky_color_cycle.add_lerp(sky_maximum_darkness, 0f); 
+        sky_color_cycle.add_lerp(sky_maximum_darkness, (1.0f/24f) * 3f); 
+        sky_color_cycle.add_lerp(sky_maximum_darkness, (1.0f/24f) * 5f); 
 
-        //back down to orange just before dawn
+        sky_color_cycle.add_lerp(Color.FromNonPremultiplied(100, 50, 150, 255), (1.0f/24f) * 7f);
+        sky_color_cycle.add_lerp(Color.FromNonPremultiplied(76, 70, 178, 255), (1.0f/24f) * 10f);
+        sky_color_cycle.add_lerp(Color.FromNonPremultiplied(76, 70, 178, 255), (1.0f/24f) * 12f);
+        sky_color_cycle.add_lerp(Color.FromNonPremultiplied(76, 70, 178, 255), (1.0f/24f) * 14f);
+        sky_color_cycle.add_lerp(Color.FromNonPremultiplied(100, 50, 150, 255), (1.0f/24f) * 17f);
         
-        sky_color_cycle.add_lerp(Color.FromNonPremultiplied(70, 50, 90, 255), (1.0f/24f) * 4f);
-        //midday sky
-        sky_color_cycle.add_lerp(Color.FromNonPremultiplied(240, 160, 180, 255), (1.0f/24f) * 4.5f);
-        sky_color_cycle.add_lerp(Color.FromNonPremultiplied(220, 180, 200, 255), (1.0f/24f) * 7f);
-        
-        sky_color_cycle.add_lerp(Color.FromNonPremultiplied(180, 180, 255, 255), (1.0f/24f) * 10f);
-        sky_color_cycle.add_lerp(Color.FromNonPremultiplied(200, 200, 255, 255), (1.0f/24f) * 12f);
-        sky_color_cycle.add_lerp(Color.FromNonPremultiplied(180, 180, 255, 255), (1.0f/24f) * 14f);
-        
-
-        sky_color_cycle.add_lerp(Color.FromNonPremultiplied(220, 180, 200, 255), (1.0f/24f) * 16f);
-        sky_color_cycle.add_lerp(Color.FromNonPremultiplied(240, 160, 180, 255), (1.0f/24f) * 19.5f);
-        
-        sky_color_cycle.add_lerp(Color.FromNonPremultiplied(70, 50, 90, 255), (1.0f/24f) * 20f);
-        
-        //back down to orange just before dusk
-        
-        //lerps.add_lerp(Color.FromNonPremultiplied(8, 2, 10, 255), .87f);
-
+        sky_color_cycle.add_lerp(sky_maximum_darkness, (1.0f/24f) * 19f);
+        sky_color_cycle.add_lerp(sky_maximum_darkness, (1.0f/24f) * 21f);
         sky_color_cycle.add_lerp(sky_maximum_darkness, 1f);
 
         sky_color_cycle.build_debug_band_texture();
         
-        current_time_ms = entire_day_cycle_length_ms / 2f;
+        atmosphere_color_cycle = new Draw2D.GradientLineGenerator(sky_maximum_darkness);
+        atmosphere_color_cycle.add_lerp(sky_maximum_darkness, 0f); 
+        atmosphere_color_cycle.add_lerp(sky_maximum_darkness, (1.0f/24f) * 3f); 
+        atmosphere_color_cycle.add_lerp(sky_maximum_darkness, (1.0f/24f) * 5f); 
+        
+        atmosphere_color_cycle.add_lerp(Color.FromNonPremultiplied(220, 180, 200, 255), (1.0f/24f) * 7f);
+        atmosphere_color_cycle.add_lerp(Color.FromNonPremultiplied(210, 200, 230, 255), (1.0f/24f) * 10f);
+        atmosphere_color_cycle.add_lerp(Color.FromNonPremultiplied(210, 200, 255, 255), (1.0f/24f) * 12f);
+        atmosphere_color_cycle.add_lerp(Color.FromNonPremultiplied(210, 200, 230, 255), (1.0f/24f) * 14f);
+        atmosphere_color_cycle.add_lerp(Color.FromNonPremultiplied(220, 180, 200, 255), (1.0f/24f) * 17f);
+        
+        atmosphere_color_cycle.add_lerp(sky_maximum_darkness, (1.0f/24f) * 19f);
+        atmosphere_color_cycle.add_lerp(sky_maximum_darkness, (1.0f/24f) * 21f);
+        atmosphere_color_cycle.add_lerp(sky_maximum_darkness, 1f);
+
+        atmosphere_color_cycle.build_debug_band_texture();
+        
+        current_time_ms = entire_day_cycle_length_ms * 0.75f;
     }
     
     public override void UpdateGraphics() {

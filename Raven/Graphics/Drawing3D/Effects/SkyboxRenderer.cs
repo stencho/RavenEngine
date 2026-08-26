@@ -20,15 +20,23 @@ public class SkyboxRenderer : ManagedEffect {
         //State.graphics_device.SamplerStates[0] = SamplerState.LinearWrap;
 
         camera.gbuffer.draw_to_bindings_for_skybox();
+
+        var view = Matrix.CreateLookAt(Vector3.Zero, camera.direction, camera.up_direction);
         
-        set_param("skybox_world", Matrix.CreateScale((1f / SkyboxData.skybox_height) * (camera.far_clip * 0.75f)) * Matrix.Identity);
-        set_param("skybox_view", Matrix.CreateLookAt(Vector3.Zero, camera.direction, camera.up_direction));
+        set_param("skybox_world", Matrix.Identity);
+        set_param("skybox_view", view);
         set_param("skybox_projection", camera.projection);
         
-        set_param("SkyboxLerp", parent_environment.sky_color_cycle.debug_band);
+        set_param("inverse_view", Matrix.Invert(view));
+        
+        set_param("SkyboxLerp", parent_environment.atmosphere_color_cycle.debug_band);
         set_param("skybox_height", SkyboxData.skybox_height);
+        
         set_param("day_position", parent_environment.current_day_value);
+        
         set_param("atmosphere_color", parent_environment.atmosphere_color);
+        set_param("sky_color", parent_environment.sky_color);
+        
         set_param("max_sky_darkness", parent_environment.sky_maximum_darkness);
 
         apply_passes();
@@ -40,6 +48,6 @@ public class SkyboxRenderer : ManagedEffect {
             SkyboxData.skybox_data.Length, 
             SkyboxData.skybox_indices, 
             0,
-            SkyboxData.skybox_indices.Length / 3, VertexPositionNormalColorUv.VertexDeclaration);
+            SkyboxData.skybox_indices.Length / 3, VertexPositionColorNormalTexture.VertexDeclaration);
     }
 }

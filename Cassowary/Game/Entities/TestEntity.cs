@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using Raven.Engine.Collision;
+using Raven.Engine.Collision.Shapes3D;
 using Raven.Engine.Components;
 using Raven.Engine.Geometry3D;
 using Raven.Graphics.Drawing3D;
@@ -8,13 +10,19 @@ using Raven.Graphics.Drawing3D;
 namespace Raven.Engine;
 
 public partial class TestEntity : Entity {
+    private ColliderMeshComponent component;
+    private Quad b => component.GetShape() as Quad;
+    
     public TestEntity() {
-        Components.AddComponent(this, new ColliderMesh(new GeneratedQuad(), "smugdean"));
+        component = Components.AddComponent(this, new ColliderMeshComponent( new GeneratedQuad(), "smugdean")) as ColliderMeshComponent;
         speed = 2 + RNG.rng_float * 2;
         funny = 10 + RNG.rng_float * 10;
     }
     public TestEntity(Vector3 position) {
-        Components.AddComponent(this, new ColliderMesh(new GeneratedQuad(), "smugdean"));
+        string tex = "smugdean";
+        if (RNG.rng_bool) tex = "adam";
+        
+        component = Components.AddComponent(this, new ColliderMeshComponent( new GeneratedQuad(), tex)) as ColliderMeshComponent;
         speed = 2 + RNG.rng_float * 2;
         funny = 10 + RNG.rng_float * 10;
 
@@ -42,6 +50,8 @@ public partial class TestEntity : Entity {
             
         if (boing) MoveAndSlide(Vector3.Up * speed);
         else MoveAndSlide(Vector3.Down * speed);
+        
+        
     }
 
     public void AfterCollision() {

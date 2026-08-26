@@ -186,10 +186,13 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
                         public List<string> mouse_interactions => _mouse_interactions;
                         List<string> _mouse_interactions = new List<string>();
                         
-                        public List<IUIForm> subforms { get; set; } = new List<IUIForm>();
+                        public ConcurrentList<IUIForm> subforms { get; set; } = new ConcurrentList<IUIForm>();
                         
                         public RenderTarget2D client_area => _client_area;
                         private RenderTarget2D _client_area;
+                        
+                        public float client_area_aspect_ratio => (float)client_size.X / (float)client_size.Y;
+                        
                         public bool use_internal_rendering => _client_area != null && client_size.X > 0 && client_size.Y > 0;
                         
                         public Dictionary<string, Collision2D.Shape2D> collision => _collision;

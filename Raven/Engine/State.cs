@@ -136,7 +136,7 @@ public static class State {
         State.window = window;
         State.spritebatch = new SpriteBatch(State.graphics_device);
         
-        game.IsFixedTimeStep = false;
+        game.IsFixedTimeStep = true;
         game.InactiveSleepTime = TimeSpan.Zero;
         graphics.SynchronizeWithVerticalRetrace = false;
         window.IsBorderless = false;
@@ -165,7 +165,7 @@ public static class State {
         
         ConsoleInputRunner.build_using_list();
         
-        gvars.add_gvar("g_tick_rate", gvar_data_type.INT, 60, true, "Sets the update thread's tick rate.");
+        gvars.add_gvar("g_tick_rate", gvar_data_type.FLOAT, 60f, true, "Sets the update thread's tick rate.");
         gvars.add_gvar("g_time_scale", gvar_data_type.FLOAT, 1f, false);
         
         gvars.add_gvar("r_resolution", gvar_data_type.VECTOR2I, FindCurrentResolution(), true, "Resolution of both the game window and output buffer.");
@@ -178,7 +178,7 @@ public static class State {
         
         gvars.add_gvar("r_light_spot_resolution", gvar_data_type.INT, 1024, false);
         
-        gvars.add_gvar("r_display_mode", gvar_data_type.STRING, "borderless", true, "Sets the window style. Options are:\nfullscreen, borderless_fullscreen [default], window, borderless");
+        gvars.add_gvar("r_display_mode", gvar_data_type.STRING, "window", true, "Sets the window style. Options are:\nfullscreen, borderless_fullscreen [default], window, borderless");
 
         var wind_pos_comment = "Last used window position.\nMay be locked at 0x0 or -1x-1 on platforms where this is not supported (notably Wayland).";
         
@@ -193,7 +193,7 @@ public static class State {
 
         gvars.add_gvar("ui_focus_follows_mouse", gvar_data_type.BOOL, false, true, "Forces UI window focus to always be on the window under the mouse\n(as opposed to standard click-to-focus)");
         gvars.add_gvar("ui_mouse_follows_focus", gvar_data_type.BOOL, false, false, "Moves the mouse over UI windows when they're opened or given focus");
-        gvars.add_gvar("ui_window_shadows", gvar_data_type.BOOL, false, true, "Adds a small drop shadow to UI windows");
+        gvars.add_gvar("ui_window_shadows", gvar_data_type.BOOL, true, true, "Adds a small drop shadow to UI windows");
         gvars.add_gvar("ui_window_middle_click_close", gvar_data_type.BOOL, false, true, "Close windows by middle-clicking their title bars");
         
         bool read_gvars = gvars.read_gvars_from_disk();
@@ -255,9 +255,9 @@ public static class State {
 
         SkyboxData.skybox_height = Vector3.Distance(top, bottom);
         
-        graphics.PreferredBackBufferFormat = SurfaceFormat.ColorSRgb;
+        graphics.PreferredBackBufferFormat = SurfaceFormat.HalfVector4;
         graphics.PreferMultiSampling = true;
-        
+        graphics.ApplyChanges();
         wait_for_init = true;
     }
 
@@ -278,6 +278,15 @@ public static class State {
             changing_window_size = true;
             time_of_last_window_size_change = Clock.game_time.TotalGameTime.TotalMilliseconds;
         };
+    }
+    
+    public static void LoadFinished(Clock.UpdateThread update_thread) {
+        window.ClientSizeChanged += (sender, args) => {
+            changing_window_size = true;
+            time_of_last_window_size_change = Clock.game_time.TotalGameTime.TotalMilliseconds;
+        };
+        
+        update_thread.Start();
     }
 
     private static Vector2i FindCurrentResolution() {
@@ -363,12 +372,12 @@ public static class State {
     }
     
     private static void ChangeTickRate() {
-        var i = gvars.get_int("g_tick_rate");
-        if (i < 1) {
-            gvars.set("g_tick_rate", 1);
+        float tr = gvars.get_float("g_tick_rate");
+        if (tr < 1) {
+            gvars.set("g_tick_rate", 1f);
             return;
         } else {
-            if (Scene.Manager.update_thread != null) Scene.Manager.update_thread.tick_rate = i;
+            if (Scene.Manager.update_thread != null) Scene.Manager.update_thread.tick_rate = tr;
         } 
     }
     
@@ -438,13 +447,13 @@ public static class State {
         //probably worthwhile to implement a small system to allow keeping targets
         //TODO add a system to allow targets to skip being cleared
         GBuffer.Manager.ClearAll2DLayers();
+
+        NewGenDraw3D.clear_draw_list();
         
         //update entity graphics within the current scene
         //Interlocked.Exchange(ref using_scene, (int)SceneUseState.UPDATE_GRAPHICS);
         Scene.Manager.UpdateGraphics();
         //Interlocked.Exchange(ref using_scene, (int)SceneUseState.NONE);
-        
-        ManagedRT2D.Manager.FlipAll();
         
         ManagedEffect.Manager.do_updates();
         
@@ -602,7 +611,7 @@ public static class Clock {
         public Action update_action { get; set; }
         public Action post_update_action { get; set; }
         
-        public double tick_rate { get; set; } = 60.0;
+        public float tick_rate { get; set; } = 60f;
         public double goal_time => 1000.0 / tick_rate;
         
         private double _delta_ms_actual = 0.0;
@@ -636,18 +645,13 @@ public static class Clock {
             while (!Threads.IsCancellationRequested) {
                 frame_start = loop_stopwatch.ElapsedTicks;
 
-                //Interlocked.Exchange(ref State.using_scene, (int)State.SceneUseState.UPDATE);
                 if (update_action != null) update_action();
-                if (post_update_action != null) post_update_action();
-                //Interlocked.Exchange(ref State.using_scene, (int)State.SceneUseState.NONE);
+                //if (post_update_action != null) post_update_action();
                 
                 _delta_ms_before_sleep = elapsed_ms();
                 
-                if (remaining_ms() > 1.0) {
-                    Thread.Sleep((int)(remaining_ms() - 0.2));    
-                }
                 while (remaining_ms() > 0.0 && !Threads.IsCancellationRequested) {
-                    //Thread.SpinWait(1);
+                    Thread.SpinWait(1);
                 }
                 
                 total_tick_ms_last_update = elapsed_ms();

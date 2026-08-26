@@ -1,5 +1,6 @@
 namespace Raven;
-internal class TODO {
+internal class TODO { 
+//TODO Try to get IK going and add a cool little guy what runs around creepily on two legs + a tail also w/ IK
 //TODO once 3D skyboxen are in, add a system for moving the camera very slightly within the skybox, relative to your actual movements
     
 //TODO add interpolated orientation changes using  OrientationMatrix class 

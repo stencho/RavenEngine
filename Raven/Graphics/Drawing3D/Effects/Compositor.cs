@@ -19,7 +19,7 @@ public class Compositor : ManagedEffect {
         save_buffer_as_png("depth", gbuffer.rt_depth);
         save_buffer_as_png("rt_2D", gbuffer.rt_2D);
         save_buffer_as_png("composed", gbuffer.rt_composed);
-        save_buffer_as_png("final", gbuffer.rt_final);
+        save_buffer_as_png("final", gbuffer.rt_final.present);
     }
 
     void save_buffer_as_png(string name, RenderTarget2D target) {
@@ -67,8 +67,8 @@ public class Compositor : ManagedEffect {
         State.graphics_device.BlendState = BlendState.AlphaBlend;
         
         var buffer = camera.gbuffer;
-        buffer.rt_final.use(); 
-        buffer.rt_final.clear();
+        buffer.rt_final.offscreen.use(); 
+        buffer.rt_final.offscreen.clear();
         
         set_param("Composed", buffer.rt_composed);
         set_param("Overlay", buffer.rt_2D);
@@ -84,7 +84,9 @@ public class Compositor : ManagedEffect {
         
         State.graphics_device.SetRenderTarget(null);
         
-        set_param("Output", buffer.rt_final);
+        buffer.rt_final.FlipTargets();
+        
+        set_param("Output", buffer.rt_final.present);
         
         if (buffer.screen_draw_info.fullscreen) {
             if (buffer.resolution_scale <= 1.0) State.graphics_device.SamplerStates[0] = SamplerState.PointWrap;

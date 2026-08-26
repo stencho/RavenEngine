@@ -31,7 +31,6 @@ public partial class KeyboardWatcher {
     static object state_lock = new object();
     
     public void Update() {
-        keyboard_state_prev = keyboard_state;
         while (true) {
             if (Interlocked.CompareExchange(ref GETTING_STATE, true, false)) {
                 lock (state_lock) {
@@ -44,10 +43,10 @@ public partial class KeyboardWatcher {
 
         pressed_keys_previous = pressed_keys;
         pressed_keys = keyboard_state.GetPressedKeys();
+        
+        keyboard_state_prev = keyboard_state;
     }
     
-    public void UpdateEnd() {
-    }
 
     public string state_info() {
         string s = $"[KEYBOARD] ";

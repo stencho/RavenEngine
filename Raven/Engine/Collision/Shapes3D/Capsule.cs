@@ -12,7 +12,7 @@ namespace Raven.Engine.Collision.Shapes3D {
 
         public Vector3 start_point => A;
 
-        public shape_type shape { get; } = shape_type.capsule;
+        public shape_type type { get; } = shape_type.capsule;
 
         public Vector3 A;
         public Vector3 B;
@@ -20,18 +20,7 @@ namespace Raven.Engine.Collision.Shapes3D {
         public Vector3[] get_all_points() => [A, B];
 
         public float radius { get; set; } = 0f;
-
-
-        public BoundingBox sweep_bounding_box(Matrix world, Vector3 sweep) {
-            if (sweep != Vector3.Zero) {
-                return CollisionHelper.BoundingBox_around_BoundingBoxes(
-                    find_bounding_box(world), 
-                    find_bounding_box(world * Matrix.CreateTranslation(sweep))
-                );
-            } else {
-                return find_bounding_box(world);
-            }
-        }
+        
         public BoundingBox find_bounding_box(Matrix world) {
 
             return CollisionHelper.BoundingBox_around_capsule(

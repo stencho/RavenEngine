@@ -37,6 +37,10 @@ public abstract partial class Scene {
             update_thread = new Clock.UpdateThread("Update", Update);
             update_thread.Start();
         }
+        public static void StartUpdateThread(Action UpdatethreadMethod) {
+            update_thread = new Clock.UpdateThread("Update", UpdatethreadMethod);
+            update_thread.Start();
+        }
         
         public static void SetActiveScene(Guid scene_guid) {
             active_scene_id = scene_guid;

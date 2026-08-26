@@ -22,13 +22,6 @@ public partial class ManagedRT2D {
                 return output;
             }
         }
-
-        public static void FlipAll() {
-            foreach (var rt2d in managedrt2ds) {
-                if (rt2d.Value.DoubleBuffered) 
-                    rt2d.Value.FlipTargets();
-            }
-        }    
     }
     
     protected Guid managed_guid;
@@ -71,7 +64,7 @@ public partial class ManagedRT2D {
         }
     }
 
-    public ManagedRT2D(int width, int height, bool double_buffered, SurfaceFormat surface_format = SurfaceFormat.ColorSRgb, DepthFormat depth_format = DepthFormat.Depth24Stencil8) {
+    public ManagedRT2D(int width, int height, bool double_buffered, SurfaceFormat surface_format = SurfaceFormat.HalfVector4, DepthFormat depth_format = DepthFormat.None) {
         resolution =  new Vector2i(width, height);
         this.double_buffered = double_buffered;
         this.surface_format = surface_format;
@@ -90,7 +83,5 @@ public partial class ManagedRT2D {
         flip = RenderTargetEx.create(Width, Height, surface_format, depth_format);
         if (double_buffered) flop = RenderTargetEx.create(Width, Height, surface_format, depth_format);
         else flop = null;
-        
-        
     }
 }

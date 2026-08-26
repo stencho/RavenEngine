@@ -14,14 +14,22 @@ namespace Raven.Engine.Collision {
         public BoundingBox? bounding_box { get; set; }
 
         public Vector3 A => origin + (orientation.Left * half_scale.X) + (orientation.Up * half_scale.Y) + (orientation.Forward * half_scale.Z);
+        public Vector3 LUF => A;
         public Vector3 B => origin + (orientation.Right * half_scale.X) + (orientation.Up * half_scale.Y) + (orientation.Forward * half_scale.Z);
-        public Vector3 C => origin + (orientation.Left * half_scale.X) + (orientation.Down * half_scale.Y) + (orientation.Forward * half_scale.Z);
-        public Vector3 D => origin + (orientation.Right * half_scale.X) + (orientation.Down * half_scale.Y) + (orientation.Forward * half_scale.Z);
+        public Vector3 RUF => B;
+        public Vector3 C => origin + (orientation.Right * half_scale.X) + (orientation.Down * half_scale.Y) + (orientation.Forward * half_scale.Z);
+        public Vector3 RDF => C;
+        public Vector3 D => origin + (orientation.Left * half_scale.X) + (orientation.Down * half_scale.Y) + (orientation.Forward * half_scale.Z);
+        public Vector3 LDF => D;
 
         public Vector3 E => origin + (orientation.Left * half_scale.X) + (orientation.Up * half_scale.Y) + (orientation.Backward * half_scale.Z);
+        public Vector3 LUB => E;
         public Vector3 F => origin + (orientation.Right * half_scale.X) + (orientation.Up * half_scale.Y) + (orientation.Backward * half_scale.Z);
-        public Vector3 G => origin + (orientation.Left * half_scale.X) + (orientation.Down * half_scale.Y) + (orientation.Backward * half_scale.Z);
-        public Vector3 H => origin + (orientation.Right * half_scale.X) + (orientation.Down * half_scale.Y) + (orientation.Backward * half_scale.Z);
+        public Vector3 RUB => F;
+        public Vector3 G => origin + (orientation.Right * half_scale.X) + (orientation.Down * half_scale.Y) + (orientation.Backward * half_scale.Z);
+        public Vector3 RDB => G;
+        public Vector3 H => origin + (orientation.Left * half_scale.X) + (orientation.Down * half_scale.Y) + (orientation.Backward * half_scale.Z);
+        public Vector3 LDB => H;
 
         public OBB(Vector3 pos) {
             _origin = pos;

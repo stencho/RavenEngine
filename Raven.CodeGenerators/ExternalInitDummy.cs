@@ -1,5 +1,4 @@
-namespace System.Runtime.CompilerServices
-{
-    // Stubs out the missing class so the C# compiler can use records in netstandard2.0
+namespace System.Runtime.CompilerServices {
+    // stubs out the missing class so the compiler can use records in net standard
     internal static class IsExternalInit { }
 }

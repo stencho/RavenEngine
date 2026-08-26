@@ -72,7 +72,7 @@ namespace Raven.Console {
         public List<string> mouse_interactions => _mouse_interactions;
         List<string> _mouse_interactions = new List<string>();
 
-        public List<IUIForm> subforms { get; set; } = new List<IUIForm>();
+        public ConcurrentList<IUIForm> subforms { get; set; } = new ConcurrentList<IUIForm>();
 
         public Dictionary<string, Collision2D.Shape2D> collision => _collision;
 

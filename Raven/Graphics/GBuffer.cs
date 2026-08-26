@@ -108,7 +108,7 @@ namespace Raven.Graphics {
         public RenderTarget2D rt_normal;
         public RenderTarget2D rt_depth;
         public RenderTarget2D rt_lighting;
-        public RenderTarget2D rt_final;
+        public ManagedRT2D rt_final;
         public RenderTarget2D rt_composed;
         public RenderTarget2D rt_2D;
 
@@ -230,7 +230,7 @@ namespace Raven.Graphics {
             if (!Directory.Exists("scr")) Directory.CreateDirectory("scr");
 
             using (FileStream fs = new FileStream("scr/scr" + DateTime.Now.ToFileTime() + ".png", FileMode.Create)) {
-                rt_final.SaveAsPng(fs, rt_final.Width, rt_final.Height);
+                rt_final.present.SaveAsPng(fs, rt_final.Width, rt_final.Height);
             }
 
             screenshot = false;
@@ -266,8 +266,10 @@ namespace Raven.Graphics {
             rt_diffuse = RenderTargetEx.create(width * res_scale, height * res_scale, SurfaceFormat.HalfVector4);
             rt_lighting = RenderTargetEx.create(width * res_scale, height * res_scale, SurfaceFormat.HalfVector4);
             rt_composed = RenderTargetEx.create(width * res_scale, height * res_scale, SurfaceFormat.HalfVector4);
-            rt_2D = RenderTargetEx.create(width * res_scale, height * res_scale, SurfaceFormat.HalfVector4);
-            rt_final = RenderTargetEx.create(width * res_scale, height * res_scale, SurfaceFormat.HalfVector4);
+            rt_2D = RenderTargetEx.create(width, height, SurfaceFormat.HalfVector4);
+            
+            //rt_final = RenderTargetEx.create(width * res_scale, height * res_scale, SurfaceFormat.HalfVector4);
+            rt_final = new ManagedRT2D((int)(width), (int)(height), true);
             
             rt_normal = RenderTargetEx.create(width * res_scale, height * res_scale, SurfaceFormat.Vector4);
             rt_depth = RenderTargetEx.create(width * res_scale, height * res_scale, SurfaceFormat.Vector4, DepthFormat.Depth24Stencil8);
@@ -320,7 +322,7 @@ namespace Raven.Graphics {
                 rt_normal?.Dispose();
                 rt_depth?.Dispose();
                 rt_lighting?.Dispose();
-                rt_final?.Dispose();
+                rt_final = null;
                 rt_composed?.Dispose();
                 rt_2D?.Dispose();
             }

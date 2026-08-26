@@ -15,14 +15,9 @@ namespace Raven.Engine.Collision.Shapes3D {
 
         public Vector3[] get_all_points() => [A, B];
         
-        public shape_type shape { get; } = shape_type.cylinder;
+        public shape_type type { get; } = shape_type.cylinder;
 
         public float radius { get; set; } = 1f;
-
-
-        public BoundingBox sweep_bounding_box(Matrix world, Vector3 sweep) {
-            throw new NotImplementedException();
-        }
 
         public BoundingBox find_bounding_box(Matrix world) {
             throw new NotImplementedException();

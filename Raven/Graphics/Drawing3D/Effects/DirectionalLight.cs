@@ -20,9 +20,6 @@ public class DirectionalLight : ManagedEffect {
         State.graphics_device.DepthStencilState = DepthStencilState.None;
         State.graphics_device.BlendState = Renderer.light_accumulation_blend_state;
         
-        State.graphics_device.SamplerStates[0] = SamplerState.PointClamp;
-        State.graphics_device.SamplerStates[1] = SamplerState.PointClamp;
-        
         var gbuffer = camera.gbuffer;
         
         gbuffer.rt_lighting.use();
@@ -35,8 +32,8 @@ public class DirectionalLight : ManagedEffect {
         
         set_param("fullbright", false);
         
-        set_param("directional_light_dir", camera.environment.sun_direction);
-        set_param("directional_light_color", camera.environment.sky_color);
+        set_param("light_direction", camera.environment.sun_direction);
+        set_param("light_color", camera.environment.atmosphere_color);
         
         apply_passes();
         State.graphics_device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 2);

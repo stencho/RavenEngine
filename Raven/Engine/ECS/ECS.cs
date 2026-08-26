@@ -14,6 +14,7 @@ using Raven.Console;
 using Raven.Engine.Collision;
 using Raven.Graphics;
 using Raven.Graphics.Drawing3D;
+using Raven.Graphics.Effects;
 
 namespace Raven.Engine;
 
@@ -38,7 +39,7 @@ public interface Entity {
     public void UpdateGraphics();
     public void UpdateInterpolatedPosition();
     
-    public static T Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(Action? default_constructor_action, Action<ParameterInfo[]>? longest_constructor_action) 
+    public static T CreateInstance<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(Action? default_constructor_action, Action<ParameterInfo[]>? longest_constructor_action) 
         where T : Entity {
         // get default constructor info if it exists
         ConstructorInfo? ctor_default = typeof(T).GetConstructor(Type.EmptyTypes);
@@ -75,7 +76,7 @@ public class ComponentManager {
         this.parent = parent;
     }
     
-    public static T Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(Action? default_constructor_action, Action<ParameterInfo[]>? longest_constructor_action) 
+    public static T CreateInstance<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(Action? default_constructor_action, Action<ParameterInfo[]>? longest_constructor_action) 
         where T : Component {
         // get default constructor info if it exists
         ConstructorInfo? ctor_default = typeof(T).GetConstructor(Type.EmptyTypes);
@@ -97,7 +98,7 @@ public class ComponentManager {
         return (T)ctor_default.Invoke(null);
     }
 
-    public void AddComponent(Entity parent, Component component) {
+    public Component AddComponent(Entity parent, Component component) {
         //component with the same name exists, so add a number to the end and
         //iterate it until no component with the exact same name exists
         int c = 0; 
@@ -107,6 +108,8 @@ public class ComponentManager {
         
         component.set_parent(parent);
         Components.TryAdd(component.Name, component);
+
+        return component;
     }
 
     public void RenameComponent(string name, string new_name) {
@@ -246,15 +249,28 @@ public interface IComponentGlobalMethods {
 public abstract class Component : IComponentGlobalMethods {
     public abstract string Name { get; set; }
     public virtual Type Type { get; set; }
+    
     protected Entity parent;
     protected Dictionary<string, ComponentData> data { get; set; } = new();
     
     public abstract ComponentFlags flags { get; }
     
-    public abstract void RenderZPrePass(Camera camera);
-    public abstract void Render(Camera camera);
+    public abstract void RenderZPrepass(Camera camera);
+    public abstract void RenderDeferred(Camera camera);
     public abstract void RenderForward(Camera camera);
 
+    public bool force_forward_rendering { get; set; } = false;
+    
+    public Action? OverrideRenderZPrepass { get; set; }
+    public Action? OverrideRenderDeferred { get; set; }
+    public Action? OverrideRenderForward { get; set; }
+
+    public Action? RunBeforeRenderDeferred { get; set; }
+    public Action? RunBeforeRenderForward { get; set; }
+    public Action? RunBeforeRenderBoth { get; set; }
+    
+    public Action? RenderBeforeForwardPass { get; set; }
+    
     public abstract Shape3D? GetShape();
     public abstract collision_result? TestGJKAgainstShape(Shape3D test_shape, Matrix world);
     public abstract BoundingBox? GetBounds();

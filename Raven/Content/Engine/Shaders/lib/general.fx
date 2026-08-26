@@ -1,10 +1,15 @@
-
 #define VS_SHADERMODEL vs_3_0
 #define PS_SHADERMODEL ps_3_0
 
-//float4 tex2d(Texture2D texture, SamplerState sampler, float2 position) {
-    //return texture.Sample(sampler, position);
-//}
+float hash21(float2 p)
+{
+    p = floor(p);
+
+    float3 p3 = frac(float3(p.x, p.y, p.x) * 0.1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return frac((p3.x + p3.y) * p3.z);
+}
+
 float3 color_lerp(float3 a, float3 b, float position) {
     return float3(a.r - ((a.r - b.r) * position),
                   a.g - ((a.g - b.g) * position),

@@ -61,6 +61,8 @@ public partial class FreeCamEntity : Entity {
         
         binds = new BindWatcher(bind_list);
         binds_graphics = new BindWatcher(bind_list);
+        binds.cares_about_UI_focus = true;
+        binds_graphics.cares_about_UI_focus = true;
         
         mouse = new MouseWatcher();
         
@@ -208,11 +210,17 @@ public partial class FreeCamEntity : Entity {
             camera_y_rot += mouse.MouseDeltaSensitivityAspectRatioCorrection.X;
             camera_x_rot += mouse.MouseDeltaSensitivityAspectRatioCorrection.Y;
             
-            if (camera_x_rot > 1f)  camera_x_rot = 1f; if (camera_x_rot < -1f) camera_x_rot = -1f;
+            var max_look = ((MathF.PI / 2f) * 0.95f);
+            
+            if (camera_x_rot > max_look) camera_x_rot = max_look; 
+            if (camera_x_rot < -max_look) camera_x_rot = -max_look;
+            
             camera_y_rot = WrapSymmetric(camera_y_rot, Math.PI);
             
             camera.orientation = Matrix.CreateRotationY((float)camera_y_rot);
             camera.orientation *= Matrix.CreateFromAxisAngle(camera.orientation.Right, (float)camera_x_rot);
         }
+        
+        binds_graphics.UpdateEnd();
     }
 }
