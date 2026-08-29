@@ -335,7 +335,7 @@ public static class Resources {
                 rp = IContentData.NormalizePath(rp.Remove(rp.Length - 4));
 
                 if (rp.StartsWith('/')) rp = rp.Remove(0, 1);
-                System.Console.WriteLine(rp);
+                
                 switch (type) {
                     case ContentType.Texture:
                         all_content.Add(rp, new ContentDataTexture(rp, content));
