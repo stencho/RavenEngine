@@ -28,18 +28,19 @@ public partial class KeyboardWatcher {
 
     private static volatile bool GETTING_STATE = false; 
     
-    static object state_lock = new object();
+    static readonly Lock state_lock = new Lock();
     
     public void Update() {
-        while (true) {
-            if (Interlocked.CompareExchange(ref GETTING_STATE, true, false)) {
-                lock (state_lock) {
-                    keyboard_state = Keyboard.GetState();
-                }
-                break;
+        fucked_up_array_access_during_state_update_which_wont_go_away:
+        try {
+            using (state_lock.EnterScope()) {
+                keyboard_state = Keyboard.GetState();
             }
+        } catch (InvalidOperationException) {
+            goto fucked_up_array_access_during_state_update_which_wont_go_away;
         }
-        Interlocked.Exchange(ref GETTING_STATE, false);
+
+        
 
         pressed_keys_previous = pressed_keys;
         pressed_keys = keyboard_state.GetPressedKeys();

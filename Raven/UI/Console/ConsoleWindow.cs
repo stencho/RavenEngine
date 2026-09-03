@@ -306,9 +306,6 @@ namespace Raven.Console {
                 c++;
             }
 
-
-            //Console.WriteLine(edited);
-
             //scroll bar
             // Draw2D.fill_rect(new Vector2i(client_size.X - scroll_bar_width, 0), new Vector2i(client_size.X, client_size.Y - (text_box_edge_margin) - text_box_height), Color.Red);
 
