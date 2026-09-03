@@ -188,7 +188,7 @@ public static class State {
             gvars.add_gvar("g_window_position", gvar_data_type.VECTOR2I, Vector2i.Zero, true, wind_pos_comment);
         }
         
-        gvars.add_gvar("i_bind_tap_time", gvar_data_type.INT, 150, true, "Sets the tap time for digital inputs, in milliseconds.\nThis is how long it takes for a key to go from Pressed to Held,\nand if it is released before then, it will become Tapped for one frame.");
+        gvars.add_gvar("i_bind_tap_time", gvar_data_type.INT, 500, true, "Sets the tap time for digital inputs, in milliseconds.\nThis is how long it takes for a key to go from Pressed to Held,\nand if it is released before then, it will become Tapped for one frame.");
         gvars.add_gvar("i_mouse_sensitivity", gvar_data_type.VECTOR2, Vector2.One, true, "Sets the mouse sensitivity individually for each axis.");
 
         gvars.add_gvar("ui_focus_follows_mouse", gvar_data_type.BOOL, false, true, "Forces UI window focus to always be on the window under the mouse\n(as opposed to standard click-to-focus)");
