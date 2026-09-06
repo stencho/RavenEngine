@@ -130,7 +130,8 @@ public class BindWatcher {
         return s + "\n\n";
     }
 
-    public bool cares_about_UI_focus = false;
+    public enum UIFocusConsideration { DoesntCare, NeedsNoFocus, NeedsFocus}
+    public UIFocusConsideration cares_about_UI_focus = UIFocusConsideration.DoesntCare;
     
     public void Update() {
         Mouse.UpdateDeltas();
@@ -141,7 +142,8 @@ public class BindWatcher {
         
         foreach (var bind in binds.Values) {
             bind.end_of_update();
-            if (cares_about_UI_focus && focused_window != null) continue;
+            if (cares_about_UI_focus == UIFocusConsideration.NeedsNoFocus && focused_window != null) continue;
+            if (cares_about_UI_focus == UIFocusConsideration.NeedsFocus && focused_window == null) continue;
 
             foreach (var d_bind in bind.Inputs) {
                 switch (d_bind.InputType) {
