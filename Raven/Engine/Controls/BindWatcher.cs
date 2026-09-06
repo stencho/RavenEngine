@@ -44,11 +44,11 @@ public class BindWatcher {
     public void AddBind(string name, MouseWatcher.MouseButtons mouse_button) =>
         AddBind(new InputBinds.Bind(name, new InputBinds.MouseInput(mouse_button)));
     
-    public void AddBind(string name, XInputWatcher.XInputButtons button) =>
-        AddBind(new InputBinds.Bind(name, new InputBinds.XInputInput(button)));
+    public void AddBind(string name, XInputDigital digital) =>
+        AddBind(new InputBinds.Bind(name, new InputBinds.XInputInput(digital)));
     
-    public void AddBind(string name, XInputWatcher.XInputAxis axis) =>
-        AddBind(new InputBinds.Bind(name, new InputBinds.XInputAnalogInput(axis)));
+    public void AddBind(string name, XInputAnalog analog) =>
+        AddBind(new InputBinds.Bind(name, new InputBinds.XInputAnalogInput(analog)));
     
     public void AddMultipleBinds(params InputBinds.Bind[] binds) => binds.ForEach(AddBind);
 
@@ -66,10 +66,10 @@ public class BindWatcher {
                     case MouseWatcher.MouseButtons mouse_button:
                         AddBind(b.name, mouse_button);
                         break;
-                    case XInputWatcher.XInputButtons xinput_button:
+                    case XInputDigital xinput_button:
                         AddBind(b.name, xinput_button);
                         break;
-                    case XInputWatcher.XInputAxis xinput_axis:
+                    case XInputAnalog xinput_axis:
                         AddBind(b.name, xinput_axis);
                         break;
                     default:
@@ -102,18 +102,19 @@ public class BindWatcher {
                                 InputBinds.KeyInput k = i as InputBinds.KeyInput;
                                 s += $"[{k.Key}] {Keyboard.is_pressed(k.Key)}";
                                 break;
+                            
                             case InputBinds.InputType.Mouse:
                                 var m = i as InputBinds.MouseInput;
                                 s += $"[{m.MouseButton}] {Mouse.is_pressed(m.MouseButton)}";
                                 break;
+                            
                             case InputBinds.InputType.XInput:
-                                
                                 if (i.BindType == InputBinds.BindType.Analog) {
                                     var xi = i as InputBinds.XInputAnalogInput;     
-                                    s += $"[{xi.Axis}] IDK";
+                                    s += $"[{xi.Analog}] IDK";
                                 } else {
                                     var xi = i as InputBinds.XInputInput;
-                                    s += $"[{xi.Button}] IDK";
+                                    s += $"[{xi.Digital}] IDK";
                                 }
                                 break;
                             default:
@@ -159,8 +160,8 @@ public class BindWatcher {
                             bind.ActiveInput = null;
                             goto next_bind;
                         }
-
                         break;
+                    
                     case InputBinds.InputType.Mouse:
                         var m = d_bind as InputBinds.MouseInput;
                         if (Mouse.just_pressed(m.MouseButton) && bind.released()) {
@@ -176,106 +177,39 @@ public class BindWatcher {
                             bind.ActiveInput = null;
                             goto next_bind;
                         }
-
                         break;
+                    
                     case InputBinds.InputType.XInput:
+                        var x = d_bind as InputBinds.XInputInput;
+                        if (XInput.just_pressed(x.Digital) && bind.released()) {
+                            bind.press();    
+                            bind.JustPressed?.Invoke();    
+                            bind.ActiveInput = d_bind;
+                            goto next_bind;
+                        }
+                        
+                        if (XInput.just_released(x.Digital) && bind.pressed()) {
+                            bind.release();    
+                            bind.JustReleased?.Invoke();    
+                            bind.ActiveInput = null;
+                            goto next_bind;
+                        }
                         break;
+                    
+                    case InputBinds.InputType.XInputAnalog:
+                        var xa = d_bind as InputBinds.XInputAnalogInput;
+                        
+                        break;
+                    
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
             }
 
-            next_bind:
-            continue;
-        }
-        
-
-        return;
-        
-        // go through each bind known to this bind watcher
-        foreach (var bind in binds.Values) {
-            
-            // handle releasing digital state
-            if (bind.pressed()) {
-                // go through each of the inputs and check if any are pressed
-                // if they are, skip to the next bind as this one is still pressed 
-                foreach (var d_bind in bind.Inputs) {
-                    switch (d_bind.InputType) {
-                        case InputBinds.InputType.Keyboard:
-                            var k = d_bind as InputBinds.KeyInput;
-                            if (Keyboard.is_pressed(k.Key)) {
-                                goto next;
-                            }
-                            break;
-                        case InputBinds.InputType.Mouse:
-                            var mb = d_bind as InputBinds.MouseInput;
-                            if (Mouse.is_pressed(mb.MouseButton)) {
-                                goto next;
-                            }
-                            break;
-
-                        case InputBinds.InputType.XInput:
-                            if (d_bind.BindType == InputBinds.BindType.Analog) {
-
-                            } else {
-                                //TODO XInputWatcher
-                            }
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-                }
-                
-                // made it through all inputs and none were pressed, so release the bind
-                bind.release();
-                bind.JustReleased?.Invoke();
-                bind.ActiveInput = null;
-                
-            // handle pressing digital state    
-            } else {
-                // go through each of the inputs and check if they have just been pressed
-                // if they have, press the bind
-                foreach (var d_bind in bind.Inputs) {
-                    switch (d_bind.InputType) {
-                        case InputBinds.InputType.Keyboard:
-                            var k = d_bind as InputBinds.KeyInput;
-                            if (Keyboard.just_pressed(k.Key)) {
-                                bind.press();
-                                bind.ActiveInput = d_bind;
-                                bind.JustPressed?.Invoke();
-                                goto next;
-                            }
-                            break;
-                        case InputBinds.InputType.Mouse:
-                            var mb = d_bind as InputBinds.MouseInput;
-                            if (Mouse.just_pressed(mb.MouseButton)) {
-                                bind.press();
-                                bind.ActiveInput = d_bind;
-                                bind.JustPressed?.Invoke();
-                                goto next;
-                            }
-                            break;
-
-                        case InputBinds.InputType.XInput:
-                            if (d_bind.BindType == InputBinds.BindType.Analog) {
-
-                            } else {
-                                //TODO XInputWatcher
-                            }
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-                }
-            }
-
-            next: continue;
+            next_bind: continue;
         }
     }
     
-    public void UpdateEnd() {
-    }
-
     private bool bind_enabled(string bind_name) {
         if (!global_enable) {
             if (binds[bind_name].AlwaysEnabled) {
@@ -347,7 +281,7 @@ public class BindWatcher {
 
 public static class InputBinds {
     //ENUMS
-    public enum InputType { Keyboard, Mouse, XInput }
+    public enum InputType { Keyboard, Mouse, XInput, XInputAnalog }
     public enum BindType { Digital, Analog, Delta /*, Absolute hehe could be fun to support tablets*/ }
 
     public enum PressedState { Released, Pressed, Held, Tapped, DoubleTapped, DoublePressed, JustPressed, JustReleased }
@@ -536,24 +470,23 @@ public static class InputBinds {
     public class XInputInput : DigitalInput {
         public InputType InputType => InputType.XInput;
 
-        private XInputWatcher.XInputButtons button;
-        public XInputWatcher.XInputButtons Button => button;
+        private XInputDigital digital;
+        public XInputDigital Digital => digital;
         
-        public XInputInput(XInputWatcher.XInputButtons button): base(InputType.XInput) {
-            this.button = button;
+        public XInputInput(XInputDigital digital): base(InputType.XInput) {
+            this.digital = digital;
         }
     }
-
     
     //ANALOG
     public class XInputAnalogInput : AnalogInput {
         InputType InputType => InputType.XInput;
 
-        private XInputWatcher.XInputAxis axis;
-        public XInputWatcher.XInputAxis Axis => axis;
+        private XInputAnalog analog;
+        public XInputAnalog Analog => analog;
         
-        public XInputAnalogInput(XInputWatcher.XInputAxis axis) {
-            this.axis = axis;
+        public XInputAnalogInput(XInputAnalog analog) {
+            this.analog = analog;
         }
     }
 

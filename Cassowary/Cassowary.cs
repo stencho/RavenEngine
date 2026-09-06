@@ -223,7 +223,6 @@ public class CassowaryGame : Microsoft.Xna.Framework.Game {
             show_all_debug_info = !show_all_debug_info;
         }
         
-        State.UpdateEnd();
         base.Update(gameTime);
     }
 

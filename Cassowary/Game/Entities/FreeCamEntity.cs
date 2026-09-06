@@ -158,7 +158,6 @@ public partial class FreeCamEntity : Entity {
         
         //if (binds.just_pressed("drop_cam")) Renderer.compositor.save_all_buffers(camera);
         
-        binds.UpdateEnd();
     }
 
     public void AfterCollision() {
@@ -221,6 +220,5 @@ public partial class FreeCamEntity : Entity {
             camera.orientation *= Matrix.CreateFromAxisAngle(camera.orientation.Right, (float)camera_x_rot);
         }
         
-        binds_graphics.UpdateEnd();
     }
 }

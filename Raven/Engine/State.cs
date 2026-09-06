@@ -423,10 +423,6 @@ public static class State {
             resolution_changed?.Invoke();
         }
     }
-
-    public static void UpdateEnd() {
-        engine_binds.UpdateEnd();
-    }
     
     private static bool currently_rendering;
     public static bool CurrentlyRendering => currently_rendering; 

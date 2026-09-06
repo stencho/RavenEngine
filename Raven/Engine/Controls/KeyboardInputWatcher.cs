@@ -24,13 +24,11 @@ public partial class KeyboardWatcher {
     public bool just_pressed(Keys k) { return is_pressed(k) && !was_pressed(k); }
     public bool just_released(Keys k) { return !is_pressed(k) && was_pressed(k); }
 
-    public KeyboardWatcher() { }
-
-    private static volatile bool GETTING_STATE = false; 
-    
     static readonly Lock state_lock = new Lock();
     
     public void Update() {
+        keyboard_state_prev = keyboard_state;
+        
         fucked_up_array_access_during_state_update_which_wont_go_away:
         try {
             using (state_lock.EnterScope()) {
@@ -40,12 +38,8 @@ public partial class KeyboardWatcher {
             goto fucked_up_array_access_during_state_update_which_wont_go_away;
         }
 
-        
-
         pressed_keys_previous = pressed_keys;
         pressed_keys = keyboard_state.GetPressedKeys();
-        
-        keyboard_state_prev = keyboard_state;
     }
     
 

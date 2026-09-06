@@ -19,6 +19,7 @@ public static class Interface {
     static UIPanel tool_panel;
     
     static UIWindow test_window;
+    static UIWindow controller_window;
     static UIWindow test_dialog;
     static UIWindow test_window_two;
     static UIWindow inspector;
@@ -76,7 +77,7 @@ public static class Interface {
         test_dialog.hide();
         test_dialog.change_text("DIALOG");
         
-        test_window = new UIWindow(new Vector2i(50, 50), new Vector2i(1000, 260));
+        test_window = new UIWindow(new Vector2i(50, 50), new Vector2i(420, 260));
         
         var button = new UIButton(200, 25, "test", "profont");
 
@@ -127,6 +128,10 @@ public static class Interface {
         lm.add_strip(new UIButton(0,0, "test button"), new UIButton(0,0, "test button"), new UIButton(0,0, "test button"));
         
         inspector.add_subform(lm);
+        
+        controller_window = new UIWindow(new Vector2i(50, 50), new Vector2i(420, 260));
+        
+        
         
         State.UI.add_window(menu_strip);
         State.UI.add_window(test_window);
