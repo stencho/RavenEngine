@@ -22,8 +22,8 @@ public partial class XInputWatcher {
 
     private List<XInputDigital> buttons_down_this_frame = new List<XInputDigital>();
     
-    public float stick_analog_to_digital_threshold = 0.5f;
-    public float trigger_analog_to_digital_threshold = 0.85f;
+    public float stick_analog_to_digital_threshold = 0.25f;
+    public float trigger_analog_to_digital_threshold = 0.5f;
     
     public float stick_deadzone = 0.1f;
     
