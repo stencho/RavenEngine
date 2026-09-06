@@ -761,6 +761,7 @@ public static class Draw2D {
                 size = measure_string_i(font_name, line);
                 
                 pos.X = (position.X) - (size.X / 2f);
+                pos.Y = (position.Y) - (size.Y / 2f); 
 
                 //Drawing.fill_circle(pos, 1f, Color.Green);
 

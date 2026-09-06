@@ -206,6 +206,7 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
                             else focus_lerp.LerpReverse();
                         }
                         
+                        protected Color color_window_focus => Draw2D.ColorInterpolate(UIColors.Foreground.multiply_color(UIColors.focus_fade), UIColors.Foreground, focus_lerp.Value);
                         protected Color color_subfocus => Draw2D.ColorInterpolate(UIColors.Foreground, UIColors.Emphasis, focus_lerp.Value);
                         public Color color_foreground => Draw2D.ColorInterpolate(color_subfocus.multiply_color(UIColors.focus_fade), color_subfocus, window_focus_lerp);
                         public Color color_background => Draw2D.ColorInterpolate(UIColors.Background.multiply_color(UIColors.focus_fade), UIColors.Background, window_focus_lerp);

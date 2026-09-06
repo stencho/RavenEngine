@@ -25,6 +25,8 @@ namespace Raven.UI {
         public Vector2i client_size => size - (Vector2i.UnitY * top_bar_height);
         public Vector2i client_bottom_right => client_top_left + client_size;
 
+        private Vector2i old_size = Vector2i.Zero;
+        
         public Vector2i top_bar_size => new Vector2i(client_size.X, top_bar_height);
 
         public Vector2i min_window_size = new Vector2i(40, 40);
@@ -71,6 +73,15 @@ namespace Raven.UI {
 
         int resize_handle_thickness = 10;
 
+        static Collision2D.Shape2D _mouse_coll_obj_child;
+        Vector2i parent_pos => parent_form.position;
+
+        public Action? start_of_update;
+        public Action? end_of_update;
+
+        public Action? on_show;
+        public Action? on_hide;
+        
         public UIWindow(IUIForm parent_form = null) {
             parent_form = parent_form;
             setup();
@@ -106,12 +117,6 @@ namespace Raven.UI {
             change_text(text);
         }
 
-        static Collision2D.Shape2D _mouse_coll_obj_child;
-        Vector2i parent_pos => parent_form.position;
-
-        public Action? start_of_update;
-        public Action? end_of_update;
-        
         public virtual void update() {
             //test_mouse();
             
@@ -311,11 +316,15 @@ namespace Raven.UI {
             mdown_p = mdown;
             mid_mdown_p = mid_mdown;
 
+            if (size != old_size) _render_targets_need_resize = true;
+            
             if (_render_targets_need_resize) {
                 top_bar_render_target = RenderTargetEx.create(top_bar_size.X, top_bar_size.Y);
                 _client_area = RenderTargetEx.create(client_size.X, client_size.Y);
                 _render_targets_need_resize = false;
             }
+
+            old_size = size;
             
             end_of_update?.Invoke();
         }

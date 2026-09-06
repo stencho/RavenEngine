@@ -17,6 +17,7 @@ using Raven.Engine.Collision.Shapes2D;
 using Raven.Engine.Controls;
 using Raven.Graphics;
 using Raven.Graphics.Drawing2D;
+using Raven.UI.Forms;
 
 namespace Raven.UI  {
     public enum ui_layer_state {
@@ -272,6 +273,38 @@ namespace Raven.UI  {
             }
         }
         
+        public void add_panel_dialog(UIPanel panel, bool force_centered) {
+            exists = false;
+            
+            foreach (IUIForm w in windows) {
+                if (w == (panel as IUIForm)) {
+                    exists = true;
+                    break;
+                }
+            }
+
+            if (!exists) {
+                panel._dialog = true;
+                
+                panel.hide();
+
+                panel.collision.Add("dialog_plate", new BoundingBox2D(Vector2i.Zero, State.resolution));
+                panel.start_of_update += () => { ((BoundingBox2D)panel.collision["dialog_plate"]).SetSize(State.resolution); };
+                
+                if (force_centered) {
+                    start_of_draw_action += () => {
+                        panel.position = (State.resolution / 2) - (panel.size / 2);
+                    };
+                    panel.start_of_draw_action += () => {
+                        Draw2D.fill_rect_dither(Vector2i.Zero, State.resolution, UIColors.Background50Percent.multiply_alpha(.75f), UIColors.Background50Percent.multiply_color(.9f).multiply_alpha(.75f), 2);
+                        panel.position = (State.resolution / 2) - (panel.size / 2);
+                    };
+                }
+                
+                windows.Add(panel);
+            }
+        }
+        
         void focus_last_added() {
             for (int o = 0; o < windows.Count; o++) {
                 windows[o].has_focus = false;
@@ -385,8 +418,42 @@ namespace Raven.UI  {
             } else if (MouseWatcher.MouseLocked) {
                 window.toggle_visibility();
                 if (window.visible) stored_focus = window;
-                
             }
+            
+            if (window.visible) window.on_show?.Invoke();
+            else window.on_hide?.Invoke();
+        }
+        
+        public void toggle_window(UIPanel panel) {
+            if (mouse_holding_window) return;
+            
+            if (panel.visible && !MouseWatcher.MouseLocked) {
+                if (MouseWatcher.MouseLocked) return;
+                
+                if (panel.has_focus) panel.toggle_visibility();
+
+                windows.BringToFront(panel);
+                force_focus(panel);
+                if (mouse_follows_focus) move_mouse_to_form_center(panel);
+                //BindWatcher.global_enable = false;
+                
+            } else if (!MouseWatcher.MouseLocked && !mouse_holding_window) {
+                
+                panel.toggle_visibility();
+
+                windows.BringToFront(panel);
+                force_focus(panel);
+                if (mouse_follows_focus) move_mouse_to_form_center(panel);
+                
+                //BindWatcher.global_enable = true;
+                
+            } else if (MouseWatcher.MouseLocked) {
+                panel.toggle_visibility();
+                if (panel.visible) stored_focus = panel;
+            }
+            
+            if (panel.visible) panel.on_show?.Invoke();
+            else panel.on_hide?.Invoke();
         }
     
 
