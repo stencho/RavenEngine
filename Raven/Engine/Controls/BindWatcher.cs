@@ -1,3 +1,5 @@
+global using BindList = (string bind, object[] bind_data)[];
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +10,7 @@ using Microsoft.Xna.Framework.Input;
 using Raven.Console;
 using Raven.Engine;
 using Raven.Engine.Controls;
+using Raven.UI;
 
 namespace Raven.Engine.Controls;
 
@@ -132,24 +135,31 @@ public class BindWatcher {
 
     public enum UIFocusConsideration { DoesntCare, NeedsNoFocus, NeedsFocus}
     public UIFocusConsideration cares_about_UI_focus = UIFocusConsideration.DoesntCare;
+
+    public IUIForm requires_focus_on_specific_form = null;
     
     public void Update() {
         Mouse.UpdateDeltas();
         Keyboard.Update();
         XInput.Update();
 
-        var focused_window = State.UI.find_focused_window();
-        
         foreach (var bind in binds.Values) {
-            bind.end_of_update();
-            if (cares_about_UI_focus == UIFocusConsideration.NeedsNoFocus && focused_window != null) continue;
-            if (cares_about_UI_focus == UIFocusConsideration.NeedsFocus && focused_window == null) continue;
+            bind.update();
+            
+            bool allow_press = true;
+            if (cares_about_UI_focus == UIFocusConsideration.NeedsNoFocus) {
+                if (State.UI.focused_window_at_update_time != null) allow_press = false;
+            }
+            if (cares_about_UI_focus == UIFocusConsideration.NeedsFocus) {
+                if (requires_focus_on_specific_form == null && State.UI.focused_window_at_update_time == null) allow_press = false;
+                if (requires_focus_on_specific_form != null && State.UI.focused_window_at_update_time != requires_focus_on_specific_form) allow_press = false;
+            }
 
             foreach (var d_bind in bind.Inputs) {
                 switch (d_bind.InputType) {
                     case InputBinds.InputType.Keyboard:
                         var k = d_bind as InputBinds.KeyInput;
-                        if (Keyboard.just_pressed(k.Key) && bind.released()) {
+                        if (allow_press && Keyboard.just_pressed(k.Key) && bind.released()) {
                             bind.press();
                             bind.JustPressed?.Invoke();
                             bind.ActiveInput = d_bind;
@@ -166,7 +176,7 @@ public class BindWatcher {
                     
                     case InputBinds.InputType.Mouse:
                         var m = d_bind as InputBinds.MouseInput;
-                        if (Mouse.just_pressed(m.MouseButton) && bind.released()) {
+                        if (allow_press && Mouse.just_pressed(m.MouseButton) && bind.released()) {
                             bind.press();
                             bind.JustPressed?.Invoke();
                             bind.ActiveInput = d_bind;
@@ -183,7 +193,7 @@ public class BindWatcher {
                     
                     case InputBinds.InputType.XInput:
                         var x = d_bind as InputBinds.XInputInput;
-                        if (XInput.just_pressed(x.Digital) && bind.released()) {
+                        if (allow_press && XInput.just_pressed(x.Digital) && bind.released()) {
                             bind.press();    
                             bind.JustPressed?.Invoke();    
                             bind.ActiveInput = d_bind;
@@ -375,12 +385,8 @@ public static class InputBinds {
             digital_state = PressedState.JustReleased;
             analog_state = 0f;
         }
-
-        internal void update() {
-            //analog_state = highest value from an analog input ig
-        }
         
-        internal void end_of_update() {
+        internal void update() {
             if (digital_state == PressedState.Tapped) {
                 digital_state = PressedState.Released;
             }

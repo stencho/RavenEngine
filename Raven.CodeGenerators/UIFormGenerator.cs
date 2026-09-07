@@ -165,13 +165,27 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
                         public bool visible => _visible;
                         bool _visible = true;
                         
-                        public void hide() { _visible = false; }
-                        public void show() { 
+                        public Action? on_show;
+                        public Action? on_hide;
+                        
+                        public virtual void hide() {
+                            _visible = false; 
+                            has_focus = false;
+                            on_hide?.Invoke(); 
+                        }
+                        public virtual void show() { 
                             _visible = true; 
                             if (dialog) State.UI.windows.BringToFront(this);
+                            on_show?.Invoke();
                         }
-                        public void toggle_visibility() { _visible = !_visible; }
-                        public void toggle_visibility(bool toggle) { _visible = toggle; }
+                        public void toggle_visibility() { 
+                            if (_visible) hide();
+                            else show();
+                        }
+                        public void toggle_visibility(bool toggle) {
+                            if (toggle) hide();
+                            else show();
+                        }
                         
                         public Vector2i top_left => position;
                         public Vector2i bottom_right => position + size;
@@ -199,7 +213,7 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
                         Dictionary<string, Collision2D.Shape2D> _collision = new Dictionary<string, Collision2D.Shape2D>();
                         
                         public float window_focus_lerp => parent_form != null ? parent_form.window_focus_lerp : focus_lerp.Value;
-                        Lerper focus_lerp =  new Lerper(0f, 1f, 200);
+                        public Lerper focus_lerp =  new Lerper(0f, 1f, 200);
                         
                         public void do_lerps() {
                             if (has_focus) focus_lerp.Lerp();

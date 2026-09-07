@@ -78,9 +78,6 @@ namespace Raven.UI {
 
         public Action? start_of_update;
         public Action? end_of_update;
-
-        public Action? on_show;
-        public Action? on_hide;
         
         public UIWindow(IUIForm parent_form = null) {
             parent_form = parent_form;

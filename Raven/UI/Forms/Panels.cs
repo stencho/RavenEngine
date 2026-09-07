@@ -4,8 +4,10 @@ using System.Security;
 using Microsoft.Xna.Framework;
 using Raven.Engine;
 using Raven.Engine.Collision;
+using Raven.Engine.Controls;
 using Raven.Graphics;
 using Raven.Graphics.Drawing2D;
+using Raven.Graphics.InterpolatedTypes;
 using Raven.UI;
 
 namespace Raven.UI.Forms;
@@ -21,9 +23,6 @@ public partial class UIPanel : IUIForm {
     public Action? start_of_update;
     public Action? end_of_update;
 
-    public Action? on_show;
-    public Action? on_hide;
-    
     public Action? start_of_draw_action;
     
     bool _render_targets_need_resize = false;
@@ -35,7 +34,7 @@ public partial class UIPanel : IUIForm {
         disable_focusing();
     }
     
-    public void update() {
+    public virtual void update() {
         start_of_update?.Invoke();
         
         update_collision();
@@ -50,9 +49,11 @@ public partial class UIPanel : IUIForm {
         }
 
         old_size = size;
+        
+        end_of_update?.Invoke();
     }
 
-    public void render_internal() {
+    public virtual void render_internal() {
         if (!visible) return; 
         render_all_subform_internals();
         
@@ -68,7 +69,7 @@ public partial class UIPanel : IUIForm {
         Draw2D.end();
     }
 
-    public void draw() {
+    public virtual void draw() {
         if (!visible) return;
         start_of_draw_action?.Invoke();
         Draw2D.image(client_area, position + client_top_left, size);
@@ -86,46 +87,6 @@ public struct MenuPanelItem {
     public MenuPanelItem(string text, Action on_pressed) {
         this.text = text;
         Pressed = on_pressed;
-    }
-}
-
-public partial class UIMenuPanel : UIPanel {
-    MenuPanelItem[] menu_items;
-    public int item_height = 30;
-    public int menu_width = 300;
-
-    public int header_gap = 50;
-    public int footer_gap = 0;
-    public int item_gap = 10;
-
-    private string font = "profont";
-
-    public Action<Vector2i>? DrawHeader;
-    
-    public UIMenuPanel(Vector2i position, string font, params MenuPanelItem[] items) : base(position, Vector2i.One) {
-        menu_items = items;
-        
-        this.font = font;
-        base.size = new Vector2i(menu_width, header_gap + item_gap + (items.Length * (item_height + item_gap)) + footer_gap + item_gap);
-
-        foreground_draw += (menu) => {
-            DrawHeader?.Invoke(new Vector2i(menu_width, header_gap));
-            
-            var col = Draw2D.ColorInterpolate(color_subfocus.multiply_color(UIColors.focus_fade), color_subfocus, base.window_focus_lerp);
-            
-            if (header_gap > 0) Draw2D.line(new Vector2i(0, header_gap), new Vector2i(menu_width, header_gap), col, 1f);
-            
-            for (var i = 0; i < menu_items.Length; i++) {
-                var menu_item = menu_items[i];
-                
-                var top_left = new Vector2(0, header_gap + item_gap + (i * (item_height + item_gap)));
-                var middle = top_left + (new Vector2(menu_width, item_height + item_gap) / 2f);
-            
-                var text_size = Draw2D.measure_string_i(font, menu_item.Text);
-            
-                Draw2D.text(font, menu_item.Text , middle - (text_size / 2f), col);
-            }
-        };
     }
 }
 

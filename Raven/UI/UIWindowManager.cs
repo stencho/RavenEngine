@@ -86,7 +86,7 @@ namespace Raven.UI  {
         }
         
         public ConcurrentList<IUIForm> windows = new ConcurrentList<IUIForm>();
-        ConsoleWindow console;
+        public ConsoleWindow console;
 
         IUIForm focused_subform = null;
         public IUIForm window_on_mouse = null;
@@ -273,7 +273,7 @@ namespace Raven.UI  {
             }
         }
         
-        public void add_panel_dialog(UIPanel panel, bool force_centered) {
+        public void add_panel_dialog(UIPanel panel, bool force_centered, bool dim_background) {
             exists = false;
             
             foreach (IUIForm w in windows) {
@@ -292,11 +292,10 @@ namespace Raven.UI  {
                 panel.start_of_update += () => { ((BoundingBox2D)panel.collision["dialog_plate"]).SetSize(State.resolution); };
                 
                 if (force_centered) {
-                    start_of_draw_action += () => {
-                        panel.position = (State.resolution / 2) - (panel.size / 2);
-                    };
                     panel.start_of_draw_action += () => {
-                        Draw2D.fill_rect_dither(Vector2i.Zero, State.resolution, UIColors.Background50Percent.multiply_alpha(.75f), UIColors.Background50Percent.multiply_color(.9f).multiply_alpha(.75f), 2);
+                        if (dim_background)
+                            Draw2D.fill_rect_dither(Vector2i.Zero, State.resolution, UIColors.Background50Percent.multiply_alpha(.75f), UIColors.Background50Percent.multiply_color(.9f).multiply_alpha(.75f), 2);
+                        
                         panel.position = (State.resolution / 2) - (panel.size / 2);
                     };
                 }
@@ -393,6 +392,8 @@ namespace Raven.UI  {
         
         public void toggle_window(UIWindow window) {
             if (mouse_holding_window) return;
+            var focused = find_focused_window();
+            if (focused != null && focused.dialog && focused != window) return;
             
             if (window.visible && !MouseWatcher.MouseLocked) {
                 if (MouseWatcher.MouseLocked) return;
@@ -426,6 +427,10 @@ namespace Raven.UI  {
         
         public void toggle_window(UIPanel panel) {
             if (mouse_holding_window) return;
+            var focused = find_focused_window();
+            if (focused != null && focused.dialog && focused != panel) return;
+            
+            bool panel_was_visible = panel.visible;
             
             if (panel.visible && !MouseWatcher.MouseLocked) {
                 if (MouseWatcher.MouseLocked) return;
@@ -452,8 +457,8 @@ namespace Raven.UI  {
                 if (panel.visible) stored_focus = panel;
             }
             
-            if (panel.visible) panel.on_show?.Invoke();
-            else panel.on_hide?.Invoke();
+            //if (panel.visible && !panel_was_visible) panel.on_show?.Invoke();
+            //else if (!panel.visible && panel_was_visible) panel.on_hide?.Invoke();
         }
     
 
@@ -497,14 +502,14 @@ namespace Raven.UI  {
         public IUIForm find_focused_window() {
             foreach (var w in windows) {
                 if (w == null) continue;
-                if (w.has_focus) {
+                if (w.has_focus && w.visible) {
                     return w;
                 }
             }
             return null;
         }
-        
-        
+
+        public IUIForm focused_window_at_update_time = null;
         bool mouse_holding_window => window_on_mouse != null;
         private bool mouse_was_locked = false;
         public void update() {
@@ -528,12 +533,9 @@ namespace Raven.UI  {
             }
 
             mouse_was_locked = MouseWatcher.MouseLocked;
+
+            focused_window_at_update_time = find_focused_window();
             
-            if (State.engine_binds.just_pressed("toggle_console")) {
-                toggle_window(console);
-            }
-
-
             if (!State.is_active || MouseWatcher.MouseLocked) return;
             
             window_on_mouse = null;
@@ -688,7 +690,13 @@ namespace Raven.UI  {
                     }
                 }
             }
-            
+
+            if (State.engine_binds.just_pressed("exit")) {
+                if (focused_window_at_update_time != null && focused_window_at_update_time is UIWindow && !focused_window_at_update_time.dialog) {
+                    (focused_window_at_update_time as UIWindow).hide();
+                }
+            }
+  
             windows.SortWindows();
         }
         
