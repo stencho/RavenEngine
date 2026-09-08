@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Xna.Framework.Graphics;
 using Raven.Engine;
 
@@ -12,7 +13,11 @@ public class FullResolutionRenderTarget {
     }
 
     void create() {
+        rt2D?.Dispose();
         rt2D = null;
+        
         rt2D = RenderTargetEx.create(State.resolution.X, State.resolution.Y);
+        
+        GC.Collect();
     }
 }
