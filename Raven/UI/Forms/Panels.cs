@@ -33,6 +33,10 @@ public partial class UIPanel : IUIForm {
         reconfigure_client_area();
         disable_focusing();
     }
+
+    protected void disable_client_area() {
+        _client_area = null;
+    }
     
     public virtual void update() {
         start_of_update?.Invoke();
@@ -43,7 +47,7 @@ public partial class UIPanel : IUIForm {
         
         if (size != old_size) _render_targets_need_resize = true;
             
-        if (_render_targets_need_resize) {
+        if (_render_targets_need_resize && use_internal_rendering) {
             _client_area = RenderTargetEx.create(client_size.X, client_size.Y);
             _render_targets_need_resize = false;
         }
