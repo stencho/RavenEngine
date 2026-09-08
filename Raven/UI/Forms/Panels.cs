@@ -78,17 +78,6 @@ public partial class UIPanel : IUIForm {
     public void parent_size_changed(Vector2i new_size) { }
 }
 
-public struct MenuPanelItem {
-    private string text = "";
-    public string Text => text;
-
-    public Action? Pressed;
-
-    public MenuPanelItem(string text, Action on_pressed) {
-        this.text = text;
-        Pressed = on_pressed;
-    }
-}
 
 public partial class UITabbedPanel : IUIForm {
     public int tab_bar_height = 20;
