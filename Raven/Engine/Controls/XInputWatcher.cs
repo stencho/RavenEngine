@@ -20,10 +20,12 @@ public partial class XInputWatcher {
     public XInputDigital[] pressed_buttons = [];
     public XInputDigital[] pressed_buttons_previous = [];
 
+    public Dictionary<XInputAnalog, float> analog_values = new Dictionary<XInputAnalog, float>();
+    public Dictionary<XInputAnalog, float> old_analog_values = new Dictionary<XInputAnalog, float>();
+    
     private List<XInputDigital> buttons_down_this_frame = new List<XInputDigital>();
     
-    public float stick_analog_to_digital_threshold = 0.25f;
-    public float trigger_analog_to_digital_threshold = 0.5f;
+    public float analog_to_digital_threshold = 0.25f;
     
     public float stick_deadzone = 0.1f;
     
@@ -32,7 +34,31 @@ public partial class XInputWatcher {
     public bool just_pressed(XInputDigital x) { return is_pressed(x) && !was_pressed(x); }
     public bool just_released(XInputDigital x) { return !is_pressed(x) && was_pressed(x); }
 
+    public float value(XInputAnalog x) => analog_values[x];
+    public float had_value(XInputAnalog x) => old_analog_values[x];
+    
     static readonly Lock state_lock = new Lock();
+
+    public XInputWatcher() {
+        analog_values.Add(XInputAnalog.LeftStickLeft, 0f);
+        analog_values.Add(XInputAnalog.LeftStickRight, 0f);
+        
+        analog_values.Add(XInputAnalog.LeftStickUp, 0f);
+        analog_values.Add(XInputAnalog.LeftStickDown, 0f);
+        
+        analog_values.Add(XInputAnalog.RightStickLeft, 0f);
+        analog_values.Add(XInputAnalog.RightStickRight, 0f);
+        
+        analog_values.Add(XInputAnalog.RightStickUp, 0f);
+        analog_values.Add(XInputAnalog.RightStickDown, 0f);
+        
+        analog_values.Add(XInputAnalog.TriggerL, 0f);
+        analog_values.Add(XInputAnalog.TriggerR, 0f);
+        
+        foreach (var a in analog_values) {
+            old_analog_values.Add(a.Key, a.Value);
+        }
+    }
     
     public void Update() {
         gamepad_state_previous = gamepad_state;
@@ -69,41 +95,43 @@ public partial class XInputWatcher {
         
         if (gamepad_state.Buttons.BigButton == ButtonState.Pressed) buttons_down_this_frame.Add(XInputDigital.Guide);
         
-        if (gamepad_state.Triggers.Left >= trigger_analog_to_digital_threshold) buttons_down_this_frame.Add(XInputDigital.LeftTrigger);
-        if (gamepad_state.Triggers.Right >= trigger_analog_to_digital_threshold) buttons_down_this_frame.Add(XInputDigital.RightTrigger);
-
-        if (gamepad_state.ThumbSticks.Left.X >= stick_analog_to_digital_threshold) buttons_down_this_frame.Add(XInputDigital.LeftStickRight);
-        if (gamepad_state.ThumbSticks.Left.X <= -stick_analog_to_digital_threshold) buttons_down_this_frame.Add(XInputDigital.LeftStickLeft);
-        if (gamepad_state.ThumbSticks.Right.X >= stick_analog_to_digital_threshold) buttons_down_this_frame.Add(XInputDigital.RightStickRight);
-        if (gamepad_state.ThumbSticks.Right.X <= -stick_analog_to_digital_threshold) buttons_down_this_frame.Add(XInputDigital.RightStickLeft);
-        
-        if (gamepad_state.ThumbSticks.Left.Y <= -stick_analog_to_digital_threshold) buttons_down_this_frame.Add(XInputDigital.LeftStickDown);
-        if (gamepad_state.ThumbSticks.Left.Y >= stick_analog_to_digital_threshold) buttons_down_this_frame.Add(XInputDigital.LeftStickUp);
-        if (gamepad_state.ThumbSticks.Right.Y <= -stick_analog_to_digital_threshold) buttons_down_this_frame.Add(XInputDigital.RightStickDown);
-        if (gamepad_state.ThumbSticks.Right.Y >= stick_analog_to_digital_threshold) buttons_down_this_frame.Add(XInputDigital.RightStickUp);
-
         pressed_buttons_previous = pressed_buttons;
         pressed_buttons = buttons_down_this_frame.ToArray();
+
+        foreach (var a in analog_values) {
+            old_analog_values[a.Key] = a.Value;
+        }
+        
+        analog_values[XInputAnalog.LeftStickLeft] =   float.Clamp(-gamepad_state.ThumbSticks.Left.X, 0, 1);
+        analog_values[XInputAnalog.LeftStickRight] =  float.Clamp(gamepad_state.ThumbSticks.Left.X, 0, 1);
+        analog_values[XInputAnalog.LeftStickUp] =     float.Clamp(gamepad_state.ThumbSticks.Left.Y, 0, 1);
+        analog_values[XInputAnalog.LeftStickDown] =   float.Clamp(-gamepad_state.ThumbSticks.Left.Y, 0, 1);
+        
+        analog_values[XInputAnalog.RightStickLeft] =  float.Clamp(-gamepad_state.ThumbSticks.Right.X, 0, 1);
+        analog_values[XInputAnalog.RightStickRight] = float.Clamp(gamepad_state.ThumbSticks.Right.X, 0, 1);
+        analog_values[XInputAnalog.RightStickUp] =    float.Clamp(gamepad_state.ThumbSticks.Right.Y, 0, 1);
+        analog_values[XInputAnalog.RightStickDown] =  float.Clamp(-gamepad_state.ThumbSticks.Right.Y, 0, 1);
+        
+        analog_values[XInputAnalog.TriggerL] = gamepad_state.Triggers.Left;
+        analog_values[XInputAnalog.TriggerR] = gamepad_state.Triggers.Right;
     }
 }
     
 #region enums
 
-public enum XInputAnalog { LeftStickX, LeftStickY, RightStickX, RightStickY, TriggerL, TriggerR }
-
-public enum XInputStick { Left, Right }
+public enum XInputAnalog {
+    LeftStickLeft, LeftStickRight,  LeftStickUp,  LeftStickDown, 
+    RightStickLeft, RightStickRight, RightStickUp, RightStickDown, 
+    TriggerL, TriggerR
+}
 
 public enum XInputDigital {
     A, B, X, Y,
     LeftShoulder, RightShoulder,
-    LeftTrigger, RightTrigger,
     LeftStick, RightStick,
     DPadUp, DPadDown, DPadLeft, DPadRight,
     Start, Back,
-    Guide,
-        
-    LeftStickUp, LeftStickDown, LeftStickLeft, LeftStickRight, 
-    RightStickUp, RightStickDown, RightStickLeft, RightStickRight, 
+    Guide
 }
     
 #endregion

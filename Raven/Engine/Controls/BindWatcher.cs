@@ -20,10 +20,6 @@ public class BindWatcher {
     public MouseWatcher Mouse = new MouseWatcher();
     public XInputWatcher XInput = new XInputWatcher();
     
-    //TODO XINPUT WATCHER
-    
-    //private static XInputWatcher XInput = new XInputWatcher();
-
     public Dictionary<string, InputBinds.Bind> binds = new();
 
     public static volatile bool global_enable = true;
@@ -97,37 +93,34 @@ public class BindWatcher {
         foreach (var b in binds.Values) {
             //if (!b.released()) {
                 if (c) s += "\n"; else c = true;
-                s += $"[{b.Name}] P:{b.pressed()} D:{b.digital_state} A:{b.AnalogState} -> ";
+                s += $"[{b.Name}] P:{b.pressed()} D:{b.digital_state} A:{value(b.Name):F2} -> ";
                 var cc = false;
                 foreach (var i in b.Inputs) {
                     if (cc) s += " | "; else cc = true;
-                    if (i.BindType == InputBinds.BindType.Digital) {
-                        switch (i.InputType) {
-                            case InputBinds.InputType.Keyboard:
-                                InputBinds.KeyInput k = i as InputBinds.KeyInput;
-                                s += $"[{k.Key}] {Keyboard.is_pressed(k.Key)}";
-                                break;
-                            
-                            case InputBinds.InputType.Mouse:
-                                var m = i as InputBinds.MouseInput;
-                                s += $"[{m.MouseButton}] {Mouse.is_pressed(m.MouseButton)}";
-                                break;
-                            
-                            case InputBinds.InputType.XInput:
-                                if (i.BindType == InputBinds.BindType.Analog) {
-                                    var xi = i as InputBinds.XInputAnalogInput;     
-                                    s += $"[{xi.Analog}] IDK";
-                                } else {
-                                    var xi = i as InputBinds.XInputInput;
-                                    s += $"[{xi.Digital}] IDK";
-                                }
-                                break;
-                            default:
-                                throw new ArgumentOutOfRangeException();
-                        }
+                    switch (i.InputType) {
+                        case InputBinds.InputType.Keyboard:
+                            InputBinds.KeyInput k = i as InputBinds.KeyInput;
+                            s += $"[{k.Key}] {Keyboard.is_pressed(k.Key)}";
+                            break;
                         
+                        case InputBinds.InputType.Mouse:
+                            var m = i as InputBinds.MouseInput;
+                            s += $"[{m.MouseButton}] {Mouse.is_pressed(m.MouseButton)}";
+                            break;
+                        
+                        case InputBinds.InputType.XInput:
+                            var xi = i as InputBinds.XInputInput;
+                            s += $"[{xi.Digital}] {XInput.is_pressed(xi.Digital)}";
+                            break;
+                        
+                        case InputBinds.InputType.XInputAnalog:
+                            var xia = i as InputBinds.XInputAnalogInput;     
+                            s += $"[{xia.Analog}] {XInput.value(xia.Analog):F2}";
+                            break; 
+                        
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
-                    
                 }
                  
             //}
@@ -169,6 +162,8 @@ public class BindWatcher {
                             break;
 
                         case InputBinds.InputType.XInputAnalog:
+                            var xa = d_bind as InputBinds.XInputAnalogInput;
+                            if (XInput.value(xa.Analog) > XInput.analog_to_digital_threshold) all_released = false;
                             break;
 
                         default:
@@ -191,7 +186,7 @@ public class BindWatcher {
         // Update binds
         foreach (var bind in binds.Values) {
             bind.update();
-
+            
             foreach (var d_bind in bind.Inputs) {
                 switch (d_bind.InputType) {
                     case InputBinds.InputType.Keyboard:
@@ -247,7 +242,21 @@ public class BindWatcher {
                     
                     case InputBinds.InputType.XInputAnalog:
                         var xa = d_bind as InputBinds.XInputAnalogInput;
+                        bind.update_analog_state(XInput.analog_values[xa.Analog]);
                         
+                        if (allow_press && XInput.had_value(xa.Analog) < XInput.analog_to_digital_threshold && XInput.value(xa.Analog) > XInput.analog_to_digital_threshold && bind.released()) {
+                            bind.press();
+                            bind.JustPressed?.Invoke();
+                            bind.ActiveInput = d_bind;
+                            goto next_bind;
+                        }
+
+                        if (XInput.had_value(xa.Analog) > XInput.analog_to_digital_threshold && XInput.value(xa.Analog) < XInput.analog_to_digital_threshold && bind.pressed()) {
+                            bind.release();
+                            bind.JustReleased?.Invoke();
+                            bind.ActiveInput = null;
+                            goto next_bind;
+                        }
                         break;
                     
                     default:
@@ -281,6 +290,13 @@ public class BindWatcher {
         return false;
     }
 
+    public float value(string bind_name) {
+        if (bind_enabled(bind_name)) {
+            return binds[bind_name].analog_value();
+        }
+        return 0f;
+    }
+    
     public bool just_pressed(string bind_name) {
         if (bind_enabled(bind_name)) 
             return binds[bind_name].just_pressed();
@@ -331,7 +347,7 @@ public class BindWatcher {
 public static class InputBinds {
     //ENUMS
     public enum InputType { Keyboard, Mouse, XInput, XInputAnalog }
-    public enum BindType { Digital, Analog, Delta /*, Absolute hehe could be fun to support tablets*/ }
+    public enum BindType { Digital, Analog }
 
     public enum PressedState { Released, Pressed, Held, Tapped, DoubleTapped, DoublePressed, JustPressed, JustReleased }
     
@@ -344,8 +360,8 @@ public static class InputBinds {
         public bool AlwaysEnabled { get; set; } = false;
 
         public PressedState digital_state = PressedState.Released;
-        
 
+        
         private float analog_state = 0f;
         public float AnalogState => analog_state;
         
@@ -391,8 +407,17 @@ public static class InputBinds {
             return false;
         }
 
+        internal void update_analog_state(float value) {
+            analog_state = value;
+        }
+
         public float analog_value() {
-            return 0f;
+            var value = 0f; 
+            
+            if (analog_state > 0f) value = analog_state;
+            else if (pressed() || just_pressed()) value = 1f;
+            
+            return value;
         }
         
         private double pressed_at = 0;
@@ -484,8 +509,9 @@ public static class InputBinds {
     }
     
     public abstract class AnalogInput : IInput {
-        public InputType InputType => InputType.XInput;
+        public InputType InputType => InputType.XInputAnalog;
         public BindType BindType => BindType.Analog;
+        
     }
     
     
@@ -525,7 +551,7 @@ public static class InputBinds {
     
     //ANALOG
     public class XInputAnalogInput : AnalogInput {
-        InputType InputType => InputType.XInput;
+        InputType InputType => InputType.XInputAnalog;
 
         private XInputAnalog analog;
         public XInputAnalog Analog => analog;

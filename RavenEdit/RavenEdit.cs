@@ -23,14 +23,6 @@ public class RavenEditGame : Game {
     public static FullResolutionRenderTarget output_render_target;
 
     Canvas current_canvas;
-
-    private BindWatcher binds;
-    
-    internal static (string bind, object[] bind_data)[]
-        bind_list = [
-            ("test", [Keys.W, XInputDigital.A]),
-            ("test2", [Keys.W, XInputDigital.LeftStickLeft]),
-        ];
     
     public RavenEditGame() {
         _graphics = new GraphicsDeviceManager(this);
@@ -61,7 +53,6 @@ public class RavenEditGame : Game {
         
         State.LoadFinishedNoUpdateThread();
 
-        binds = new BindWatcher(bind_list);
     }
 
     protected override void Update(GameTime gameTime) {
@@ -79,7 +70,6 @@ public class RavenEditGame : Game {
     
     protected override void Draw(GameTime gameTime) {
         State.Render();
-        binds.Update();
         // draw canvas and interface to their respective full resolution render targets
         current_canvas.Draw();
         Interface.Render();
@@ -89,17 +79,6 @@ public class RavenEditGame : Game {
         
         Draw2D.image(current_canvas.render_target.rt2D, Vector2i.Zero, State.resolution);
         Draw2D.image(Interface.render_target.rt2D, Vector2i.Zero, State.resolution);
-
-        if (binds.pressed("test")) {
-            Draw2D.fill_circle(Vector2i.One * 50, 10, UIColors.Foreground);
-        } else {
-            Draw2D.circle(Vector2i.One * 50, 10, 2f, UIColors.Foreground);
-        }
-        if (binds.pressed("test2")) {
-            Draw2D.fill_circle(Vector2i.One * 65, 10, UIColors.Foreground);
-        } else {
-            Draw2D.circle(Vector2i.One * 65, 10, 2f, UIColors.Foreground);
-        }
         
         // draw output to screen
         State.graphics_device.SetRenderTarget(null);
