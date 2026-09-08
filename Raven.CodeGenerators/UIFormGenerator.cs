@@ -84,6 +84,7 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
         sb.AppendLine("using Raven.UI;");
         sb.AppendLine("using Raven.UI.Forms;");
         sb.AppendLine("using Raven.Graphics.InterpolatedTypes;");
+        sb.AppendLine("using Raven.Graphics;");
         sb.AppendLine($"partial class {symbol.Name}");
         sb.AppendLine("{");
         sb.AppendLine($$"""
@@ -226,7 +227,7 @@ public sealed class IUIFormBoilerplateGenerator : ISourceGenerator
                         public Color color_background => Draw2D.ColorInterpolate(UIColors.Background.multiply_color(UIColors.focus_fade), UIColors.Background, window_focus_lerp);
                         
                         public void reconfigure_client_area() {
-                            _client_area = new RenderTarget2D(State.graphics_device, client_size.X, client_size.Y);
+                            _client_area = RenderTargetEx.create(client_size.X, client_size.Y);
                             if (_collision.ContainsKey("client_area")) {
                                 _collision["client_area"] = new BoundingBox2D(absolute_position, size);
                             } else _collision.Add("client_area", new BoundingBox2D(absolute_position, size));
