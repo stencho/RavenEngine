@@ -91,6 +91,8 @@ public class BindWatcher {
     public string state_info() {
         string s = $"[BINDS]\n";
         var c = false;
+
+        s += $"[FOCUS RULE] {cares_about_UI_focus} [ALLOW PRESS] {allow_press}\n";
         
         foreach (var b in binds.Values) {
             //if (!b.released()) {
@@ -138,22 +140,57 @@ public class BindWatcher {
 
     public IUIForm requires_focus_on_specific_form = null;
     
+    bool allow_press = true;
+    
     public void Update() {
         Mouse.UpdateDeltas();
         Keyboard.Update();
         XInput.Update();
 
+        // Make sure that allow_press isn't re-enabled until ALL binds are released
+        if (!allow_press) {
+            bool all_released = true;
+            foreach (var bind in binds.Values) {
+                foreach (var d_bind in bind.Inputs) {
+                    switch (d_bind.InputType) {
+                        case InputBinds.InputType.Keyboard:
+                            var k = d_bind as InputBinds.KeyInput;
+                            if (Keyboard.is_pressed(k.Key)) all_released = false;
+                            break;
+
+                        case InputBinds.InputType.Mouse:
+                            var m = d_bind as InputBinds.MouseInput;
+                            if (Mouse.is_pressed(m.MouseButton)) all_released = false;
+                            break;
+
+                        case InputBinds.InputType.XInput:
+                            var x = d_bind as InputBinds.XInputInput;
+                            if (XInput.is_pressed(x.Digital)) all_released = false;
+                            break;
+
+                        case InputBinds.InputType.XInputAnalog:
+                            break;
+
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                }
+            }
+            if (all_released) allow_press = true;
+        }
+        
+        // Disable activating binds if focus rules aren't met
+        if (cares_about_UI_focus == UIFocusConsideration.NeedsNoFocus) {
+            if (State.UI.focused_window_at_update_time != null) allow_press = false;
+        }
+        if (cares_about_UI_focus == UIFocusConsideration.NeedsFocus) {
+            if (requires_focus_on_specific_form == null && State.UI.focused_window_at_update_time == null) allow_press = false;
+            if (requires_focus_on_specific_form != null && State.UI.focused_window_at_update_time != requires_focus_on_specific_form) allow_press = false;
+        }
+
+        // Update binds
         foreach (var bind in binds.Values) {
             bind.update();
-            
-            bool allow_press = true;
-            if (cares_about_UI_focus == UIFocusConsideration.NeedsNoFocus) {
-                if (State.UI.focused_window_at_update_time != null) allow_press = false;
-            }
-            if (cares_about_UI_focus == UIFocusConsideration.NeedsFocus) {
-                if (requires_focus_on_specific_form == null && State.UI.focused_window_at_update_time == null) allow_press = false;
-                if (requires_focus_on_specific_form != null && State.UI.focused_window_at_update_time != requires_focus_on_specific_form) allow_press = false;
-            }
 
             foreach (var d_bind in bind.Inputs) {
                 switch (d_bind.InputType) {

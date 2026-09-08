@@ -61,8 +61,8 @@ public partial class FreeCamEntity : Entity {
         
         binds = new BindWatcher(bind_list);
         binds_graphics = new BindWatcher(bind_list);
-        binds.cares_about_UI_focus = true;
-        binds_graphics.cares_about_UI_focus = true;
+        binds.cares_about_UI_focus = BindWatcher.UIFocusConsideration.NeedsNoFocus;
+        binds_graphics.cares_about_UI_focus = BindWatcher.UIFocusConsideration.NeedsNoFocus;
         
         mouse = new MouseWatcher();
         

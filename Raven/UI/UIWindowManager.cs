@@ -513,6 +513,7 @@ namespace Raven.UI  {
         bool mouse_holding_window => window_on_mouse != null;
         private bool mouse_was_locked = false;
         public void update() {
+            focused_window_at_update_time = find_focused_window();
             //Clock.frame_probe.set("wm_update");
             mouse.UpdateDeltas();
 
@@ -534,7 +535,6 @@ namespace Raven.UI  {
 
             mouse_was_locked = MouseWatcher.MouseLocked;
 
-            focused_window_at_update_time = find_focused_window();
             
             if (!State.is_active || MouseWatcher.MouseLocked) return;
             

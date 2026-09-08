@@ -223,6 +223,10 @@ public class CassowaryGame : Microsoft.Xna.Framework.Game {
             show_all_debug_info = !show_all_debug_info;
         }
         
+        if (State.engine_binds.just_pressed("toggle_console")) {
+            State.UI.toggle_window(State.UI.console);
+        }
+        
         base.Update(gameTime);
     }
 
