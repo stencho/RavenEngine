@@ -190,7 +190,7 @@ namespace Raven.UI {
                 if (!mdown && mdown_p && top_of_mouse_stack && _hide_mouse_down && !_hide_mouse_over) // just released click, but not while over hide
                     _hide_mouse_down = false;
                 if (!mdown && mdown_p && top_of_mouse_stack && _hide_mouse_down && _hide_mouse_over) { // released click, over hide. hide window
-                    _hide_mouse_over_fade.reset(0f);
+                    _hide_mouse_over_fade.Reset(0f);
                     hide(); 
                     _hide_mouse_down = false;
                 }
