@@ -111,6 +111,8 @@ public static class State {
     
     public static byte buffer_count = 3;
     public static int draw_debug_buffer = -1;
+
+    public static Action? AddExtraGvars;
     
     public static void Initialize(Game game, ContentManager content, GraphicsDeviceManager graphics, GameWindow window) {
         
@@ -196,6 +198,8 @@ public static class State {
         gvars.add_gvar("ui_mouse_follows_focus", gvar_data_type.BOOL, false, false, "Moves the mouse over UI windows when they're opened or given focus");
         gvars.add_gvar("ui_window_shadows", gvar_data_type.BOOL, true, true, "Adds a small drop shadow to UI windows");
         gvars.add_gvar("ui_window_middle_click_close", gvar_data_type.BOOL, false, true, "Close windows by middle-clicking their title bars");
+        
+        AddExtraGvars?.Invoke();
         
         bool read_gvars = gvars.read_gvars_from_disk();
         Debug.WriteLine($"{read_gvars} GVARS:\n{gvars.list_all()}");
