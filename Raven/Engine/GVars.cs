@@ -358,7 +358,7 @@ namespace Raven.Engine {
                     s = string.Format("{0}", (int)_gvars[name].data);
                     break;
                 case gvar_data_type.FLOAT:
-                    s = ((float)_gvars[name].data).ToString();
+                    s = ((float)_gvars[name].data).ToString("F2");
 
                     if (!s.Contains('.')) {
                         s += ".0";
