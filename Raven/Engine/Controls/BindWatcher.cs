@@ -25,6 +25,13 @@ public class BindWatcher {
     public static volatile bool global_enable = true;
     static volatile bool global_enable_prev = true;
     
+    public enum UIFocusConsideration { DoesntCare, NeedsNoFocus, NeedsFocus}
+    public UIFocusConsideration cares_about_UI_focus = UIFocusConsideration.DoesntCare;
+
+    public IUIForm requires_focus_on_specific_form = null;
+    
+    bool allow_press = true;
+    
     public void AddBind(InputBinds.Bind bind) {
         if (binds.ContainsKey(bind.Name)) {
             //bind by this name already exists, add inputs to it instead
@@ -37,17 +44,10 @@ public class BindWatcher {
         }
     }
 
-    public void AddBind(string name, Keys key) =>
-        AddBind(new InputBinds.Bind(name, new InputBinds.KeyInput(key)));
-    
-    public void AddBind(string name, MouseWatcher.MouseButtons mouse_button) =>
-        AddBind(new InputBinds.Bind(name, new InputBinds.MouseInput(mouse_button)));
-    
-    public void AddBind(string name, XInputDigital digital) =>
-        AddBind(new InputBinds.Bind(name, new InputBinds.XInputInput(digital)));
-    
-    public void AddBind(string name, XInputAnalog analog) =>
-        AddBind(new InputBinds.Bind(name, new InputBinds.XInputAnalogInput(analog)));
+    public void AddBind(string name, Keys key) => AddBind(new InputBinds.Bind(name, new InputBinds.KeyInput(key)));
+    public void AddBind(string name, MouseWatcher.MouseButtons mouse_button) => AddBind(new InputBinds.Bind(name, new InputBinds.MouseInput(mouse_button)));
+    public void AddBind(string name, XInputDigital digital) => AddBind(new InputBinds.Bind(name, new InputBinds.XInputInput(digital)));
+    public void AddBind(string name, XInputAnalog analog) => AddBind(new InputBinds.Bind(name, new InputBinds.XInputAnalogInput(analog)));
     
     public void AddMultipleBinds(params InputBinds.Bind[] binds) => binds.ForEach(AddBind);
 
@@ -128,12 +128,6 @@ public class BindWatcher {
         return s + "\n\n";
     }
 
-    public enum UIFocusConsideration { DoesntCare, NeedsNoFocus, NeedsFocus}
-    public UIFocusConsideration cares_about_UI_focus = UIFocusConsideration.DoesntCare;
-
-    public IUIForm requires_focus_on_specific_form = null;
-    
-    bool allow_press = true;
     
     public void Update() {
         Mouse.UpdateDeltas();
@@ -312,6 +306,14 @@ public class BindWatcher {
         if (bind_enabled(bind_name)) return binds[bind_name].digital_state == InputBinds.PressedState.Held;
         return false;
     }
+
+    public bool held_repeat(string bind_name) {
+        if (bind_enabled(bind_name)) {
+            return binds[bind_name].HeldBlip;
+        }
+
+        return false;
+    }
     
     public bool double_pressed(string bind_name) {
         if (bind_enabled(bind_name)) return binds[bind_name].digital_state == InputBinds.PressedState.DoublePressed;
@@ -426,7 +428,16 @@ public static class InputBinds {
         private bool double_tap_eligible = false;
         private double double_tap_timer = 0;
         private double double_tap_timer_second_press = 0;
-        
+
+        private double held_at = 0;
+        public double HeldAt => held_at;
+
+        private double held_blip_timer = 0;
+        private bool held_blip = false;
+
+        public bool HeldBlip => held_blip;
+
+        private double held_blip_repeat_time => gvars.get_int("i_hold_repeat_time");
         
         public double PressedForMs => digital_state != PressedState.Released ? Clock.game_run_time_ms - pressed_at : 0;
         
@@ -449,6 +460,14 @@ public static class InputBinds {
         }
         
         internal void update() {
+            held_blip = false;
+            if (digital_state == PressedState.Held) {
+                if (Clock.game_run_time_ms - held_blip_timer > held_blip_repeat_time) {
+                    held_blip = true;
+                    held_blip_timer = Clock.game_run_time_ms;
+                }
+            }
+            
             if (digital_state == PressedState.Tapped) {
                 digital_state = PressedState.Released;
             }
@@ -464,6 +483,7 @@ public static class InputBinds {
             if (digital_state == PressedState.Pressed) {
                 if (PressedForMs > gvars.get_int("i_bind_tap_time")) {
                     digital_state = PressedState.Held;
+                    held_at = Clock.game_run_time_ms;
                 }
             } else if (digital_state == PressedState.JustReleased) {
                 if (PressedForMs < gvars.get_int("i_bind_tap_time")) {

@@ -171,7 +171,7 @@ public static class State {
         gvars.add_gvar("r_resolution", gvar_data_type.VECTOR2I, FindCurrentResolution(), true, "Resolution of both the game window and output buffer.");
         gvars.add_gvar("r_resolution_scale", gvar_data_type.FLOAT, 1f, true, "Set the 3D render output buffer resolution scale.\n0.5 will half the resolution, making things pixelated, 2.0 will double the resolution.\nThis will not affect the 2D layer or backbuffer.\nGoing above 1.0 will not really do anything due to how deferred rendering works.\n");
         
-        gvars.add_gvar("r_vsync", gvar_data_type.BOOL, true, true, "Sync vertical retrace to display.");
+        gvars.add_gvar("r_vsync", gvar_data_type.BOOL, true, true, "Sync vertical refresh to display.");
         gvars.add_gvar("r_frame_limit", gvar_data_type.INT, 60, true, "Sets the render thread's frame rate limit.");
         gvars.add_gvar("r_interpolation", gvar_data_type.BOOL, true, false);
         gvars.add_gvar("r_field_of_view", gvar_data_type.FLOAT, 110f, true, "Main camera field of view.");
@@ -189,6 +189,7 @@ public static class State {
         }
         
         gvars.add_gvar("i_bind_tap_time", gvar_data_type.INT, 500, true, "Sets the tap time for digital inputs, in milliseconds.\nThis is how long it takes for a key to go from Pressed to Held,\nand if it is released before then, it will become Tapped for one frame.");
+        gvars.add_gvar("i_hold_repeat_time", gvar_data_type.INT, 100, true, "Sets the hold repeat time, in milliseconds.\nThis is how often a held input will fire when using held_repeat()");
         gvars.add_gvar("i_mouse_sensitivity", gvar_data_type.VECTOR2, Vector2.One, true, "Sets the mouse sensitivity individually for each axis.");
 
         gvars.add_gvar("ui_focus_follows_mouse", gvar_data_type.BOOL, false, true, "Forces UI window focus to always be on the window under the mouse\n(as opposed to standard click-to-focus)");
