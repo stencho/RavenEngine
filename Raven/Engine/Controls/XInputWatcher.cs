@@ -24,8 +24,8 @@ public partial class XInputWatcher {
     public Dictionary<XInputAnalog, float> old_analog_values = new Dictionary<XInputAnalog, float>();
     
     private List<XInputDigital> buttons_down_this_frame = new List<XInputDigital>();
-    
-    public float analog_to_digital_threshold = 0.25f;
+
+    public float analog_to_digital_threshold => float.Clamp(gvars.get_float("i_analog_to_digital_threshold"), 0f, 1f);
     
     public float stick_deadzone = 0.1f;
     

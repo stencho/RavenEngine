@@ -189,9 +189,9 @@ public static class State {
         } else {
             gvars.add_gvar("g_window_position", gvar_data_type.VECTOR2I, Vector2i.Zero, true, wind_pos_comment);
         }
-        
+        gvars.add_gvar("i_analog_to_digital_threshold", gvar_data_type.FLOAT, 0.1f, true, "If a bind is using an analog input, this value determines the minimum value for that input to cause the bind to become Pressed.");
         gvars.add_gvar("i_bind_tap_time", gvar_data_type.INT, 500, true, "Sets the tap time for digital inputs, in milliseconds.\nThis is how long it takes for a key to go from Pressed to Held,\nand if it is released before then, it will become Tapped for one frame.");
-        gvars.add_gvar("i_hold_repeat_time", gvar_data_type.INT, 100, true, "Sets the hold repeat time, in milliseconds.\nThis is how often a held input will fire when using held_repeat()");
+        gvars.add_gvar("i_hold_repeat_time", gvar_data_type.INT, 100, true, "Sets the hold repeat time, in milliseconds.\nThis is how often a held input will fire when using held_repeat().");
         gvars.add_gvar("i_mouse_sensitivity", gvar_data_type.VECTOR2, Vector2.One, true, "Sets the mouse sensitivity individually for each axis.");
 
         gvars.add_gvar("ui_focus_follows_mouse", gvar_data_type.BOOL, false, true, "Forces UI window focus to always be on the window under the mouse\n(as opposed to standard click-to-focus)");
